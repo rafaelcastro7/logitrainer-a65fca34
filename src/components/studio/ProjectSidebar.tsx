@@ -133,8 +133,29 @@ export default function ProjectSidebar({
   onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene,
 }: ProjectSidebarProps) {
   const { t } = useTranslation();
-  const [treeOpen, setTreeOpen] = useState(true);
-  const [propsOpen, setPropsOpen] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const startRename = () => {
+    if (!selectedScene) return;
+    setNameValue(selectedScene.name);
+    setEditingName(true);
+  };
+
+  const commitRename = () => {
+    if (selectedScene && nameValue.trim()) {
+      onUpdateScene?.(selectedScene.id, { name: nameValue.trim() });
+    }
+    setEditingName(false);
+  };
+
+  useEffect(() => {
+    if (editingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [editingName]);
 
   const tabs = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
