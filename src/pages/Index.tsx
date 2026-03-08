@@ -353,6 +353,7 @@ export default function Index() {
         selectedSceneId={selectedSceneId}
         onSelectScene={setSelectedSceneId}
         onReorderScenes={(newScenes) => setScenes(newScenes)}
+        onUpdateScene={updateScene}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen

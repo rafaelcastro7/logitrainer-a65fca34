@@ -32,9 +32,10 @@ interface StudioLayoutProps {
   selectedSceneId?: string | null;
   onSelectScene?: (id: string) => void;
   onReorderScenes?: (scenes: Scene[]) => void;
+  onUpdateScene?: (id: string, updates: Partial<Scene>) => void;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -192,6 +193,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
           selectedSceneId={selectedSceneId}
           onSelectScene={onSelectScene}
           onReorder={onReorderScenes}
+          onUpdateScene={onUpdateScene}
         />
         <main className="flex-1 overflow-auto">
           {children}
