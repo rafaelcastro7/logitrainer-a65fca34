@@ -35,6 +35,7 @@ export default function Index() {
     updateBackgroundMusic,
   } = useProject();
   const { user, loading: authLoading, signUp, signIn, signOut, approvalStatus, isApproved } = useAuth();
+  const { isAdmin } = useAdmin(user);
   const { savedProjects, loading: projectsLoading, currentProjectId, setCurrentProjectId, saveProject, deleteProject, generateShareLink, loadSharedProject } = useProjects(user);
   
   const [isGenerating, setIsGenerating] = useState(false);
