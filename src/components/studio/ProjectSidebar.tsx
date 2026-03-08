@@ -87,9 +87,16 @@ function SortableSceneItem({ scene, index, isSelected, onSelect, onNavigate }: {
           >
             <GripVertical className="w-3 h-3 text-muted-foreground/50" />
           </span>
-          <span className="w-4 h-4 rounded bg-muted flex items-center justify-center text-[9px] font-mono font-bold shrink-0">
-            {index + 1}
-          </span>
+          {/* Thumbnail */}
+          {scene.image.url ? (
+            <div className="w-8 h-5 rounded-sm overflow-hidden shrink-0 border border-border/30">
+              <img src={scene.image.url} alt="" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <span className="w-8 h-5 rounded-sm bg-muted flex items-center justify-center shrink-0 border border-border/30">
+              <ImageIcon className="w-3 h-3 text-muted-foreground/40" />
+            </span>
+          )}
           <span className="truncate flex-1 text-left">{scene.name}</span>
           <div className="flex items-center gap-1">
             <StatusDot status={scene.image.status} />
@@ -97,7 +104,7 @@ function SortableSceneItem({ scene, index, isSelected, onSelect, onNavigate }: {
           </div>
         </div>
         {/* Mini progress bar */}
-        <div className="w-full h-[3px] rounded-full bg-muted/50 overflow-hidden ml-[26px] mr-1" style={{ width: 'calc(100% - 30px)' }}>
+        <div className="w-full h-[3px] rounded-full bg-muted/50 overflow-hidden ml-[38px] mr-1" style={{ width: 'calc(100% - 42px)' }}>
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
