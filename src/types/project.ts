@@ -37,6 +37,18 @@ export interface Scene {
   voiceName?: string;
 }
 
+export interface BackgroundMusic {
+  id: string;
+  name: string;
+  url: string | null;
+  volume: number; // 0–1
+  fadeIn: number; // seconds
+  fadeOut: number; // seconds
+  loop: boolean;
+  status: 'none' | 'generating' | 'ready' | 'error';
+  prompt?: string;
+}
+
 export interface AssetResource {
   id: string;
   name: string;
@@ -48,11 +60,23 @@ export interface AssetResource {
 export interface Project {
   meta: ProjectMeta;
   scenes: Scene[];
+  backgroundMusic: BackgroundMusic;
   resources: {
     images: AssetResource[];
     audios: AssetResource[];
   };
 }
+
+export const DEFAULT_MUSIC: BackgroundMusic = {
+  id: crypto.randomUUID(),
+  name: '',
+  url: null,
+  volume: 0.15,
+  fadeIn: 2,
+  fadeOut: 3,
+  loop: true,
+  status: 'none',
+};
 
 export const DEFAULT_META: ProjectMeta = {
   name: 'Nuevo Proyecto',
@@ -72,5 +96,6 @@ export const DEFAULT_META: ProjectMeta = {
 export const DEFAULT_PROJECT: Project = {
   meta: DEFAULT_META,
   scenes: [],
+  backgroundMusic: DEFAULT_MUSIC,
   resources: { images: [], audios: [] },
 };

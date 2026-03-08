@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Project, Scene, ProjectMeta, DEFAULT_PROJECT } from '@/types/project';
+import { Project, Scene, ProjectMeta, BackgroundMusic, DEFAULT_PROJECT } from '@/types/project';
 
 interface HistoryEntry {
   project: Project;
@@ -10,7 +10,6 @@ export function useProject() {
   const [project, setProject] = useState<Project>(DEFAULT_PROJECT);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   
-  // Undo/Redo
   const historyRef = useRef<HistoryEntry[]>([{ project: DEFAULT_PROJECT, label: 'init' }]);
   const historyIndexRef = useRef(0);
   const maxHistory = 50;
@@ -42,6 +41,10 @@ export function useProject() {
 
   const loadProject = useCallback((p: Project) => {
     const clone = JSON.parse(JSON.stringify(p));
+    // Ensure backgroundMusic exists for older projects
+    if (!clone.backgroundMusic) {
+      clone.backgroundMusic = { id: crypto.randomUUID(), name: '', url: null, volume: 0.15, fadeIn: 2, fadeOut: 3, loop: true, status: 'none' };
+    }
     setProject(clone);
     historyRef.current = [{ project: clone, label: 'load' }];
     historyIndexRef.current = 0;
@@ -74,7 +77,6 @@ export function useProject() {
         ...prev,
         scenes: prev.scenes.map(s => s.id === id ? { ...s, ...updates } : s),
       };
-      // Don't push history for status-only updates (generating states)
       const isStatusOnly = Object.keys(updates).every(k => k === 'image' || k === 'audio');
       if (!isStatusOnly) pushHistory(next, 'updateScene');
       return next;
@@ -108,6 +110,15 @@ export function useProject() {
     });
   }, [pushHistory]);
 
+  const updateBackgroundMusic = useCallback((updates: Partial<BackgroundMusic>) => {
+    setProject(prev => {
+      const next = { ...prev, backgroundMusic: { ...prev.backgroundMusic, ...updates } };
+      // Don't push history for status updates
+      if (!('status' in updates)) pushHistory(next, 'updateMusic');
+      return next;
+    });
+  }, [pushHistory]);
+
   return {
     project,
     activeTab,
@@ -124,5 +135,6 @@ export function useProject() {
     redo,
     canUndo,
     canRedo,
+    updateBackgroundMusic,
   };
 }
