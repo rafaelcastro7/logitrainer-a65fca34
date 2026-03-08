@@ -31,6 +31,7 @@ interface StudioLayoutProps {
   canRedo?: boolean;
   selectedSceneId?: string | null;
   onSelectScene?: (id: string) => void;
+  onReorderScenes?: (scenes: Scene[]) => void;
 }
 
 export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene }: StudioLayoutProps) {
