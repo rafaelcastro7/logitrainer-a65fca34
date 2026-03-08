@@ -133,6 +133,8 @@ export default function ProjectSidebar({
   onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene,
 }: ProjectSidebarProps) {
   const { t } = useTranslation();
+  const [treeOpen, setTreeOpen] = useState(true);
+  const [propsOpen, setPropsOpen] = useState(true);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
