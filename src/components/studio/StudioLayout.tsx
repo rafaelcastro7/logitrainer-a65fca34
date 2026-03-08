@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Keyboard } from 'lucide-react';
+import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Keyboard, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
@@ -38,6 +38,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     { id: 'editor', label: t.editor, icon: Clapperboard },
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
+    { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
   ];

@@ -11,11 +11,14 @@ import EditorView from '@/components/studio/EditorView';
 import PreviewView from '@/components/studio/PreviewView';
 import AssetsView from '@/components/studio/AssetsView';
 import ApiManagementView from '@/components/studio/ApiManagementView';
+import ProductionAnalytics from '@/components/studio/ProductionAnalytics';
+import MultiSourceImport from '@/components/studio/MultiSourceImport';
 import AboutView from '@/components/studio/AboutView';
 import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
-import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
+import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
+import { type Priority } from '@/services/smartRouter';
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { Loader2, Film } from 'lucide-react';
@@ -36,8 +39,20 @@ export default function Index() {
   const [authOpen, setAuthOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [routerPriority, setRouterPriority] = useState<Priority>('cost');
+  const [connectedProviders, setConnectedProviders] = useState<Set<string>>(new Set());
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
+
+  // Load connected providers
+  useEffect(() => {
+    if (user) {
+      getUserApiKeys().then(keys => {
+        const active = new Set(Object.entries(keys).filter(([, v]) => v.is_active).map(([k]) => k));
+        setConnectedProviders(active);
+      });
+    }
+  }, [user]);
 
   useAutoSave(project, hasProject);
 
@@ -374,7 +389,26 @@ export default function Index() {
               <PreviewView scenes={project.scenes} backgroundMusic={project.backgroundMusic} aspectRatio={project.meta.aspectRatio} />
             )}
             {activeTab === 'assets' && (
-              <AssetsView scenes={project.scenes} />
+              <div className="max-w-5xl mx-auto space-y-6 p-6">
+                <AssetsView scenes={project.scenes} />
+                <MultiSourceImport
+                  onImportImage={(url, name) => {
+                    toast.success(`🖼️ ${name} listo para usar en escenas`);
+                  }}
+                />
+              </div>
+            )}
+            {activeTab === 'analytics' && (
+              <div className="max-w-5xl mx-auto p-6">
+                <ProductionAnalytics
+                  scenesCount={project.scenes.length}
+                  completedImages={project.scenes.filter(s => s.image.status === 'completed').length}
+                  completedAudios={project.scenes.filter(s => s.audio.status === 'completed').length}
+                  connectedProviders={connectedProviders}
+                  priority={routerPriority}
+                  onChangePriority={setRouterPriority}
+                />
+              </div>
             )}
             {activeTab === 'apis' && (
               <ApiManagementView onConnectProvider={handleConnectProvider} isAuthenticated={!!user} />
