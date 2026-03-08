@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
@@ -37,9 +37,10 @@ interface StudioLayoutProps {
   onRegenerateAudio?: (sceneId: string) => void;
   onDuplicateScene?: (scene: Scene) => void;
   onRemoveScene?: (sceneId: string) => void;
+  isAdmin?: boolean;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene, onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene, onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene, isAdmin }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -202,6 +203,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
           onRegenerateAudio={onRegenerateAudio}
           onDuplicateScene={onDuplicateScene}
           onRemoveScene={onRemoveScene}
+          isAdmin={isAdmin}
         />
         <main className="flex-1 overflow-auto">
           {children}

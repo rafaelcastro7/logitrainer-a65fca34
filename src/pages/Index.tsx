@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useProject } from '@/hooks/useProject';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useProjects } from '@/hooks/useProjects';
 import { useAutoSave, getAutoSavedProject, clearAutoSave } from '@/hooks/useAutoSave';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -16,6 +17,8 @@ import MultiSourceImport from '@/components/studio/MultiSourceImport';
 import AboutView from '@/components/studio/AboutView';
 import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
+import AdminApprovalPanel from '@/components/studio/AdminApprovalPanel';
+import PendingApprovalScreen from '@/components/studio/PendingApprovalScreen';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
@@ -31,7 +34,8 @@ export default function Index() {
     loadProject, resetProject, undo, redo, canUndo, canRedo,
     updateBackgroundMusic,
   } = useProject();
-  const { user, loading: authLoading, signUp, signIn, signOut } = useAuth();
+  const { user, loading: authLoading, signUp, signIn, signOut, approvalStatus, isApproved } = useAuth();
+  const { isAdmin } = useAdmin(user);
   const { savedProjects, loading: projectsLoading, currentProjectId, setCurrentProjectId, saveProject, deleteProject, generateShareLink, loadSharedProject } = useProjects(user);
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -333,6 +337,11 @@ export default function Index() {
     );
   }
 
+  // Show pending approval screen for non-approved authenticated users
+  if (user && !isApproved && approvalStatus && approvalStatus !== 'approved') {
+    return <PendingApprovalScreen status={approvalStatus} onSignOut={signOut} />;
+  }
+
   return (
     <>
       <StudioLayout
@@ -358,6 +367,7 @@ export default function Index() {
         onRegenerateAudio={handleRegenerateAudio}
         onDuplicateScene={handleDuplicateScene}
         onRemoveScene={removeScene}
+        isAdmin={isAdmin}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen
@@ -424,6 +434,9 @@ export default function Index() {
             )}
             {activeTab === 'about' && (
               <AboutView onNavigate={setActiveTab} />
+            )}
+            {activeTab === 'admin' && (
+              <AdminApprovalPanel user={user} />
             )}
           </>
         )}

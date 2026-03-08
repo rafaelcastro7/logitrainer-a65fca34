@@ -6,7 +6,7 @@ import {
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
   ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle,
-  RefreshCw, Copy, Trash2
+  RefreshCw, Copy, Trash2, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +44,7 @@ interface ProjectSidebarProps {
   onRegenerateAudio?: (sceneId: string) => void;
   onDuplicateScene?: (scene: Scene) => void;
   onRemoveScene?: (sceneId: string) => void;
+  isAdmin?: boolean;
 }
 
 // Mini progress dot component
@@ -130,7 +131,7 @@ const TRANSITION_TYPES: TransitionType[] = ['fade', 'wipe_left', 'wipe_right', '
 export default function ProjectSidebar({
   activeTab, onTabChange, scenes, collapsed,
   onToggleCollapse, selectedSceneId, onSelectScene, onReorder, onUpdateScene,
-  onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene,
+  onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene, isAdmin,
 }: ProjectSidebarProps) {
   const { t } = useTranslation();
   const [treeOpen, setTreeOpen] = useState(true);
@@ -167,6 +168,7 @@ export default function ProjectSidebar({
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
+    ...(isAdmin ? [{ id: 'admin', label: 'Admin', icon: Shield }] : []),
   ];
 
   const selectedScene = scenes.find(s => s.id === selectedSceneId);

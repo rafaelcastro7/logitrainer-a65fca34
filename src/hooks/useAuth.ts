@@ -6,22 +6,49 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
+  const [isApproved, setIsApproved] = useState(false);
+
+  const checkApproval = useCallback(async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('is_approved, approval_status')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (data) {
+      setApprovalStatus((data as any).approval_status ?? 'pending');
+      setIsApproved((data as any).is_approved ?? false);
+    } else {
+      setApprovalStatus('pending');
+      setIsApproved(false);
+    }
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        setTimeout(() => checkApproval(session.user.id), 0);
+      } else {
+        setApprovalStatus(null);
+        setIsApproved(false);
+      }
       setLoading(false);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        checkApproval(session.user.id);
+      }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkApproval]);
 
   const signUp = useCallback(async (email: string, password: string, displayName?: string) => {
     const { error } = await supabase.auth.signUp({
@@ -41,5 +68,5 @@ export function useAuth() {
     await supabase.auth.signOut();
   }, []);
 
-  return { user, session, loading, signUp, signIn, signOut };
+  return { user, session, loading, signUp, signIn, signOut, approvalStatus, isApproved, recheckApproval: () => user && checkApproval(user.id) };
 }
