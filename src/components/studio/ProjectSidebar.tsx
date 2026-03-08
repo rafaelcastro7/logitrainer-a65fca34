@@ -5,8 +5,10 @@ import {
   LayoutDashboard, Clapperboard, Play, Images, Activity,
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
-  ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle
+  ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle,
+  RefreshCw, Copy, Trash2
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from '@/i18n/LanguageContext';
@@ -33,6 +35,10 @@ interface ProjectSidebarProps {
   onSelectScene?: (id: string) => void;
   onReorder?: (scenes: Scene[]) => void;
   onUpdateScene?: (id: string, updates: Partial<Scene>) => void;
+  onRegenerateImage?: (sceneId: string) => void;
+  onRegenerateAudio?: (sceneId: string) => void;
+  onDuplicateScene?: (scene: Scene) => void;
+  onRemoveScene?: (sceneId: string) => void;
 }
 
 // Mini progress dot component
@@ -81,9 +87,16 @@ function SortableSceneItem({ scene, index, isSelected, onSelect, onNavigate }: {
           >
             <GripVertical className="w-3 h-3 text-muted-foreground/50" />
           </span>
-          <span className="w-4 h-4 rounded bg-muted flex items-center justify-center text-[9px] font-mono font-bold shrink-0">
-            {index + 1}
-          </span>
+          {/* Thumbnail */}
+          {scene.image.url ? (
+            <div className="w-8 h-5 rounded-sm overflow-hidden shrink-0 border border-border/30">
+              <img src={scene.image.url} alt="" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <span className="w-8 h-5 rounded-sm bg-muted flex items-center justify-center shrink-0 border border-border/30">
+              <ImageIcon className="w-3 h-3 text-muted-foreground/40" />
+            </span>
+          )}
           <span className="truncate flex-1 text-left">{scene.name}</span>
           <div className="flex items-center gap-1">
             <StatusDot status={scene.image.status} />
@@ -91,7 +104,7 @@ function SortableSceneItem({ scene, index, isSelected, onSelect, onNavigate }: {
           </div>
         </div>
         {/* Mini progress bar */}
-        <div className="w-full h-[3px] rounded-full bg-muted/50 overflow-hidden ml-[26px] mr-1" style={{ width: 'calc(100% - 30px)' }}>
+        <div className="w-full h-[3px] rounded-full bg-muted/50 overflow-hidden ml-[38px] mr-1" style={{ width: 'calc(100% - 42px)' }}>
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
@@ -112,6 +125,7 @@ const TRANSITION_TYPES: TransitionType[] = ['fade', 'wipe_left', 'wipe_right', '
 export default function ProjectSidebar({
   activeTab, onTabChange, scenes, collapsed,
   onToggleCollapse, selectedSceneId, onSelectScene, onReorder, onUpdateScene,
+  onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene,
 }: ProjectSidebarProps) {
   const { t } = useTranslation();
   const [treeOpen, setTreeOpen] = useState(true);
@@ -375,6 +389,49 @@ export default function ProjectSidebar({
                     <p className="text-[10px] text-muted-foreground line-clamp-3 leading-relaxed">{selectedScene.script}</p>
                   </div>
                 )}
+
+                {/* Quick Actions */}
+                <div className="pt-2 border-t border-border/30 space-y-1.5">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Quick Actions</span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onRegenerateImage?.(selectedScene.id)}
+                    >
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      Image
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onRegenerateAudio?.(selectedScene.id)}
+                    >
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      Audio
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onDuplicateScene?.(selectedScene)}
+                    >
+                      <Copy className="w-2.5 h-2.5" />
+                      Duplicate
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onRemoveScene?.(selectedScene.id)}
+                    >
+                      <Trash2 className="w-2.5 h-2.5" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
