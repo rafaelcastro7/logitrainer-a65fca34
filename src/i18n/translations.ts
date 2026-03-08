@@ -458,6 +458,33 @@ const fr: TranslationKeys = {
   aboutBottomTitle: 'Prêt à créer votre première vidéo ?',
   aboutBottomDesc: 'Aucune inscription requise. Entrez un sujet et regardez l\'IA construire votre vidéo en temps réel.',
   aboutBottomCTA: 'Commencer maintenant',
+
+  authLogin: 'Se connecter',
+  authSignup: "S'inscrire",
+  authName: 'Nom',
+  authEmail: 'Email',
+  authPassword: 'Mot de passe',
+  authNoAccount: "Pas encore de compte ?",
+  authHasAccount: 'Déjà un compte ?',
+  authLogout: 'Déconnexion',
+
+  myProjects: 'Mes projets',
+  loading: 'Chargement...',
+  noProjectsSaved: 'Aucun projet sauvegardé',
+  share: 'Partager',
+  load: 'Charger',
+  save: 'Sauvegarder',
+  saveProject: 'Sauvegarder le projet',
+  loginToSave: 'Connectez-vous pour sauvegarder',
+
+  renderingVideo: 'Rendu vidéo',
+  loadingAssets: 'Chargement des ressources...',
+  renderingScene: (n: number, total: number) => `Rendu scène ${n}/${total}`,
+  encodingVideo: 'Encodage vidéo...',
+  renderComplete: 'Rendu terminé !',
+  downloadVideo: 'Télécharger la vidéo',
+  playing: 'Lecture',
+  stopPreview: 'Arrêter',
 };
 
 const es: TranslationKeys = {
