@@ -66,7 +66,14 @@ function drawKenBurns(
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-function drawSubtitle(ctx: CanvasRenderingContext2D, text: string, width: number, height: number) {
+function drawSubtitle(ctx: CanvasRenderingContext2D, text: string, width: number, height: number, scene?: Scene) {
+  // Draw text overlay if enabled
+  const overlay = scene?.textOverlay;
+  if (overlay?.enabled && overlay.text.trim()) {
+    drawTextOverlay(ctx, overlay.text, width, height, overlay.position, overlay.style);
+  }
+
+  // Draw subtitle from script
   if (!text.trim()) return;
   
   ctx.save();
@@ -110,6 +117,39 @@ function drawSubtitle(ctx: CanvasRenderingContext2D, text: string, width: number
     ctx.fillText(line, width / 2, y - (visibleLines.length - 1 - i) * lineHeight);
   });
 
+  ctx.restore();
+}
+
+function drawTextOverlay(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  width: number,
+  height: number,
+  position: 'top' | 'center' | 'bottom',
+  style: 'title' | 'subtitle' | 'lower_third'
+) {
+  ctx.save();
+  const fontSize = style === 'title' ? Math.floor(width / 20) : style === 'lower_third' ? Math.floor(width / 35) : Math.floor(width / 30);
+  ctx.font = `${style === 'title' ? '700' : '600'} ${fontSize}px "Space Grotesk", sans-serif`;
+  ctx.textAlign = style === 'lower_third' ? 'left' : 'center';
+
+  const y = position === 'top' ? height * 0.15 : position === 'center' ? height * 0.5 : height * 0.82;
+
+  if (style === 'lower_third') {
+    // Lower third bar
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, y - fontSize, width * 0.5, fontSize * 2);
+    ctx.fillStyle = 'hsl(234, 89%, 64%)';
+    ctx.fillRect(0, y - fontSize, 4, fontSize * 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(text, 20, y + fontSize * 0.3);
+  } else {
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillText(text, width / 2 + 2, y + 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(text, width / 2, y);
+  }
   ctx.restore();
 }
 
