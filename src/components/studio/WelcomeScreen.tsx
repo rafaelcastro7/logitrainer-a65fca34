@@ -95,7 +95,7 @@ export default function WelcomeScreen({ onStart, isGenerating, onApplyTemplate }
             {selectedTemplate ? (
               <span>{selectedTemplate.icon} {selectedTemplate.name}</span>
             ) : (
-              <span>{t.chooseTemplate || 'Choose a template'}</span>
+              <span>{'chooseTemplate' in t ? (t as any).chooseTemplate : 'Start from a template'}</span>
             )}
             <ChevronRight className={cn("w-3.5 h-3.5 transition-transform", showTemplates && "rotate-90")} />
           </button>
