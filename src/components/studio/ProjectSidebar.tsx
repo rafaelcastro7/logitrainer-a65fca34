@@ -168,6 +168,7 @@ export default function ProjectSidebar({
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
+    ...(isAdmin ? [{ id: 'admin', label: 'Admin', icon: Shield }] : []),
   ];
 
   const selectedScene = scenes.find(s => s.id === selectedSceneId);
