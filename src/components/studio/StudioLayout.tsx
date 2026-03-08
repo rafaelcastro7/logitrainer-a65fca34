@@ -33,9 +33,13 @@ interface StudioLayoutProps {
   onSelectScene?: (id: string) => void;
   onReorderScenes?: (scenes: Scene[]) => void;
   onUpdateScene?: (id: string, updates: Partial<Scene>) => void;
+  onRegenerateImage?: (sceneId: string) => void;
+  onRegenerateAudio?: (sceneId: string) => void;
+  onDuplicateScene?: (scene: Scene) => void;
+  onRemoveScene?: (sceneId: string) => void;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene, onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
