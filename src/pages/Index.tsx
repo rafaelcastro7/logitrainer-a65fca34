@@ -350,6 +350,8 @@ export default function Index() {
         onRedo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
+        selectedSceneId={selectedSceneId}
+        onSelectScene={setSelectedSceneId}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen

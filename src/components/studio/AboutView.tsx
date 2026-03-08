@@ -171,7 +171,7 @@ export default function AboutView({ onNavigate }: AboutViewProps) {
             return (
               <motion.div
                 key={pillar.title}
-                variants={fadeUp}
+                variants={i % 2 === 0 ? slideInLeft : slideInRight}
                 custom={i + 1}
                 className="glass-panel rounded-2xl p-6 group hover:border-primary/30 transition-all relative overflow-hidden"
               >
