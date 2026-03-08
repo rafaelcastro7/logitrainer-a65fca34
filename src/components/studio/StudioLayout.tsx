@@ -225,6 +225,8 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
       <main className="flex-1 overflow-auto">
         {children}
       </main>
+
+      <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </div>
   );
 }

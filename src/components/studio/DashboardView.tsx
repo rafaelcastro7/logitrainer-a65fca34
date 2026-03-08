@@ -151,6 +151,35 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
                   </Select>
                 </div>
               </div>
+
+              {/* Aspect Ratio */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Aspect Ratio</Label>
+                <div className="flex gap-2">
+                  {([
+                    { value: '16:9' as AspectRatio, icon: Monitor, label: '16:9 YouTube' },
+                    { value: '9:16' as AspectRatio, icon: Smartphone, label: '9:16 Shorts' },
+                    { value: '1:1' as AspectRatio, icon: Square, label: '1:1 Social' },
+                  ]).map(opt => {
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => onUpdateMeta({ aspectRatio: opt.value })}
+                        className={cn(
+                          "flex-1 flex flex-col items-center gap-1 py-2 rounded-lg border text-xs transition-all",
+                          meta.aspectRatio === opt.value
+                            ? "bg-primary/15 border-primary/40 text-primary font-medium"
+                            : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{opt.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </section>
 
