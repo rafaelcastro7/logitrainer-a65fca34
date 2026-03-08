@@ -287,10 +287,17 @@ export default function Index() {
       name: `${scene.name} ${t.copy}`,
       audio: { status: 'pending', url: null },
       image: { status: 'pending', url: null },
+      transition: scene.transition || 'fade',
     };
     addScene(newScene);
     toast.info(t.toastDuplicated);
   }, [addScene, t]);
+
+  const handleApplyTemplate = useCallback((template: VideoTemplate) => {
+    if (template.meta) {
+      updateMeta(template.meta);
+    }
+  }, [updateMeta]);
 
   const handleConnectProvider = useCallback((providerId: string) => {
     toast.info(t.toastConnectProvider(providerId));
