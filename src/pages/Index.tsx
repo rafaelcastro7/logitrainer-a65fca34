@@ -7,6 +7,7 @@ import EditorView from '@/components/studio/EditorView';
 import PreviewView from '@/components/studio/PreviewView';
 import AssetsView from '@/components/studio/AssetsView';
 import ApiManagementView from '@/components/studio/ApiManagementView';
+import AboutView from '@/components/studio/AboutView';
 import { Scene } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
 import { toast } from 'sonner';
