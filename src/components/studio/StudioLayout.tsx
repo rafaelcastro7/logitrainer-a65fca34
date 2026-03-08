@@ -33,19 +33,10 @@ interface StudioLayoutProps {
   onSelectScene?: (id: string) => void;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-
-  const tabs = [
-    { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
-    { id: 'editor', label: t.editor, icon: Clapperboard },
-    { id: 'preview', label: t.preview, icon: Play },
-    { id: 'assets', label: t.assets, icon: Images },
-    { id: 'analytics', label: 'Analytics', icon: Activity },
-    { id: 'apis', label: t.apis, icon: Server },
-    { id: 'about', label: t.about, icon: Info },
-  ];
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const totalScenes = scenes.length;
   const completedImages = scenes.filter(s => s.image.status === 'completed').length;
