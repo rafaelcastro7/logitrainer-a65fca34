@@ -5,11 +5,36 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function sanitizeString(val: unknown, maxLen: number, fallback: string): string {
+  if (typeof val !== 'string') return fallback;
+  return val.slice(0, maxLen);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { text, voiceName, emotion, provider, userApiKey } = await req.json();
+    const body = await req.json();
+    
+    const text = sanitizeString(body.text, 5000, '');
+    if (!text) {
+      return new Response(JSON.stringify({ error: "Text is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    const voiceName = sanitizeString(body.voiceName, 50, 'Sarah');
+    const emotion = sanitizeString(body.emotion, 30, 'professional');
+    const provider = sanitizeString(body.provider, 20, '');
+    const userApiKey = typeof body.userApiKey === 'string' ? body.userApiKey.slice(0, 200) : '';
+
+    // Validate provider
+    const allowedProviders = ['', 'openai', 'elevenlabs'];
+    if (!allowedProviders.includes(provider)) {
+      return new Response(JSON.stringify({ error: "Invalid provider" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -25,7 +50,7 @@ serve(async (req) => {
         'Alloy': 'alloy', 'Echo': 'echo', 'Fable': 'fable',
         'Onyx': 'onyx', 'Nova': 'nova', 'Shimmer': 'shimmer',
       };
-      const voice = voiceMap[voiceName || 'Nova'] || 'nova';
+      const voice = voiceMap[voiceName] || 'nova';
       const model = emotion === 'hd' ? 'tts-1-hd' : 'tts-1';
 
       const response = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -73,7 +98,7 @@ serve(async (req) => {
         'Lily': 'pFZP5JQG7iQjIQuC4Bku',
       };
 
-      const voiceId = voiceMap[voiceName || 'Sarah'] || 'EXAVITQu4vr4xnSDxMaL';
+      const voiceId = voiceMap[voiceName] || 'EXAVITQu4vr4xnSDxMaL';
 
       const response = await fetch(
         `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
@@ -121,7 +146,7 @@ serve(async (req) => {
       'Charon': 'Charon', 'Aoede': 'Aoede', 'Leda': 'Leda',
     };
 
-    const voice = geminiVoiceMap[voiceName || 'Kore'] || 'Kore';
+    const voice = geminiVoiceMap[voiceName] || 'Kore';
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -132,7 +157,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: `You are a professional narrator. Read the following text naturally with a ${emotion || 'professional'} tone. Voice: ${voice}.` },
+          { role: "system", content: `You are a professional narrator. Read the following text naturally with a ${emotion} tone. Voice: ${voice}.` },
           { role: "user", content: text },
         ],
       }),

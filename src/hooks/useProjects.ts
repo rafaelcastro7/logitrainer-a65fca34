@@ -94,13 +94,13 @@ export function useProjects(user: User | null) {
   }, [fetchProjects]);
 
   const loadSharedProject = useCallback(async (token: string): Promise<Project | null> => {
+    // Validate token format before sending
+    if (!token || typeof token !== 'string' || token.length > 100) return null;
+    
     const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('share_token', token)
-      .single();
-    if (error || !data) return null;
-    return data.data as unknown as Project;
+      .rpc('get_shared_project', { p_share_token: token });
+    if (error || !data || data.length === 0) return null;
+    return (data[0] as any).data as unknown as Project;
   }, []);
 
   return {

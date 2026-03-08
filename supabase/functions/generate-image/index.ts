@@ -5,11 +5,35 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function sanitizeString(val: unknown, maxLen: number, fallback: string): string {
+  if (typeof val !== 'string') return fallback;
+  return val.slice(0, maxLen);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, modelTier, provider, userApiKey } = await req.json();
+    const body = await req.json();
+    
+    const prompt = sanitizeString(body.prompt, 2000, '');
+    if (!prompt) {
+      return new Response(JSON.stringify({ error: "Prompt is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    const modelTier = body.modelTier === 'production' ? 'production' : 'prototyping';
+    const provider = sanitizeString(body.provider, 20, '');
+    const userApiKey = typeof body.userApiKey === 'string' ? body.userApiKey.slice(0, 200) : '';
+
+    // Validate provider is in allowed list
+    const allowedProviders = ['', 'openai', 'stability', 'replicate', 'fal'];
+    if (!allowedProviders.includes(provider)) {
+      return new Response(JSON.stringify({ error: "Invalid provider" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // ===== OpenAI DALL·E =====
     if (provider === 'openai' && userApiKey) {
@@ -109,7 +133,7 @@ serve(async (req) => {
 
       let prediction = await response.json();
 
-      // Poll for completion
+      // Poll for completion with timeout
       let attempts = 0;
       while (prediction.status !== 'succeeded' && prediction.status !== 'failed' && attempts < 60) {
         await new Promise(r => setTimeout(r, 2000));
@@ -156,7 +180,6 @@ serve(async (req) => {
 
       const data = await response.json();
       
-      // fal returns a request_id for queue, poll for result
       if (data.request_id) {
         let attempts = 0;
         while (attempts < 60) {

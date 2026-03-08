@@ -5,11 +5,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function sanitizeString(val: unknown, maxLen: number, fallback: string): string {
+  if (typeof val !== 'string') return fallback;
+  return val.slice(0, maxLen);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { script, action, language, context } = await req.json();
+    const body = await req.json();
+    
+    const script = sanitizeString(body.script, 10000, '');
+    if (!script) {
+      return new Response(JSON.stringify({ error: "Script is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    const allowedActions = ['improve', 'shorten', 'expand', 'rewrite', 'dramatic', 'casual'];
+    const action = allowedActions.includes(body.action) ? body.action : 'improve';
+    const language = sanitizeString(body.language, 5, 'es');
+    const context = sanitizeString(body.context, 500, '');
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -23,7 +40,7 @@ serve(async (req) => {
       casual: `Rewrite this narration script in a casual, conversational tone. Make it feel like a friend explaining the topic.`,
     };
 
-    const actionPrompt = actionPrompts[action] || actionPrompts.improve;
+    const actionPrompt = actionPrompts[action];
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -39,7 +56,7 @@ serve(async (req) => {
             content: `You are a professional video script writer. ${actionPrompt}
             
 Rules:
-- Write in ${language || 'es'} language
+- Write in ${language} language
 - Return ONLY the enhanced script text, no explanations
 - Keep the same language as the input
 - The script should be suitable for voice narration

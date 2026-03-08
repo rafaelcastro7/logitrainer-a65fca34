@@ -5,11 +5,37 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Input validation
+function sanitizeString(val: unknown, maxLen: number, fallback: string): string {
+  if (typeof val !== 'string') return fallback;
+  return val.slice(0, maxLen).replace(/[<>]/g, '');
+}
+
+function sanitizeNumber(val: unknown, min: number, max: number, fallback: number): number {
+  const n = Number(val);
+  if (isNaN(n)) return fallback;
+  return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, language, durationTarget, scenesCount, visualStyle, modelTier } = await req.json();
+    const body = await req.json();
+    
+    // Validate and sanitize inputs
+    const topic = sanitizeString(body.topic, 500, '');
+    if (!topic) {
+      return new Response(JSON.stringify({ error: "Topic is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    const language = sanitizeString(body.language, 5, 'es');
+    const durationTarget = sanitizeNumber(body.durationTarget, 10, 600, 120);
+    const scenesCount = sanitizeNumber(body.scenesCount, 1, 20, 5);
+    const visualStyle = sanitizeString(body.visualStyle, 200, 'Cinematic, photorealistic, 8k');
+    const modelTier = body.modelTier === 'production' ? 'production' : 'prototyping';
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -25,15 +51,15 @@ Always respond with valid JSON only, no markdown, no explanation.`;
     const userPrompt = `Create a detailed video structure about "${topic}".
 
 SETTINGS:
-- Language: ${language || "es"} (write ALL scripts in this language)
-- Target duration: ${durationTarget || 120} seconds
-- Number of scenes: ${scenesCount || 5}
-- Visual style: ${visualStyle || "Cinematic, photorealistic, 8k"}
+- Language: ${language} (write ALL scripts in this language)
+- Target duration: ${durationTarget} seconds
+- Number of scenes: ${scenesCount}
+- Visual style: ${visualStyle}
 
 REQUIREMENTS:
 1. Each scene must have: name, script (narration text), image_prompt (detailed visual description in English), duration (seconds)
 2. Scripts should be educational, engaging, and natural for voice narration
-3. Image prompts must be detailed, consistent in style, and include "${visualStyle || "Cinematic, photorealistic, 8k"}"
+3. Image prompts must be detailed, consistent in style, and include "${visualStyle}"
 4. Distribute the total duration across scenes proportionally
 5. Include emoji in scene names for visual identification
 
@@ -42,7 +68,7 @@ Return this exact JSON structure:
   "scenes": [
     {
       "name": "🎬 Scene Name",
-      "script": "Narration text in ${language || "es"}...",
+      "script": "Narration text in ${language}...",
       "image_prompt": "Detailed image description in English...",
       "duration": 8
     }

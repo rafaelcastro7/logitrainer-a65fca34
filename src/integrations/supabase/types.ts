@@ -127,6 +127,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_shared_project: {
+        Args: { p_share_token: string }
+        Returns: {
+          created_at: string
+          data: Json
+          id: string
+          is_public: boolean | null
+          name: string
+          share_token: string | null
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "projects"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
