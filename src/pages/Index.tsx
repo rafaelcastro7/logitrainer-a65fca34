@@ -39,8 +39,20 @@ export default function Index() {
   const [authOpen, setAuthOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [routerPriority, setRouterPriority] = useState<Priority>('cost');
+  const [connectedProviders, setConnectedProviders] = useState<Set<string>>(new Set());
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
+
+  // Load connected providers
+  useEffect(() => {
+    if (user) {
+      getUserApiKeys().then(keys => {
+        const active = new Set(Object.entries(keys).filter(([, v]) => v.is_active).map(([k]) => k));
+        setConnectedProviders(active);
+      });
+    }
+  }, [user]);
 
   useAutoSave(project, hasProject);
 
