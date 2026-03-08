@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Image, Mic, RotateCw, Trash2, ChevronDown, ChevronUp,
-  Clock, ZoomIn, ZoomOut, MoveHorizontal, Minus, GripVertical,
-  Copy, ArrowUp, ArrowDown, FileText, Type
+  Clock, GripVertical, Copy, ArrowUp, ArrowDown, FileText, Type
 } from 'lucide-react';
 import { Scene, AnimationSettings } from '@/types/project';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/LanguageContext';
 
 interface SceneCardProps {
   scene: Scene;
@@ -30,19 +30,11 @@ interface SceneCardProps {
   onSelect: (id: string) => void;
 }
 
-const statusConfig: Record<string, { color: string; label: string }> = {
-  pending: { color: 'bg-muted text-muted-foreground', label: 'Pendiente' },
-  generating: { color: 'bg-warning/20 text-warning', label: 'Generando...' },
-  completed: { color: 'bg-success/20 text-success', label: '✓ Listo' },
-  error: { color: 'bg-destructive/20 text-destructive', label: '✗ Error' },
-};
-
 function getWordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function getReadingTime(text: string): number {
-  // Average speaking rate: ~150 words per minute
   return Math.ceil((getWordCount(text) / 150) * 60);
 }
 
@@ -51,10 +43,19 @@ export default function SceneCard({
   onMoveUp, onMoveDown, onRegenerateImage, onRegenerateAudio, onSelect
 }: SceneCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
   const wordCount = getWordCount(scene.script);
   const estimatedTime = getReadingTime(scene.script);
-  const imgStatus = statusConfig[scene.image.status];
-  const audStatus = statusConfig[scene.audio.status];
+
+  const statusLabels: Record<string, { color: string; label: string }> = {
+    pending: { color: 'bg-muted text-muted-foreground', label: t.pending },
+    generating: { color: 'bg-warning/20 text-warning', label: t.generatingStatus },
+    completed: { color: 'bg-success/20 text-success', label: t.ready },
+    error: { color: 'bg-destructive/20 text-destructive', label: t.error },
+  };
+
+  const imgStatus = statusLabels[scene.image.status];
+  const audStatus = statusLabels[scene.audio.status];
 
   const handleToggle = () => {
     setExpanded(!expanded);
@@ -73,14 +74,12 @@ export default function SceneCard({
         isActive && "ring-1 ring-primary/40"
       )}
     >
-      {/* Header */}
       <div
         className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/30 transition-colors"
         onClick={handleToggle}
       >
         <GripVertical className="w-4 h-4 text-muted-foreground/40 shrink-0" />
 
-        {/* Thumbnail */}
         <div className="w-12 h-8 rounded bg-muted/30 shrink-0 overflow-hidden">
           {scene.image.url ? (
             <img src={scene.image.url} alt="" className="w-full h-full object-cover" />
@@ -94,7 +93,7 @@ export default function SceneCard({
         <div className="flex-1 min-w-0">
           <span className="font-medium text-sm truncate block">{scene.name}</span>
           <span className="text-[11px] text-muted-foreground">
-            {wordCount} palabras · ~{estimatedTime}s lectura
+            {t.wordsCount(wordCount)} · {t.readingTime(estimatedTime)}
           </span>
         </div>
 
@@ -109,7 +108,6 @@ export default function SceneCard({
             <Clock className="w-2.5 h-2.5" /> {scene.duration}s
           </Badge>
 
-          {/* Quick actions */}
           <div className="flex items-center ml-1">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -121,7 +119,7 @@ export default function SceneCard({
                   <ArrowUp className="w-3 h-3 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">Mover arriba</TooltipContent>
+              <TooltipContent side="top" className="text-xs">{t.moveUp}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -133,7 +131,7 @@ export default function SceneCard({
                   <ArrowDown className="w-3 h-3 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">Mover abajo</TooltipContent>
+              <TooltipContent side="top" className="text-xs">{t.moveDown}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -144,7 +142,7 @@ export default function SceneCard({
                   <Copy className="w-3 h-3 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">Duplicar</TooltipContent>
+              <TooltipContent side="top" className="text-xs">{t.duplicate}</TooltipContent>
             </Tooltip>
           </div>
 
@@ -152,7 +150,6 @@ export default function SceneCard({
         </div>
       </div>
 
-      {/* Expanded Content */}
       {expanded && (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
@@ -161,13 +158,12 @@ export default function SceneCard({
           className="px-4 pb-4 space-y-4 border-t border-border/30"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4">
-            {/* Left: Script & Prompt */}
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs flex items-center gap-1"><FileText className="w-3 h-3" /> Guión (Narración)</Label>
+                  <Label className="text-xs flex items-center gap-1"><FileText className="w-3 h-3" /> {t.script}</Label>
                   <span className="text-[10px] text-muted-foreground">
-                    {wordCount} palabras · ~{estimatedTime}s
+                    {t.wordsCount(wordCount)} · {t.readingTime(estimatedTime)}
                   </span>
                 </div>
                 <Textarea
@@ -178,7 +174,7 @@ export default function SceneCard({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs flex items-center gap-1"><Type className="w-3 h-3" /> Prompt de Imagen</Label>
+                <Label className="text-xs flex items-center gap-1"><Type className="w-3 h-3" /> {t.imagePrompt}</Label>
                 <Textarea
                   value={scene.image_prompt}
                   onChange={e => onUpdate(scene.id, { image_prompt: e.target.value })}
@@ -188,7 +184,6 @@ export default function SceneCard({
               </div>
             </div>
 
-            {/* Right: Settings & Preview */}
             <div className="space-y-3">
               <div className="aspect-video rounded-lg bg-muted/30 border border-border/30 flex items-center justify-center overflow-hidden">
                 {scene.image.url ? (
@@ -196,14 +191,14 @@ export default function SceneCard({
                 ) : (
                   <div className="text-center text-muted-foreground/40">
                     <Image className="w-8 h-8 mx-auto mb-1" />
-                    <p className="text-xs">Sin imagen generada</p>
+                    <p className="text-xs">{t.noImageGenerated}</p>
                   </div>
                 )}
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="flex-1 space-y-1.5">
-                  <Label className="text-xs">Animación Ken Burns</Label>
+                  <Label className="text-xs">{t.kenBurnsAnimation}</Label>
                   <Select
                     value={scene.animation.type}
                     onValueChange={v => onUpdate(scene.id, { animation: { ...scene.animation, type: v as AnimationSettings['type'] } })}
@@ -212,16 +207,16 @@ export default function SceneCard({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="static">Estático</SelectItem>
-                      <SelectItem value="zoom_in">Zoom In</SelectItem>
-                      <SelectItem value="zoom_out">Zoom Out</SelectItem>
-                      <SelectItem value="pan_left">Pan Izquierda</SelectItem>
-                      <SelectItem value="pan_right">Pan Derecha</SelectItem>
+                      <SelectItem value="static">{t.static}</SelectItem>
+                      <SelectItem value="zoom_in">{t.zoomIn}</SelectItem>
+                      <SelectItem value="zoom_out">{t.zoomOut}</SelectItem>
+                      <SelectItem value="pan_left">{t.panLeft}</SelectItem>
+                      <SelectItem value="pan_right">{t.panRight}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <Label className="text-xs">Intensidad: {scene.animation.intensity.toFixed(1)}</Label>
+                  <Label className="text-xs">{t.intensity(scene.animation.intensity.toFixed(1))}</Label>
                   <Slider
                     value={[scene.animation.intensity]}
                     onValueChange={([v]) => onUpdate(scene.id, { animation: { ...scene.animation, intensity: v } })}
@@ -231,7 +226,7 @@ export default function SceneCard({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Duración: {scene.duration}s</Label>
+                <Label className="text-xs">{t.duration(scene.duration)}</Label>
                 <Slider
                   value={[scene.duration]}
                   onValueChange={([v]) => onUpdate(scene.id, { duration: v })}
@@ -241,17 +236,16 @@ export default function SceneCard({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-2 pt-2 border-t border-border/20">
             <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => onRegenerateImage?.(scene.id)}>
-              <RotateCw className="w-3 h-3" /> Regenerar Imagen
+              <RotateCw className="w-3 h-3" /> {t.regenerateImage}
             </Button>
             <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => onRegenerateAudio?.(scene.id)}>
-              <RotateCw className="w-3 h-3" /> Regenerar Audio
+              <RotateCw className="w-3 h-3" /> {t.regenerateAudio}
             </Button>
             <div className="flex-1" />
             <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-destructive hover:text-destructive" onClick={() => onRemove(scene.id)}>
-              <Trash2 className="w-3 h-3" /> Eliminar
+              <Trash2 className="w-3 h-3" /> {t.delete}
             </Button>
           </div>
         </motion.div>

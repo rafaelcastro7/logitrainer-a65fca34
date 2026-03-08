@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/LanguageContext';
+import { LOCALE_LABELS, Locale } from '@/i18n/translations';
 
 interface DashboardViewProps {
   meta: ProjectMeta;
@@ -19,8 +20,8 @@ interface DashboardViewProps {
 }
 
 const voices = ['Puck', 'Kore', 'Fenrir', 'Charon', 'Aoede', 'Leda'];
-const emotions = ['professional', 'happy', 'calm', 'energetic', 'dramatic'];
-const languages = [
+
+const contentLanguages = [
   { value: 'es', label: '🇪🇸 Español' },
   { value: 'en', label: '🇺🇸 English' },
   { value: 'fr', label: '🇫🇷 Français' },
@@ -30,6 +31,23 @@ const languages = [
 export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenerating, scenesCount }: DashboardViewProps) {
   const [topic, setTopic] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(true);
+  const { t } = useTranslation();
+
+  const emotions: { value: string; label: string }[] = [
+    { value: 'professional', label: t.professional },
+    { value: 'happy', label: t.happy },
+    { value: 'calm', label: t.calm },
+    { value: 'energetic', label: t.energetic },
+    { value: 'dramatic', label: t.dramatic },
+  ];
+
+  const quickTopics = [
+    t.topicIndustrialRev,
+    t.topicSolarSystem,
+    t.topicAI,
+    t.topicPhotosynthesis,
+    t.topicWWII,
+  ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6">
@@ -40,11 +58,11 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
             <Sparkles className="w-5 h-5 text-primary animate-pulse-glow" />
           </div>
           <div>
-            <h2 className="text-lg font-bold">Generador Mágico</h2>
+            <h2 className="text-lg font-bold">{t.magicGenerator}</h2>
             <p className="text-sm text-muted-foreground">
               {scenesCount > 0
-                ? `Tienes ${scenesCount} escenas. Genera nuevas para reemplazarlas.`
-                : 'Ingresa un tema y la IA creará el guión completo'
+                ? t.magicGeneratorDescExisting(scenesCount)
+                : t.magicGeneratorDescNew
               }
             </p>
           </div>
@@ -52,7 +70,7 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
 
         <div className="flex gap-3">
           <Input
-            placeholder="Ej: Historia de la Revolución Industrial..."
+            placeholder={t.topicPlaceholder}
             value={topic}
             onChange={e => setTopic(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && topic.trim() && onGenerate(topic.trim())}
@@ -64,20 +82,19 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
             className="gap-2 glow-primary"
           >
             <Wand2 className="w-4 h-4" />
-            {isGenerating ? 'Generando...' : 'Generar'}
+            {isGenerating ? t.generating : t.generate}
           </Button>
         </div>
 
-        {/* Quick topics */}
         <div className="flex flex-wrap gap-2">
-          <span className="text-xs text-muted-foreground self-center">Ideas:</span>
-          {['Revolución Industrial', 'Sistema Solar', 'Inteligencia Artificial', 'Fotosíntesis', 'Segunda Guerra Mundial'].map(t => (
+          <span className="text-xs text-muted-foreground self-center">{t.ideas}</span>
+          {quickTopics.map(topic => (
             <button
-              key={t}
-              onClick={() => setTopic(t)}
+              key={topic}
+              onClick={() => setTopic(topic)}
               className="text-xs px-2.5 py-1 rounded-full bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             >
-              {t}
+              {topic}
             </button>
           ))}
         </div>
@@ -90,41 +107,41 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
       >
         {settingsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         <Settings2 className="w-4 h-4" />
-        Configuración del Proyecto
+        {t.projectSettings}
       </button>
 
       {settingsOpen && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="glass-panel rounded-xl p-5 space-y-4">
             <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Settings2 className="w-4 h-4 text-primary" /> General
+              <Settings2 className="w-4 h-4 text-primary" /> {t.general}
             </h3>
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Nombre</Label>
+                <Label className="text-xs">{t.name}</Label>
                 <Input value={meta.name} onChange={e => onUpdateMeta({ name: e.target.value })} className="bg-muted/50 border-border/50 h-9 text-sm" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Autor</Label>
+                <Label className="text-xs">{t.author}</Label>
                 <Input value={meta.author} onChange={e => onUpdateMeta({ author: e.target.value })} className="bg-muted/50 border-border/50 h-9 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Idioma</Label>
+                  <Label className="text-xs">{t.language}</Label>
                   <Select value={meta.language} onValueChange={v => onUpdateMeta({ language: v })}>
                     <SelectTrigger className="bg-muted/50 border-border/50 h-9 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {languages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                      {contentLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Calidad IA</Label>
+                  <Label className="text-xs">{t.aiQuality}</Label>
                   <Select value={meta.modelTier} onValueChange={v => onUpdateMeta({ modelTier: v as 'prototyping' | 'production' })}>
                     <SelectTrigger className="bg-muted/50 border-border/50 h-9 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="prototyping">⚡ Prototipo</SelectItem>
-                      <SelectItem value="production">💎 Producción</SelectItem>
+                      <SelectItem value="prototyping">{t.prototype}</SelectItem>
+                      <SelectItem value="production">{t.production}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -134,20 +151,20 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
 
           <section className="glass-panel rounded-xl p-5 space-y-4">
             <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" /> Tiempo y Voz
+              <Clock className="w-4 h-4 text-primary" /> {t.timeAndVoice}
             </h3>
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Duración Objetivo: {meta.durationTarget}s ({Math.floor(meta.durationTarget/60)}:{String(meta.durationTarget%60).padStart(2,'0')})</Label>
+                <Label className="text-xs">{t.targetDuration(meta.durationTarget)}</Label>
                 <Slider value={[meta.durationTarget]} onValueChange={([v]) => onUpdateMeta({ durationTarget: v })} min={30} max={600} step={10} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Seg/Escena: {meta.secondsPerScene}s</Label>
+                <Label className="text-xs">{t.secPerScene(meta.secondsPerScene)}</Label>
                 <Slider value={[meta.secondsPerScene]} onValueChange={([v]) => onUpdateMeta({ secondsPerScene: v })} min={3} max={30} step={1} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Voz</Label>
+                  <Label className="text-xs">{t.voice}</Label>
                   <Select value={meta.voiceName} onValueChange={v => onUpdateMeta({ voiceName: v })}>
                     <SelectTrigger className="bg-muted/50 border-border/50 h-9 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -156,17 +173,17 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Emoción</Label>
+                  <Label className="text-xs">{t.emotion}</Label>
                   <Select value={meta.defaultEmotion} onValueChange={v => onUpdateMeta({ defaultEmotion: v })}>
                     <SelectTrigger className="bg-muted/50 border-border/50 h-9 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {emotions.map(e => <SelectItem key={e} value={e}>{e.charAt(0).toUpperCase() + e.slice(1)}</SelectItem>)}
+                      {emotions.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="flex items-center justify-between pt-1">
-                <Label className="text-xs">Optimización de Frames</Label>
+                <Label className="text-xs">{t.frameOptimization}</Label>
                 <Switch checked={meta.frameOptimization} onCheckedChange={v => onUpdateMeta({ frameOptimization: v })} />
               </div>
             </div>
@@ -174,17 +191,16 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
         </div>
       )}
 
-      {/* Visual Style */}
       {settingsOpen && (
         <section className="glass-panel rounded-xl p-5 space-y-3">
           <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Palette className="w-4 h-4 text-primary" /> Estilo Visual Global
+            <Palette className="w-4 h-4 text-primary" /> {t.globalVisualStyle}
           </h3>
           <Textarea
             value={meta.visualStyle}
             onChange={e => onUpdateMeta({ visualStyle: e.target.value })}
             rows={2}
-            placeholder="Describe el estilo visual global..."
+            placeholder={t.visualStylePlaceholder}
             className="bg-muted/50 border-border/50 resize-none text-sm"
           />
         </section>

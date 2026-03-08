@@ -1,7 +1,11 @@
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
+import { useTranslation } from '@/i18n/LanguageContext';
+import { Locale, LOCALE_LABELS } from '@/i18n/translations';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 interface StudioLayoutProps {
   activeTab: string;
@@ -11,15 +15,17 @@ interface StudioLayoutProps {
   hasProject: boolean;
 }
 
-const tabs = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'editor', label: 'Editor', icon: Clapperboard },
-  { id: 'preview', label: 'Preview', icon: Play },
-  { id: 'assets', label: 'Assets', icon: Images },
-  { id: 'apis', label: 'APIs', icon: Server },
-];
-
 export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject }: StudioLayoutProps) {
+  const { t, locale, setLocale } = useTranslation();
+
+  const tabs = [
+    { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
+    { id: 'editor', label: t.editor, icon: Clapperboard },
+    { id: 'preview', label: t.preview, icon: Play },
+    { id: 'assets', label: t.assets, icon: Images },
+    { id: 'apis', label: t.apis, icon: Server },
+  ];
+
   const totalScenes = scenes.length;
   const completedImages = scenes.filter(s => s.image.status === 'completed').length;
   const completedAudios = scenes.filter(s => s.audio.status === 'completed').length;
@@ -39,7 +45,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             </div>
             <h1 className="text-lg font-bold tracking-tight">
               <span className="text-gradient-primary">LogiTrainer</span>
-              <span className="text-muted-foreground font-medium ml-1">Studio</span>
+              <span className="text-muted-foreground font-medium ml-1">{t.studio}</span>
             </h1>
           </div>
 
@@ -74,25 +80,48 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             })}
           </nav>
 
-          {hasProject ? (
-            <div className="flex items-center gap-4 text-xs text-muted-foreground w-32 justify-end">
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                {Math.floor(totalDuration / 60)}:{String(totalDuration % 60).padStart(2, '0')}
-              </span>
-              {hasErrors ? (
-                <span className="flex items-center gap-1 text-destructive">
-                  <AlertCircle className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-3 w-40 justify-end">
+            {/* Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-2">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{locale.toUpperCase()}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {(Object.keys(LOCALE_LABELS) as Locale[]).map(l => (
+                  <DropdownMenuItem
+                    key={l}
+                    onClick={() => setLocale(l)}
+                    className={cn("text-sm", l === locale && "font-bold")}
+                  >
+                    {LOCALE_LABELS[l]}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {hasProject && (
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  {Math.floor(totalDuration / 60)}:{String(totalDuration % 60).padStart(2, '0')}
                 </span>
-              ) : progress === 100 ? (
-                <span className="flex items-center gap-1 text-success">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </span>
-              ) : totalScenes > 0 ? (
-                <span>{Math.round(progress)}%</span>
-              ) : null}
-            </div>
-          ) : <div className="w-32" />}
+                {hasErrors ? (
+                  <span className="flex items-center gap-1 text-destructive">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                  </span>
+                ) : progress === 100 ? (
+                  <span className="flex items-center gap-1 text-success">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </span>
+                ) : totalScenes > 0 ? (
+                  <span>{Math.round(progress)}%</span>
+                ) : null}
+              </div>
+            )}
+          </div>
         </div>
 
         {hasProject && totalScenes > 0 && progress < 100 && (

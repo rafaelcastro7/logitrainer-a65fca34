@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, Film, Wand2, ArrowRight, Zap, Image, Mic, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '@/i18n/LanguageContext';
 import heroImage from '@/assets/hero-studio.jpg';
 
 interface WelcomeScreenProps {
@@ -10,15 +11,23 @@ interface WelcomeScreenProps {
   isGenerating: boolean;
 }
 
-const features = [
-  { icon: Wand2, title: 'Guión con IA', desc: 'Genera guiones educativos automáticamente' },
-  { icon: Image, title: 'Imágenes IA', desc: 'Crea visuales únicos para cada escena' },
-  { icon: Mic, title: 'Narración TTS', desc: 'Voces profesionales en múltiples idiomas' },
-  { icon: Video, title: 'Export Video', desc: 'Renderiza y descarga en un clic' },
-];
-
 export default function WelcomeScreen({ onStart, isGenerating }: WelcomeScreenProps) {
   const [topic, setTopic] = useState('');
+  const { t } = useTranslation();
+
+  const features = [
+    { icon: Wand2, title: t.featureScript, desc: t.featureScriptDesc },
+    { icon: Image, title: t.featureImages, desc: t.featureImagesDesc },
+    { icon: Mic, title: t.featureTTS, desc: t.featureTTSDesc },
+    { icon: Video, title: t.featureExport, desc: t.featureExportDesc },
+  ];
+
+  const quickTopics = [
+    t.topicIndustrialRev,
+    t.topicSolarSystem,
+    t.topicAI,
+    t.topicPhotosynthesis,
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +36,6 @@ export default function WelcomeScreen({ onStart, isGenerating }: WelcomeScreenPr
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-3.5rem)] px-6 relative overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 z-0">
         <img src={heroImage} alt="" className="w-full h-full object-cover opacity-20" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
@@ -39,7 +47,6 @@ export default function WelcomeScreen({ onStart, isGenerating }: WelcomeScreenPr
         transition={{ duration: 0.6 }}
         className="relative z-10 max-w-2xl w-full text-center space-y-8"
       >
-        {/* Logo */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -53,15 +60,14 @@ export default function WelcomeScreen({ onStart, isGenerating }: WelcomeScreenPr
 
         <div className="space-y-3">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            <span className="text-gradient-primary">LogiTrainer</span>{' '}
-            <span className="text-foreground">Studio</span>
+            <span className="text-gradient-primary">{t.welcomeTitle}</span>{' '}
+            <span className="text-foreground">{t.welcomeSubtitle}</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-            Crea videos educativos profesionales con IA. Escribe un tema y deja que la magia suceda.
+            {t.welcomeDesc}
           </p>
         </div>
 
-        {/* Main CTA */}
         <motion.form
           onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 20 }}
@@ -72,7 +78,7 @@ export default function WelcomeScreen({ onStart, isGenerating }: WelcomeScreenPr
           <div className="flex-1 relative">
             <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
             <Input
-              placeholder="¿Sobre qué quieres crear un video?"
+              placeholder={t.welcomeInput}
               value={topic}
               onChange={e => setTopic(e.target.value)}
               className="pl-10 h-12 bg-card/80 border-border/50 text-base backdrop-blur-sm"
@@ -88,18 +94,17 @@ export default function WelcomeScreen({ onStart, isGenerating }: WelcomeScreenPr
             {isGenerating ? (
               <>
                 <Zap className="w-4 h-4 animate-spin" />
-                Creando...
+                {t.creating}
               </>
             ) : (
               <>
-                Crear Video
+                {t.createVideo}
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </Button>
         </motion.form>
 
-        {/* Feature Cards */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -124,15 +129,14 @@ export default function WelcomeScreen({ onStart, isGenerating }: WelcomeScreenPr
           })}
         </motion.div>
 
-        {/* Quick Examples */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.9 }}
           className="flex flex-wrap items-center justify-center gap-2 pt-2"
         >
-          <span className="text-xs text-muted-foreground">Prueba con:</span>
-          {['Revolución Industrial', 'Sistema Solar', 'Inteligencia Artificial', 'Fotosíntesis'].map(example => (
+          <span className="text-xs text-muted-foreground">{t.tryWith}</span>
+          {quickTopics.map(example => (
             <button
               key={example}
               onClick={() => setTopic(example)}
