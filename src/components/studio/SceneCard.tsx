@@ -333,7 +333,6 @@ export default function SceneCard({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            </Button>
           </div>
         </div>
       )}
