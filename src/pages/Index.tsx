@@ -10,6 +10,7 @@ import ApiManagementView from '@/components/studio/ApiManagementView';
 import { Scene } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
 import { toast } from 'sonner';
+import { useTranslation } from '@/i18n/LanguageContext';
 
 export default function Index() {
   const {
@@ -18,11 +19,11 @@ export default function Index() {
   } = useProject();
   const [isGenerating, setIsGenerating] = useState(false);
   const hasProject = project.scenes.length > 0;
+  const { t } = useTranslation();
 
-  // ==================== Script Generation (Real AI) ====================
   const handleGenerate = useCallback(async (topic: string) => {
     setIsGenerating(true);
-    toast.info('Generando guión con IA...', { duration: 3000 });
+    toast.info(t.toastGenerating, { duration: 3000 });
 
     try {
       const result = await generateScript({
@@ -56,22 +57,21 @@ export default function Index() {
 
       setScenes(scenes);
       setActiveTab('editor');
-      toast.success(`¡${scenes.length} escenas generadas con ${result.usage.model}!`);
+      toast.success(t.toastScenesGenerated(scenes.length, result.usage.model));
     } catch (error) {
       console.error('Script generation error:', error);
-      toast.error(error instanceof Error ? error.message : 'Error generando el guión');
+      toast.error(error instanceof Error ? error.message : t.toastErrorScript);
     } finally {
       setIsGenerating(false);
     }
-  }, [project.meta, setScenes, setActiveTab]);
+  }, [project.meta, setScenes, setActiveTab, t]);
 
-  // ==================== Image Generation ====================
   const handleRegenerateImage = useCallback(async (sceneId: string) => {
     const scene = project.scenes.find(s => s.id === sceneId);
     if (!scene) return;
 
     updateScene(sceneId, { image: { status: 'generating', url: null } });
-    toast.info(`Generando imagen para "${scene.name}"...`);
+    toast.info(t.toastGeneratingImage(scene.name));
 
     try {
       const result = await generateImage({
@@ -88,24 +88,23 @@ export default function Index() {
       });
 
       updateScene(sceneId, { image: { status: 'completed', url: result.imageUrl } });
-      toast.success(`Imagen generada para "${scene.name}"`);
+      toast.success(t.toastImageGenerated(scene.name));
     } catch (error) {
       console.error('Image generation error:', error);
       updateScene(sceneId, { image: { status: 'error', url: null } });
-      toast.error(error instanceof Error ? error.message : 'Error generando imagen');
+      toast.error(error instanceof Error ? error.message : t.toastErrorImage);
     }
-  }, [project.scenes, project.meta.modelTier, updateScene]);
+  }, [project.scenes, project.meta.modelTier, updateScene, t]);
 
-  // ==================== TTS Generation ====================
   const handleRegenerateAudio = useCallback(async (sceneId: string) => {
     const scene = project.scenes.find(s => s.id === sceneId);
     if (!scene || !scene.script.trim()) {
-      toast.error('La escena necesita un guión para generar audio');
+      toast.error(t.toastNeedScript);
       return;
     }
 
     updateScene(sceneId, { audio: { status: 'generating', url: null } });
-    toast.info(`Generando audio para "${scene.name}"...`);
+    toast.info(t.toastGeneratingAudio(scene.name));
 
     try {
       const result = await generateTTS({
@@ -125,50 +124,47 @@ export default function Index() {
       if (result.audioBase64) {
         const audioUrl = `data:audio/mpeg;base64,${result.audioBase64}`;
         updateScene(sceneId, { audio: { status: 'completed', url: audioUrl } });
-        toast.success(`Audio generado con ${result.provider}`);
+        toast.success(t.toastAudioGenerated(result.provider));
       } else {
         updateScene(sceneId, { audio: { status: 'completed', url: null } });
-        toast.info(result.message || 'Audio procesado (conecta ElevenLabs para audio de alta calidad)');
+        toast.info(result.message || t.toastAudioFallback);
       }
     } catch (error) {
       console.error('TTS error:', error);
       updateScene(sceneId, { audio: { status: 'error', url: null } });
-      toast.error(error instanceof Error ? error.message : 'Error generando audio');
+      toast.error(error instanceof Error ? error.message : 'TTS error');
     }
-  }, [project.scenes, project.meta, updateScene]);
+  }, [project.scenes, project.meta, updateScene, t]);
 
-  // ==================== Batch Generation ====================
   const handleGenerateAllImages = useCallback(async () => {
     const pendingScenes = project.scenes.filter(s => s.image.status !== 'completed');
     if (pendingScenes.length === 0) {
-      toast.info('Todas las imágenes ya están generadas');
+      toast.info(t.toastAllImagesReady);
       return;
     }
 
-    toast.info(`Generando ${pendingScenes.length} imágenes en cola...`);
+    toast.info(t.toastBatchImages(pendingScenes.length));
     for (const scene of pendingScenes) {
       await handleRegenerateImage(scene.id);
-      // Small delay to avoid rate limiting
       await new Promise(r => setTimeout(r, 1000));
     }
-  }, [project.scenes, handleRegenerateImage]);
+  }, [project.scenes, handleRegenerateImage, t]);
 
-  // ==================== Scene Actions ====================
   const handleDuplicateScene = useCallback((scene: Scene) => {
     const newScene: Scene = {
       ...scene,
       id: crypto.randomUUID(),
-      name: `${scene.name} (copia)`,
+      name: `${scene.name} ${t.copy}`,
       audio: { status: 'pending', url: null },
       image: { status: 'pending', url: null },
     };
     addScene(newScene);
-    toast.info('Escena duplicada');
-  }, [addScene]);
+    toast.info(t.toastDuplicated);
+  }, [addScene, t]);
 
   const handleConnectProvider = useCallback((providerId: string) => {
-    toast.info(`Para conectar ${providerId}, ve a Settings → Connectors en tu proyecto.`);
-  }, []);
+    toast.info(t.toastConnectProvider(providerId));
+  }, [t]);
 
   return (
     <StudioLayout

@@ -3,31 +3,16 @@ import { motion } from 'framer-motion';
 import {
   Sparkles, AudioLines, Search, Film, ImagePlus,
   CheckCircle2, Circle, Lock, Zap, Server, BarChart3,
-  ExternalLink, Settings2, Shield
+  ExternalLink, Shield
 } from 'lucide-react';
-import { API_PROVIDERS, ApiProvider, getUsageSummary, getUsageHistory } from '@/services/apiService';
+import { API_PROVIDERS, getUsageSummary, getUsageHistory } from '@/services/apiService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/i18n/LanguageContext';
 
 const iconMap: Record<string, React.ElementType> = {
   Sparkles, AudioLines, Search, Film, ImagePlus,
-};
-
-const statusConfig = {
-  active: { label: 'Activo', color: 'bg-success/20 text-success', dot: 'bg-success' },
-  available: { label: 'Disponible', color: 'bg-warning/20 text-warning', dot: 'bg-warning' },
-  coming_soon: { label: 'Próximamente', color: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' },
-};
-
-const capabilityLabels: Record<string, string> = {
-  script_generation: '📝 Guiones',
-  image_generation: '🖼️ Imágenes',
-  tts: '🎙️ Text-to-Speech',
-  text_analysis: '🔍 Análisis',
-  research: '📚 Investigación',
-  video_generation: '🎬 Video IA',
 };
 
 interface ApiManagementViewProps {
@@ -36,53 +21,66 @@ interface ApiManagementViewProps {
 
 export default function ApiManagementView({ onConnectProvider }: ApiManagementViewProps) {
   const [expandedProvider, setExpandedProvider] = useState<string | null>('lovable-ai');
+  const { t } = useTranslation();
   const usage = getUsageSummary();
   const history = getUsageHistory();
 
+  const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
+    active: { label: t.active, color: 'bg-success/20 text-success', dot: 'bg-success' },
+    available: { label: t.available, color: 'bg-warning/20 text-warning', dot: 'bg-warning' },
+    coming_soon: { label: t.comingSoon, color: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' },
+  };
+
+  const capabilityLabels: Record<string, string> = {
+    script_generation: t.capScript,
+    image_generation: t.capImage,
+    tts: t.capTTS,
+    text_analysis: t.capAnalysis,
+    research: t.capResearch,
+    video_generation: t.capVideo,
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6 p-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Server className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-bold">Gestión de APIs</h2>
+          <h2 className="text-lg font-bold">{t.apiManagement}</h2>
           <Badge variant="outline" className="text-xs">
-            {API_PROVIDERS.filter(p => p.status === 'active').length} activas
+            {API_PROVIDERS.filter(p => p.status === 'active').length} {t.active.toLowerCase()}
           </Badge>
         </div>
       </div>
 
-      {/* Usage Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="glass-panel rounded-lg p-4 text-center">
           <Zap className="w-4 h-4 mx-auto mb-1.5 text-primary/60" />
           <p className="text-xl font-bold text-gradient-primary">{usage.totalCalls}</p>
-          <p className="text-[11px] text-muted-foreground">Llamadas API</p>
+          <p className="text-[11px] text-muted-foreground">{t.apiCalls}</p>
         </div>
         <div className="glass-panel rounded-lg p-4 text-center">
           <BarChart3 className="w-4 h-4 mx-auto mb-1.5 text-primary/60" />
           <p className="text-xl font-bold text-gradient-primary">{usage.totalTokens.toLocaleString()}</p>
-          <p className="text-[11px] text-muted-foreground">Tokens Usados</p>
+          <p className="text-[11px] text-muted-foreground">{t.tokensUsed}</p>
         </div>
         <div className="glass-panel rounded-lg p-4 text-center">
           <CheckCircle2 className="w-4 h-4 mx-auto mb-1.5 text-success/60" />
           <p className="text-xl font-bold text-gradient-primary">
             {API_PROVIDERS.filter(p => p.status === 'active').length}
           </p>
-          <p className="text-[11px] text-muted-foreground">Proveedores Activos</p>
+          <p className="text-[11px] text-muted-foreground">{t.activeProviders}</p>
         </div>
         <div className="glass-panel rounded-lg p-4 text-center">
           <Shield className="w-4 h-4 mx-auto mb-1.5 text-primary/60" />
           <p className="text-xl font-bold text-gradient-primary">
             {API_PROVIDERS.reduce((s, p) => s + p.models.length, 0)}
           </p>
-          <p className="text-[11px] text-muted-foreground">Modelos Disponibles</p>
+          <p className="text-[11px] text-muted-foreground">{t.availableModels}</p>
         </div>
       </div>
 
-      {/* Provider Cards */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground">Proveedores de API</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground">{t.apiProviders}</h3>
 
         {API_PROVIDERS.map(provider => {
           const Icon = iconMap[provider.icon] || Sparkles;
@@ -96,7 +94,6 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
               layout
               className="glass-panel rounded-xl overflow-hidden"
             >
-              {/* Provider Header */}
               <div
                 className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-secondary/20 transition-colors"
                 onClick={() => setExpandedProvider(isExpanded ? null : provider.id)}
@@ -117,7 +114,7 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
                     </Badge>
                     {!provider.requiresKey && (
                       <Badge variant="outline" className="text-[10px] h-5 bg-primary/10 text-primary">
-                        Sin API Key
+                        {t.noApiKey}
                       </Badge>
                     )}
                   </div>
@@ -127,7 +124,7 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
                 <div className="flex items-center gap-3 shrink-0">
                   {providerUsage && (
                     <span className="text-xs text-muted-foreground">
-                      {providerUsage.calls} llamadas
+                      {providerUsage.calls} {t.calls.toLowerCase()}
                     </span>
                   )}
                   <div className="flex gap-1">
@@ -140,16 +137,14 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
                 </div>
               </div>
 
-              {/* Expanded Content */}
               {isExpanded && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   className="px-5 pb-5 border-t border-border/30 space-y-4"
                 >
-                  {/* Capabilities */}
                   <div className="pt-4">
-                    <h4 className="text-xs font-semibold text-muted-foreground mb-2">Capacidades</h4>
+                    <h4 className="text-xs font-semibold text-muted-foreground mb-2">{t.capabilities}</h4>
                     <div className="flex flex-wrap gap-2">
                       {provider.capabilities.map(cap => (
                         <Badge key={cap} variant="outline" className="text-xs">
@@ -159,9 +154,8 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
                     </div>
                   </div>
 
-                  {/* Models */}
                   <div>
-                    <h4 className="text-xs font-semibold text-muted-foreground mb-2">Modelos</h4>
+                    <h4 className="text-xs font-semibold text-muted-foreground mb-2">{t.models}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {provider.models.map(model => (
                         <div key={model.id} className="flex items-center gap-3 bg-muted/30 rounded-lg px-3 py-2">
@@ -176,7 +170,6 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
                     </div>
                   </div>
 
-                  {/* Actions */}
                   {provider.status === 'available' && provider.requiresKey && (
                     <div className="pt-2">
                       <Button
@@ -185,7 +178,7 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
                         onClick={() => onConnectProvider?.(provider.id)}
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
-                        Conectar {provider.name}
+                        {t.connect} {provider.name}
                       </Button>
                     </div>
                   )}
@@ -193,16 +186,16 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
                   {provider.status === 'coming_soon' && (
                     <div className="pt-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <Lock className="w-3.5 h-3.5" />
-                      <span>Este proveedor estará disponible próximamente</span>
+                      <span>{t.providerComingSoon}</span>
                     </div>
                   )}
 
                   {provider.status === 'active' && providerUsage && (
                     <div className="pt-2">
-                      <h4 className="text-xs font-semibold text-muted-foreground mb-2">Uso en esta sesión</h4>
+                      <h4 className="text-xs font-semibold text-muted-foreground mb-2">{t.sessionUsage}</h4>
                       <div className="flex gap-4 text-xs">
-                        <span>Llamadas: <strong>{providerUsage.calls}</strong></span>
-                        <span>Tokens: <strong>{providerUsage.tokens.toLocaleString()}</strong></span>
+                        <span>{t.calls}: <strong>{providerUsage.calls}</strong></span>
+                        <span>{t.tokens}: <strong>{providerUsage.tokens.toLocaleString()}</strong></span>
                       </div>
                     </div>
                   )}
@@ -213,15 +206,14 @@ export default function ApiManagementView({ onConnectProvider }: ApiManagementVi
         })}
       </div>
 
-      {/* Recent Activity */}
       {history.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground">Actividad Reciente</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground">{t.recentActivity}</h3>
           <div className="glass-panel rounded-xl divide-y divide-border/20">
             {history.slice(-10).reverse().map((record, i) => (
               <div key={i} className="flex items-center gap-3 px-4 py-2.5 text-xs">
                 <span className="text-muted-foreground w-16">
-                  {new Date(record.timestamp).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(record.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                 </span>
                 <Badge variant="outline" className="text-[10px]">
                   {record.type === 'script' ? '📝' : record.type === 'image' ? '🖼️' : '🎙️'}
