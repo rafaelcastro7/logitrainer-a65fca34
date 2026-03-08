@@ -465,15 +465,32 @@ export default function ProjectSidebar({
                       <Copy className="w-2.5 h-2.5" />
                       Duplicate
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="h-7 text-[10px] gap-1"
-                      onClick={() => onRemoveScene?.(selectedScene.id)}
-                    >
-                      <Trash2 className="w-2.5 h-2.5" />
-                      Delete
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-7 text-[10px] gap-1"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete scene?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete "{selectedScene.name}" and all its generated assets. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onRemoveScene?.(selectedScene.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </div>
