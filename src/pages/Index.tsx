@@ -354,6 +354,10 @@ export default function Index() {
         onSelectScene={setSelectedSceneId}
         onReorderScenes={(newScenes) => setScenes(newScenes)}
         onUpdateScene={updateScene}
+        onRegenerateImage={handleRegenerateImage}
+        onRegenerateAudio={handleRegenerateAudio}
+        onDuplicateScene={handleDuplicateScene}
+        onRemoveScene={removeScene}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen
