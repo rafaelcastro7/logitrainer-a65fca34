@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Activity, Command } from 'lucide-react';
+import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { User as SupaUser } from '@supabase/supabase-js';
 import KeyboardShortcutsDialog from './KeyboardShortcutsDialog';
 import StatusBar from './StatusBar';
+import ProjectSidebar from './ProjectSidebar';
 
 interface StudioLayoutProps {
   activeTab: string;
@@ -28,6 +29,8 @@ interface StudioLayoutProps {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  selectedSceneId?: string | null;
+  onSelectScene?: (id: string) => void;
 }
 
 export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo }: StudioLayoutProps) {
