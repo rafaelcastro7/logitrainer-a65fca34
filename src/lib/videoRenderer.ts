@@ -214,10 +214,12 @@ function drawTransition(
   }
 }
 
-// Scene-level transition type selection
-function getTransitionType(sceneIndex: number): TransitionType {
+// Scene-level transition type selection — use scene's own transition if set
+function getTransitionType(scene: Scene, _sceneIndex: number): TransitionType {
+  if (scene.transition && scene.transition !== 'none') return scene.transition as TransitionType;
+  if (scene.transition === 'none') return 'fade'; // still need minimal transition
   const types: TransitionType[] = ['fade', 'wipe_left', 'dissolve', 'slide_up', 'wipe_right'];
-  return types[sceneIndex % types.length];
+  return types[_sceneIndex % types.length];
 }
 
 export async function renderVideo(
