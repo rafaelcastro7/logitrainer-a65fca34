@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
-import { Plus, Clapperboard, Clock, Wand2, Image, Mic, Zap } from 'lucide-react';
-import { Scene } from '@/types/project';
+import { useState, useMemo, useCallback } from 'react';
+import { Plus, Clapperboard, Clock, Wand2, Image, Mic, Zap, Download, Upload } from 'lucide-react';
+import { Scene, Project } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import SceneCard from './SceneCard';
-import MiniTimeline from './MiniTimeline';
+import InteractiveTimeline from './InteractiveTimeline';
 import { useTranslation } from '@/i18n/LanguageContext';
+import { toast } from 'sonner';
 import {
   DndContext,
   closestCenter,
@@ -34,11 +35,15 @@ interface EditorViewProps {
   onRegenerateAudio?: (id: string) => void;
   onGenerateAllImages?: () => void;
   onGenerateAllAudios?: () => void;
+  projectLanguage?: string;
+  project?: Project;
+  onLoadProject?: (project: Project) => void;
 }
 
 export default function EditorView({
   scenes, onUpdateScene, onRemoveScene, onAddScene, onReorder,
   onDuplicateScene, onRegenerateImage, onRegenerateAudio, onGenerateAllImages, onGenerateAllAudios,
+  projectLanguage, project, onLoadProject,
 }: EditorViewProps) {
   const [activeSceneId, setActiveSceneId] = useState<string | undefined>(scenes[0]?.id);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -77,6 +82,40 @@ export default function EditorView({
   const handleMoveUp = (index: number) => { if (index > 0) onReorder(index, index - 1); };
   const handleMoveDown = (index: number) => { if (index < scenes.length - 1) onReorder(index, index + 1); };
 
+  const handleSplitScene = useCallback((sceneId: string, splitTime: number) => {
+    const scene = scenes.find(s => s.id === sceneId);
+    if (!scene) return;
+
+    const words = scene.script.split(' ');
+    const splitRatio = splitTime / scene.duration;
+    const splitWordIndex = Math.floor(words.length * splitRatio);
+
+    const sceneIndex = scenes.findIndex(s => s.id === sceneId);
+    
+    // Update original scene
+    onUpdateScene(sceneId, {
+      duration: Math.round(splitTime),
+      script: words.slice(0, splitWordIndex).join(' '),
+    });
+
+    // Create new scene with remaining content
+    const newScene: Scene = {
+      id: crypto.randomUUID(),
+      name: `${scene.name} (B)`,
+      script: words.slice(splitWordIndex).join(' '),
+      image_prompt: scene.image_prompt,
+      duration: Math.round(scene.duration - splitTime),
+      audio: { status: 'pending', url: null },
+      image: { status: 'pending', url: null },
+      animation: { ...scene.animation },
+      notes: '',
+      transition: scene.transition || 'fade',
+      voiceName: scene.voiceName,
+    };
+    onAddScene(newScene);
+    toast.success('✂️ Escena dividida');
+  }, [scenes, onUpdateScene, onAddScene]);
+
   function createEmptyScene(index: number): Scene {
     return {
       id: crypto.randomUUID(),
@@ -92,6 +131,40 @@ export default function EditorView({
     };
   }
 
+  const handleExportProject = () => {
+    if (!project) return;
+    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.meta.name.replace(/\s+/g, '_')}.logitrainer.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('📦 Proyecto exportado');
+  };
+
+  const handleImportProject = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text) as Project;
+        if (!imported.meta || !imported.scenes) {
+          throw new Error('Invalid project file');
+        }
+        onLoadProject?.(imported);
+        toast.success('📂 Proyecto importado');
+      } catch {
+        toast.error('Archivo de proyecto inválido');
+      }
+    };
+    input.click();
+  };
+
   const draggingScene = draggingId ? scenes.find(s => s.id === draggingId) : null;
 
   return (
@@ -102,6 +175,16 @@ export default function EditorView({
           <h2 className="text-lg font-bold">{t.timeline}</h2>
         </div>
         <div className="flex items-center gap-2">
+          {project && (
+            <>
+              <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-7" onClick={handleExportProject}>
+                <Download className="w-3 h-3" /> Export
+              </Button>
+              <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-7" onClick={handleImportProject}>
+                <Upload className="w-3 h-3" /> Import
+              </Button>
+            </>
+          )}
           {pendingAudios > 0 && (
             <Button
               size="sm"
@@ -153,7 +236,13 @@ export default function EditorView({
         </div>
       )}
 
-      <MiniTimeline scenes={scenes} activeSceneId={activeSceneId} onSceneClick={setActiveSceneId} />
+      {/* Interactive Pro Timeline */}
+      <InteractiveTimeline
+        scenes={scenes}
+        activeSceneId={activeSceneId}
+        onSceneClick={(id) => setActiveSceneId(id)}
+        onSplitScene={handleSplitScene}
+      />
 
       {scenes.length === 0 ? (
         <div className="glass-panel rounded-xl p-12 text-center">
@@ -186,6 +275,8 @@ export default function EditorView({
                   onRegenerateImage={onRegenerateImage}
                   onRegenerateAudio={onRegenerateAudio}
                   onSelect={setActiveSceneId}
+                  onSplit={handleSplitScene}
+                  projectLanguage={projectLanguage}
                 />
               ))}
             </div>
