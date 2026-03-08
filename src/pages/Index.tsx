@@ -33,7 +33,7 @@ export default function Index() {
     loadProject, resetProject, undo, redo, canUndo, canRedo,
     updateBackgroundMusic,
   } = useProject();
-  const { user, loading: authLoading, signUp, signIn, signOut } = useAuth();
+  const { user, loading: authLoading, signUp, signIn, signOut, approvalStatus, isApproved } = useAuth();
   const { savedProjects, loading: projectsLoading, currentProjectId, setCurrentProjectId, saveProject, deleteProject, generateShareLink, loadSharedProject } = useProjects(user);
   
   const [isGenerating, setIsGenerating] = useState(false);
