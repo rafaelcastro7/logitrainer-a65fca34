@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Scene, TransitionType, AnimationSettings } from '@/types/project';
 import {
@@ -9,6 +9,11 @@ import {
   RefreshCw, Copy, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from '@/i18n/LanguageContext';
@@ -130,6 +135,29 @@ export default function ProjectSidebar({
   const { t } = useTranslation();
   const [treeOpen, setTreeOpen] = useState(true);
   const [propsOpen, setPropsOpen] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const startRename = () => {
+    if (!selectedScene) return;
+    setNameValue(selectedScene.name);
+    setEditingName(true);
+  };
+
+  const commitRename = () => {
+    if (selectedScene && nameValue.trim()) {
+      onUpdateScene?.(selectedScene.id, { name: nameValue.trim() });
+    }
+    setEditingName(false);
+  };
+
+  useEffect(() => {
+    if (editingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [editingName]);
 
   const tabs = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
@@ -278,10 +306,26 @@ export default function ProjectSidebar({
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-1 space-y-2 px-1">
               <div className="glass-panel rounded-lg p-3 space-y-3">
-                {/* Scene name */}
-                <div className="flex items-center gap-2">
-                  <Film className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-xs font-semibold truncate">{selectedScene.name}</span>
+                {/* Scene name - double click to rename */}
+                <div className="flex items-center gap-2" onDoubleClick={startRename}>
+                  <Film className="w-3.5 h-3.5 text-primary shrink-0" />
+                  {editingName ? (
+                    <input
+                      ref={nameInputRef}
+                      value={nameValue}
+                      onChange={(e) => setNameValue(e.target.value)}
+                      onBlur={commitRename}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitRename();
+                        if (e.key === 'Escape') setEditingName(false);
+                      }}
+                      className="text-xs font-semibold bg-muted/50 border border-border/50 rounded px-1.5 py-0.5 w-full outline-none focus:border-primary/50"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold truncate cursor-text" title="Double-click to rename">
+                      {selectedScene.name}
+                    </span>
+                  )}
                 </div>
 
                 {/* Status indicators */}
@@ -421,15 +465,32 @@ export default function ProjectSidebar({
                       <Copy className="w-2.5 h-2.5" />
                       Duplicate
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="h-7 text-[10px] gap-1"
-                      onClick={() => onRemoveScene?.(selectedScene.id)}
-                    >
-                      <Trash2 className="w-2.5 h-2.5" />
-                      Delete
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-7 text-[10px] gap-1"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete scene?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete "{selectedScene.name}" and all its generated assets. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onRemoveScene?.(selectedScene.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </div>
