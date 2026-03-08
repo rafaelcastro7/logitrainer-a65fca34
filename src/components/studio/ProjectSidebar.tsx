@@ -5,12 +5,21 @@ import {
   LayoutDashboard, Clapperboard, Play, Images, Activity,
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
-  ChevronDown, ChevronUp, Clock, Sparkles
+  ChevronDown, ChevronUp, Clock, Sparkles, GripVertical
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor,
+  useSensor, useSensors, DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove, SortableContext, verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ProjectSidebarProps {
   activeTab: string;
@@ -20,11 +29,53 @@ interface ProjectSidebarProps {
   onToggleCollapse: () => void;
   selectedSceneId?: string | null;
   onSelectScene?: (id: string) => void;
+  onReorder?: (scenes: Scene[]) => void;
+}
+
+function SortableSceneItem({ scene, index, isSelected, onSelect, onNavigate }: {
+  scene: Scene; index: number; isSelected: boolean;
+  onSelect?: (id: string) => void; onNavigate: (tab: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: scene.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <button
+        onClick={() => { onSelect?.(scene.id); onNavigate('editor'); }}
+        className={cn(
+          "w-full flex items-center gap-1.5 px-1.5 py-1.5 rounded-md text-[11px] transition-all group",
+          isSelected ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+        )}
+      >
+        <span
+          {...attributes} {...listeners}
+          className="cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-muted/50 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="w-3 h-3 text-muted-foreground/50" />
+        </span>
+        <span className="w-4 h-4 rounded bg-muted flex items-center justify-center text-[9px] font-mono font-bold shrink-0">
+          {index + 1}
+        </span>
+        <span className="truncate flex-1 text-left">{scene.name}</span>
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {scene.image.status === 'completed' && <ImageIcon className="w-2.5 h-2.5 text-success" />}
+          {scene.audio.status === 'completed' && <Mic className="w-2.5 h-2.5 text-success" />}
+        </div>
+      </button>
+    </div>
+  );
 }
 
 export default function ProjectSidebar({
   activeTab, onTabChange, scenes, collapsed,
-  onToggleCollapse, selectedSceneId, onSelectScene,
+  onToggleCollapse, selectedSceneId, onSelectScene, onReorder,
 }: ProjectSidebarProps) {
   const { t } = useTranslation();
   const [treeOpen, setTreeOpen] = useState(true);
