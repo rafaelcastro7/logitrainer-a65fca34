@@ -204,7 +204,17 @@ export default function PreviewView({ scenes, backgroundMusic, aspectRatio = '16
             </div>
 
             {/* Controls row */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                disabled={currentSceneIndex === 0 || !isPlaying}
+                onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))}
+              >
+                <SkipBack className="w-3.5 h-3.5" />
+              </Button>
+
               <Button
                 size="sm"
                 variant="ghost"
@@ -213,6 +223,16 @@ export default function PreviewView({ scenes, backgroundMusic, aspectRatio = '16
                 onClick={handlePlay}
               >
                 {isPlaying ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </Button>
+
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                disabled={currentSceneIndex >= scenes.length - 1 || !isPlaying}
+                onClick={() => setCurrentSceneIndex(Math.min(scenes.length - 1, currentSceneIndex + 1))}
+              >
+                <SkipForward className="w-3.5 h-3.5" />
               </Button>
 
               <div className="text-xs font-mono text-muted-foreground min-w-[80px]">
@@ -226,6 +246,13 @@ export default function PreviewView({ scenes, backgroundMusic, aspectRatio = '16
               )}
 
               <div className="flex-1" />
+
+              {hasBgMusic && (
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Volume2 className="w-3 h-3 text-primary/60" />
+                  <span>BGM</span>
+                </div>
+              )}
 
               <Button
                 size="sm"

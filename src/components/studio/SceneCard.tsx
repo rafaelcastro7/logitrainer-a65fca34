@@ -15,6 +15,11 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/LanguageContext';
 
@@ -309,9 +314,25 @@ export default function SceneCard({
               <RotateCw className="w-3 h-3" /> {t.regenerateAudio}
             </Button>
             <div className="flex-1" />
-            <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-destructive hover:text-destructive" onClick={() => onRemove(scene.id)}>
-              <Trash2 className="w-3 h-3" /> {t.delete}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-destructive hover:text-destructive">
+                  <Trash2 className="w-3 h-3" /> {t.delete}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete scene?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete "{scene.name}" and all its generated assets. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onRemove(scene.id)}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       )}
