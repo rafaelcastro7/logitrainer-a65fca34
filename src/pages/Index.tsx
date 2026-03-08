@@ -209,6 +209,9 @@ export default function Index() {
           {activeTab === 'apis' && (
             <ApiManagementView onConnectProvider={handleConnectProvider} />
           )}
+          {activeTab === 'about' && (
+            <AboutView onNavigate={setActiveTab} />
+          )}
         </>
       )}
     </StudioLayout>
