@@ -125,6 +125,7 @@ const TRANSITION_TYPES: TransitionType[] = ['fade', 'wipe_left', 'wipe_right', '
 export default function ProjectSidebar({
   activeTab, onTabChange, scenes, collapsed,
   onToggleCollapse, selectedSceneId, onSelectScene, onReorder, onUpdateScene,
+  onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene,
 }: ProjectSidebarProps) {
   const { t } = useTranslation();
   const [treeOpen, setTreeOpen] = useState(true);
