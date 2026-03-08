@@ -164,33 +164,34 @@ export default function ProjectSidebar({
               {treeOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-px mt-1">
-              {scenes.map((scene, i) => {
-                const isSelected = scene.id === selectedSceneId;
-                return (
-                  <button
-                    key={scene.id}
-                    onClick={() => {
-                      onSelectScene?.(scene.id);
-                      onTabChange('editor');
-                    }}
-                    className={cn(
-                      "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] transition-all group",
-                      isSelected
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                    )}
-                  >
-                    <span className="w-4 h-4 rounded bg-muted flex items-center justify-center text-[9px] font-mono font-bold shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="truncate flex-1 text-left">{scene.name}</span>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {scene.image.status === 'completed' && <ImageIcon className="w-2.5 h-2.5 text-success" />}
-                      {scene.audio.status === 'completed' && <Mic className="w-2.5 h-2.5 text-success" />}
-                    </div>
-                  </button>
-                );
-              })}
+              <DndContext
+                sensors={useSensors(
+                  useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+                  useSensor(KeyboardSensor)
+                )}
+                collisionDetection={closestCenter}
+                onDragEnd={(event: DragEndEvent) => {
+                  const { active, over } = event;
+                  if (over && active.id !== over.id) {
+                    const oldIndex = scenes.findIndex(s => s.id === active.id);
+                    const newIndex = scenes.findIndex(s => s.id === over.id);
+                    onReorder?.(arrayMove(scenes, oldIndex, newIndex));
+                  }
+                }}
+              >
+                <SortableContext items={scenes.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                  {scenes.map((scene, i) => (
+                    <SortableSceneItem
+                      key={scene.id}
+                      scene={scene}
+                      index={i}
+                      isSelected={scene.id === selectedSceneId}
+                      onSelect={onSelectScene}
+                      onNavigate={onTabChange}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             </CollapsibleContent>
           </Collapsible>
         )}
