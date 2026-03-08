@@ -6,7 +6,7 @@ import {
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
   ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle,
-  RefreshCw, Copy, Trash2
+  RefreshCw, Copy, Trash2, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
