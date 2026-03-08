@@ -180,10 +180,21 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
         )}
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      {/* Body with sidebar */}
+      <div className="flex flex-1 overflow-hidden">
+        <ProjectSidebar
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          scenes={scenes}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          selectedSceneId={selectedSceneId}
+          onSelectScene={onSelectScene}
+        />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
 
       {/* Status Bar */}
       <StatusBar scenes={scenes} user={user} hasProject={hasProject} />
