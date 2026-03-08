@@ -377,7 +377,7 @@ export default function Index() {
               <AssetsView scenes={project.scenes} />
             )}
             {activeTab === 'apis' && (
-              <ApiManagementView onConnectProvider={handleConnectProvider} />
+              <ApiManagementView onConnectProvider={handleConnectProvider} isAuthenticated={!!user} />
             )}
             {activeTab === 'about' && (
               <AboutView onNavigate={setActiveTab} />

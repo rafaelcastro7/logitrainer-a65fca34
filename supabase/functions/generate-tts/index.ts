@@ -9,16 +9,55 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { text, voiceName, emotion } = await req.json();
+    const { text, voiceName, emotion, provider, userApiKey } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Check if ElevenLabs is connected
-    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+    // Determine which provider to use
+    const ELEVENLABS_API_KEY = userApiKey && provider === 'elevenlabs' 
+      ? userApiKey 
+      : Deno.env.get("ELEVENLABS_API_KEY");
 
+    // ===== OpenAI TTS =====
+    if (provider === 'openai' && userApiKey) {
+      const voiceMap: Record<string, string> = {
+        'Alloy': 'alloy', 'Echo': 'echo', 'Fable': 'fable',
+        'Onyx': 'onyx', 'Nova': 'nova', 'Shimmer': 'shimmer',
+      };
+      const voice = voiceMap[voiceName || 'Nova'] || 'nova';
+      const model = emotion === 'hd' ? 'tts-1-hd' : 'tts-1';
+
+      const response = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${userApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ model, input: text, voice, response_format: "mp3" }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("OpenAI TTS error:", response.status, errText);
+        throw new Error(`OpenAI TTS error: ${response.status}`);
+      }
+
+      const audioBuffer = await response.arrayBuffer();
+      const { encode: base64Encode } = await import("https://deno.land/std@0.168.0/encoding/base64.ts");
+      const base64Audio = base64Encode(audioBuffer);
+
+      return new Response(JSON.stringify({
+        audioBase64: base64Audio,
+        provider: "openai",
+        format: "mp3",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ===== ElevenLabs TTS =====
     if (ELEVENLABS_API_KEY) {
-      // Use ElevenLabs for high-quality TTS
       const voiceMap: Record<string, string> = {
         'Roger': 'CwhRBWXzGAHq8TQ4Fs17',
         'Sarah': 'EXAVITQu4vr4xnSDxMaL',
@@ -76,7 +115,7 @@ serve(async (req) => {
       });
     }
 
-    // Fallback: Use Lovable AI TTS (Gemini)
+    // ===== Fallback: Lovable AI =====
     const geminiVoiceMap: Record<string, string> = {
       'Puck': 'Puck', 'Kore': 'Kore', 'Fenrir': 'Fenrir',
       'Charon': 'Charon', 'Aoede': 'Aoede', 'Leda': 'Leda',
@@ -84,7 +123,6 @@ serve(async (req) => {
 
     const voice = geminiVoiceMap[voiceName || 'Kore'] || 'Kore';
 
-    // For Gemini TTS, we use the chat completions API with specific instructions
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -115,12 +153,10 @@ serve(async (req) => {
       throw new Error(`TTS error: ${response.status}`);
     }
 
-    // Since Gemini doesn't natively do TTS via this API, return a text-only response
-    // indicating the provider limitation
     return new Response(JSON.stringify({
       audioBase64: null,
       provider: "lovable-ai",
-      message: "TTS via Lovable AI text model. For high-quality audio, connect ElevenLabs.",
+      message: "TTS via Lovable AI. Para audio de alta calidad, conecta ElevenLabs u OpenAI en APIs.",
       textContent: text,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
