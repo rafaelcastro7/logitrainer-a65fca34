@@ -367,6 +367,7 @@ export default function Index() {
         onRegenerateAudio={handleRegenerateAudio}
         onDuplicateScene={handleDuplicateScene}
         onRemoveScene={removeScene}
+        isAdmin={isAdmin}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen
