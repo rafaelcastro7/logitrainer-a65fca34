@@ -295,7 +295,7 @@ export async function renderVideo(
       const scene = scenes[sceneIndex];
       const totalFrames = scene.duration * fps;
       const progress = frameInScene / totalFrames;
-      const transType = getTransitionType(sceneIndex);
+      const transType = getTransitionType(scene, sceneIndex);
 
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, width, height);
