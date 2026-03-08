@@ -733,6 +733,14 @@ const es: TranslationKeys = {
   downloadVideo: 'Descargar Video',
   playing: 'Reproduciendo',
   stopPreview: 'Detener',
+
+  newProject: 'Nuevo Proyecto',
+  sharedProjectLoaded: 'Proyecto compartido cargado',
+  autoSaveRecovered: 'Sesión anterior recuperada',
+  newProjectCreated: 'Nuevo proyecto',
+  toastAllAudiosReady: 'Todos los audios ya están generados',
+  toastBatchAudios: (n: number) => `Generando ${n} audios en cola...`,
+  generateNAudios: (n: number) => `Generar ${n} Audios`,
 };
 
 export const translations: Record<Locale, TranslationKeys> = { en, fr, es };
