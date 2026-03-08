@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useProject } from '@/hooks/useProject';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useProjects } from '@/hooks/useProjects';
 import { useAutoSave, getAutoSavedProject, clearAutoSave } from '@/hooks/useAutoSave';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
