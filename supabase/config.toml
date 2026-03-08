@@ -1,1 +1,10 @@
 project_id = "ddgsedoaepxqcduvrksw"
+
+[functions.generate-script]
+verify_jwt = false
+
+[functions.generate-image]
+verify_jwt = false
+
+[functions.generate-tts]
+verify_jwt = false
