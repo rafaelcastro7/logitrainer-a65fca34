@@ -44,6 +44,7 @@ interface ProjectSidebarProps {
   onRegenerateAudio?: (sceneId: string) => void;
   onDuplicateScene?: (scene: Scene) => void;
   onRemoveScene?: (sceneId: string) => void;
+  isAdmin?: boolean;
 }
 
 // Mini progress dot component
