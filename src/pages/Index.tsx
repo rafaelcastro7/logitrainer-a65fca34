@@ -402,6 +402,9 @@ export default function Index() {
                 onRegenerateAudio={handleRegenerateAudio}
                 onGenerateAllImages={handleGenerateAllImages}
                 onGenerateAllAudios={handleGenerateAllAudios}
+                projectLanguage={project.meta.language}
+                project={project}
+                onLoadProject={loadProject}
               />
             )}
             {activeTab === 'preview' && (
