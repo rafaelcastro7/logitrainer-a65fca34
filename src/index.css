@@ -66,16 +66,19 @@
 
 @layer utilities {
   .glow-primary {
-    box-shadow: var(--glow-primary);
+    box-shadow: 0 0 20px hsl(234 89% 64% / 0.25), 0 0 60px hsl(234 89% 64% / 0.1);
   }
   .glow-success {
-    box-shadow: var(--glow-success);
+    box-shadow: 0 0 20px hsl(142 71% 45% / 0.25);
   }
   .text-gradient-primary {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(234,89%,64%)] to-[hsl(280,80%,65%)];
   }
   .glass-panel {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    @apply bg-card/70 backdrop-blur-xl border border-border/40 shadow-sm;
+  }
+  .glass-panel-hover {
+    @apply glass-panel hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-300;
   }
 }
 
