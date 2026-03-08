@@ -389,6 +389,49 @@ export default function ProjectSidebar({
                     <p className="text-[10px] text-muted-foreground line-clamp-3 leading-relaxed">{selectedScene.script}</p>
                   </div>
                 )}
+
+                {/* Quick Actions */}
+                <div className="pt-2 border-t border-border/30 space-y-1.5">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Quick Actions</span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onRegenerateImage?.(selectedScene.id)}
+                    >
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      Image
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onRegenerateAudio?.(selectedScene.id)}
+                    >
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      Audio
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onDuplicateScene?.(selectedScene)}
+                    >
+                      <Copy className="w-2.5 h-2.5" />
+                      Duplicate
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1"
+                      onClick={() => onRemoveScene?.(selectedScene.id)}
+                    >
+                      <Trash2 className="w-2.5 h-2.5" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
