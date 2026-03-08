@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Image, Mic, RotateCw, Trash2, ChevronDown, ChevronUp,
-  Clock, GripVertical, Copy, ArrowUp, ArrowDown, FileText, Type
+  Clock, GripVertical, Copy, ArrowUp, ArrowDown, FileText, Type,
+  Shuffle, AlignLeft
 } from 'lucide-react';
-import { Scene, AnimationSettings } from '@/types/project';
+import { Scene, AnimationSettings, TransitionType, TextOverlay } from '@/types/project';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -39,6 +42,15 @@ function getReadingTime(text: string): number {
   return Math.ceil((getWordCount(text) / 150) * 60);
 }
 
+const TRANSITION_OPTIONS: { value: TransitionType; label: string; icon: string }[] = [
+  { value: 'fade', label: 'Fade', icon: '🌓' },
+  { value: 'wipe_left', label: 'Wipe Left', icon: '◀️' },
+  { value: 'wipe_right', label: 'Wipe Right', icon: '▶️' },
+  { value: 'dissolve', label: 'Dissolve', icon: '✨' },
+  { value: 'slide_up', label: 'Slide Up', icon: '⬆️' },
+  { value: 'none', label: 'None', icon: '⏹️' },
+];
+
 export default function SceneCard({
   scene, index, total, isActive, onUpdate, onRemove, onDuplicate,
   onMoveUp, onMoveDown, onRegenerateImage, onRegenerateAudio, onSelect,
@@ -63,6 +75,8 @@ export default function SceneCard({
     setExpanded(!expanded);
     onSelect(scene.id);
   };
+
+  const overlay = scene.textOverlay || { enabled: false, text: '', position: 'bottom' as const, style: 'subtitle' as const };
 
   return (
     <div
@@ -114,11 +128,7 @@ export default function SceneCard({
           <div className="flex items-center ml-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  onClick={e => { e.stopPropagation(); onMoveUp(index); }}
-                  disabled={index === 0}
-                  className="p-1 rounded hover:bg-secondary/50 disabled:opacity-20 transition-colors"
-                >
+                <button onClick={e => { e.stopPropagation(); onMoveUp(index); }} disabled={index === 0} className="p-1 rounded hover:bg-secondary/50 disabled:opacity-20 transition-colors">
                   <ArrowUp className="w-3 h-3 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
@@ -126,11 +136,7 @@ export default function SceneCard({
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  onClick={e => { e.stopPropagation(); onMoveDown(index); }}
-                  disabled={index === total - 1}
-                  className="p-1 rounded hover:bg-secondary/50 disabled:opacity-20 transition-colors"
-                >
+                <button onClick={e => { e.stopPropagation(); onMoveDown(index); }} disabled={index === total - 1} className="p-1 rounded hover:bg-secondary/50 disabled:opacity-20 transition-colors">
                   <ArrowDown className="w-3 h-3 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
@@ -138,10 +144,7 @@ export default function SceneCard({
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  onClick={e => { e.stopPropagation(); onDuplicate(scene); }}
-                  className="p-1 rounded hover:bg-secondary/50 transition-colors"
-                >
+                <button onClick={e => { e.stopPropagation(); onDuplicate(scene); }} className="p-1 rounded hover:bg-secondary/50 transition-colors">
                   <Copy className="w-3 h-3 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
@@ -179,6 +182,47 @@ export default function SceneCard({
                   rows={3}
                   className="bg-muted/50 border-border/50 resize-none text-sm font-mono"
                 />
+              </div>
+
+              {/* Text Overlay */}
+              <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/20">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs flex items-center gap-1">
+                    <AlignLeft className="w-3 h-3" /> Text Overlay
+                  </Label>
+                  <Switch
+                    checked={overlay.enabled}
+                    onCheckedChange={v => onUpdate(scene.id, { textOverlay: { ...overlay, enabled: v } })}
+                  />
+                </div>
+                {overlay.enabled && (
+                  <div className="space-y-2">
+                    <Input
+                      value={overlay.text}
+                      onChange={e => onUpdate(scene.id, { textOverlay: { ...overlay, text: e.target.value } })}
+                      placeholder="Title or caption text..."
+                      className="bg-muted/50 border-border/50 h-8 text-xs"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Select value={overlay.position} onValueChange={v => onUpdate(scene.id, { textOverlay: { ...overlay, position: v as TextOverlay['position'] } })}>
+                        <SelectTrigger className="bg-muted/50 border-border/50 h-7 text-[11px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="top">Top</SelectItem>
+                          <SelectItem value="center">Center</SelectItem>
+                          <SelectItem value="bottom">Bottom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={overlay.style} onValueChange={v => onUpdate(scene.id, { textOverlay: { ...overlay, style: v as TextOverlay['style'] } })}>
+                        <SelectTrigger className="bg-muted/50 border-border/50 h-7 text-[11px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="title">Title</SelectItem>
+                          <SelectItem value="subtitle">Subtitle</SelectItem>
+                          <SelectItem value="lower_third">Lower Third</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -220,6 +264,29 @@ export default function SceneCard({
                     onValueChange={([v]) => onUpdate(scene.id, { animation: { ...scene.animation, intensity: v } })}
                     min={0.1} max={1} step={0.1}
                   />
+                </div>
+              </div>
+
+              {/* Transition selector */}
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  <Shuffle className="w-3 h-3" /> Transition
+                </Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {TRANSITION_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => onUpdate(scene.id, { transition: opt.value })}
+                      className={cn(
+                        "text-[11px] px-2.5 py-1 rounded-md border transition-all",
+                        (scene.transition || 'fade') === opt.value
+                          ? "bg-primary/20 border-primary/40 text-primary font-medium"
+                          : "bg-muted/30 border-border/30 text-muted-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      {opt.icon} {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
