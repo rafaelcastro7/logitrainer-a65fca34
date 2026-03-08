@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Keyboard } from 'lucide-react';
+import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Keyboard, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
