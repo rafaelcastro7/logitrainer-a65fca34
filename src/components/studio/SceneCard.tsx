@@ -314,8 +314,25 @@ export default function SceneCard({
               <RotateCw className="w-3 h-3" /> {t.regenerateAudio}
             </Button>
             <div className="flex-1" />
-            <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-destructive hover:text-destructive" onClick={() => onRemove(scene.id)}>
-              <Trash2 className="w-3 h-3" /> {t.delete}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-destructive hover:text-destructive">
+                  <Trash2 className="w-3 h-3" /> {t.delete}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete scene?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete "{scene.name}" and all its generated assets. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onRemove(scene.id)}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             </Button>
           </div>
         </div>
