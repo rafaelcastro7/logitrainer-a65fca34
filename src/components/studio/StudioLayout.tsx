@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
