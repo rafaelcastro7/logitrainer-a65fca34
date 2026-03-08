@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Wand2, Settings2, Palette, Clock, Sparkles, ChevronDown, ChevronRight } from 'lucide-react';
-import { ProjectMeta, BackgroundMusic } from '@/types/project';
+import { Wand2, Settings2, Palette, Clock, Sparkles, ChevronDown, ChevronRight, Monitor, Smartphone, Square } from 'lucide-react';
+import { ProjectMeta, BackgroundMusic, AspectRatio } from '@/types/project';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/LanguageContext';
+import { cn } from '@/lib/utils';
 import BackgroundMusicPanel from './BackgroundMusicPanel';
 
 interface DashboardViewProps {
