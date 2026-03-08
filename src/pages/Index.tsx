@@ -432,6 +432,9 @@ export default function Index() {
             {activeTab === 'about' && (
               <AboutView onNavigate={setActiveTab} />
             )}
+            {activeTab === 'admin' && (
+              <AdminApprovalPanel user={user} />
+            )}
           </>
         )}
       </StudioLayout>
