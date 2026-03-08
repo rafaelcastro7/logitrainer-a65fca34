@@ -335,6 +335,11 @@ export default function Index() {
     );
   }
 
+  // Show pending approval screen for non-approved authenticated users
+  if (user && !isApproved && approvalStatus && approvalStatus !== 'approved') {
+    return <PendingApprovalScreen status={approvalStatus} onSignOut={signOut} />;
+  }
+
   return (
     <>
       <StudioLayout
