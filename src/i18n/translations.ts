@@ -224,6 +224,36 @@ const en = {
   aboutBottomTitle: 'Ready to Create Your First Video?',
   aboutBottomDesc: 'No signup required. Enter a topic and watch AI build your video in real time.',
   aboutBottomCTA: 'Get Started Now',
+
+  // Auth
+  authLogin: 'Log In',
+  authSignup: 'Sign Up',
+  authName: 'Name',
+  authEmail: 'Email',
+  authPassword: 'Password',
+  authNoAccount: "Don't have an account?",
+  authHasAccount: 'Already have an account?',
+  authLogout: 'Log Out',
+
+  // Projects
+  myProjects: 'My Projects',
+  loading: 'Loading...',
+  noProjectsSaved: 'No projects saved yet',
+  share: 'Share',
+  load: 'Load',
+  save: 'Save',
+  saveProject: 'Save Project',
+  loginToSave: 'Log in to save projects',
+
+  // Video Renderer
+  renderingVideo: 'Rendering Video',
+  loadingAssets: 'Loading assets...',
+  renderingScene: (n: number, total: number) => `Rendering scene ${n}/${total}`,
+  encodingVideo: 'Encoding video...',
+  renderComplete: 'Render complete!',
+  downloadVideo: 'Download Video',
+  playing: 'Playing',
+  stopPreview: 'Stop',
 };
 
 const fr: TranslationKeys = {
