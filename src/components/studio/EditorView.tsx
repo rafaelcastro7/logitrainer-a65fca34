@@ -88,6 +88,7 @@ export default function EditorView({
       image: { status: 'pending', url: null },
       animation: { type: 'zoom_in', intensity: 0.3 },
       notes: '',
+      transition: 'fade',
     };
   }
 

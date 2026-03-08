@@ -125,6 +125,7 @@ export default function Index() {
         image: { status: 'pending', url: null },
         animation: { type: 'zoom_in', intensity: 0.3 },
         notes: '',
+        transition: 'fade' as const,
       }));
 
       setScenes(scenes);
