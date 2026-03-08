@@ -224,6 +224,36 @@ const en = {
   aboutBottomTitle: 'Ready to Create Your First Video?',
   aboutBottomDesc: 'No signup required. Enter a topic and watch AI build your video in real time.',
   aboutBottomCTA: 'Get Started Now',
+
+  // Auth
+  authLogin: 'Log In',
+  authSignup: 'Sign Up',
+  authName: 'Name',
+  authEmail: 'Email',
+  authPassword: 'Password',
+  authNoAccount: "Don't have an account?",
+  authHasAccount: 'Already have an account?',
+  authLogout: 'Log Out',
+
+  // Projects
+  myProjects: 'My Projects',
+  loading: 'Loading...',
+  noProjectsSaved: 'No projects saved yet',
+  share: 'Share',
+  load: 'Load',
+  save: 'Save',
+  saveProject: 'Save Project',
+  loginToSave: 'Log in to save projects',
+
+  // Video Renderer
+  renderingVideo: 'Rendering Video',
+  loadingAssets: 'Loading assets...',
+  renderingScene: (n: number, total: number) => `Rendering scene ${n}/${total}`,
+  encodingVideo: 'Encoding video...',
+  renderComplete: 'Render complete!',
+  downloadVideo: 'Download Video',
+  playing: 'Playing',
+  stopPreview: 'Stop',
 };
 
 const fr: TranslationKeys = {
@@ -428,6 +458,33 @@ const fr: TranslationKeys = {
   aboutBottomTitle: 'Prêt à créer votre première vidéo ?',
   aboutBottomDesc: 'Aucune inscription requise. Entrez un sujet et regardez l\'IA construire votre vidéo en temps réel.',
   aboutBottomCTA: 'Commencer maintenant',
+
+  authLogin: 'Se connecter',
+  authSignup: "S'inscrire",
+  authName: 'Nom',
+  authEmail: 'Email',
+  authPassword: 'Mot de passe',
+  authNoAccount: "Pas encore de compte ?",
+  authHasAccount: 'Déjà un compte ?',
+  authLogout: 'Déconnexion',
+
+  myProjects: 'Mes projets',
+  loading: 'Chargement...',
+  noProjectsSaved: 'Aucun projet sauvegardé',
+  share: 'Partager',
+  load: 'Charger',
+  save: 'Sauvegarder',
+  saveProject: 'Sauvegarder le projet',
+  loginToSave: 'Connectez-vous pour sauvegarder',
+
+  renderingVideo: 'Rendu vidéo',
+  loadingAssets: 'Chargement des ressources...',
+  renderingScene: (n: number, total: number) => `Rendu scène ${n}/${total}`,
+  encodingVideo: 'Encodage vidéo...',
+  renderComplete: 'Rendu terminé !',
+  downloadVideo: 'Télécharger la vidéo',
+  playing: 'Lecture',
+  stopPreview: 'Arrêter',
 };
 
 const es: TranslationKeys = {
@@ -632,6 +689,33 @@ const es: TranslationKeys = {
   aboutBottomTitle: '¿Listo para crear tu primer video?',
   aboutBottomDesc: 'Sin registro necesario. Ingresa un tema y mira cómo la IA construye tu video en tiempo real.',
   aboutBottomCTA: 'Comenzar ahora',
+
+  authLogin: 'Iniciar Sesión',
+  authSignup: 'Registrarse',
+  authName: 'Nombre',
+  authEmail: 'Correo',
+  authPassword: 'Contraseña',
+  authNoAccount: '¿No tienes cuenta?',
+  authHasAccount: '¿Ya tienes cuenta?',
+  authLogout: 'Cerrar Sesión',
+
+  myProjects: 'Mis Proyectos',
+  loading: 'Cargando...',
+  noProjectsSaved: 'No hay proyectos guardados',
+  share: 'Compartir',
+  load: 'Cargar',
+  save: 'Guardar',
+  saveProject: 'Guardar Proyecto',
+  loginToSave: 'Inicia sesión para guardar',
+
+  renderingVideo: 'Renderizando Video',
+  loadingAssets: 'Cargando recursos...',
+  renderingScene: (n: number, total: number) => `Renderizando escena ${n}/${total}`,
+  encodingVideo: 'Codificando video...',
+  renderComplete: '¡Render completo!',
+  downloadVideo: 'Descargar Video',
+  playing: 'Reproduciendo',
+  stopPreview: 'Detener',
 };
 
 export const translations: Record<Locale, TranslationKeys> = { en, fr, es };

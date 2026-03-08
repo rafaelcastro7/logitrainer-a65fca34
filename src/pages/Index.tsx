@@ -1,5 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useProject } from '@/hooks/useProject';
+import { useAuth } from '@/hooks/useAuth';
+import { useProjects } from '@/hooks/useProjects';
 import StudioLayout from '@/components/studio/StudioLayout';
 import WelcomeScreen from '@/components/studio/WelcomeScreen';
 import DashboardView from '@/components/studio/DashboardView';
@@ -8,7 +10,9 @@ import PreviewView from '@/components/studio/PreviewView';
 import AssetsView from '@/components/studio/AssetsView';
 import ApiManagementView from '@/components/studio/ApiManagementView';
 import AboutView from '@/components/studio/AboutView';
-import { Scene } from '@/types/project';
+import AuthDialog from '@/components/studio/AuthDialog';
+import ProjectsDialog from '@/components/studio/ProjectsDialog';
+import { Scene, Project, DEFAULT_PROJECT } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/LanguageContext';
@@ -18,9 +22,50 @@ export default function Index() {
     project, activeTab, setActiveTab,
     updateMeta, setScenes, updateScene, removeScene, addScene, reorderScenes,
   } = useProject();
+  const { user, signUp, signIn, signOut } = useAuth();
+  const { savedProjects, loading: projectsLoading, currentProjectId, setCurrentProjectId, saveProject, deleteProject, generateShareLink, loadSharedProject } = useProjects(user);
+  
   const [isGenerating, setIsGenerating] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [projectsOpen, setProjectsOpen] = useState(false);
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
+
+  // Load shared project from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedToken = params.get('shared');
+    if (sharedToken) {
+      loadSharedProject(sharedToken).then(p => {
+        if (p) {
+          setScenes(p.scenes);
+          if (p.meta) {
+            Object.entries(p.meta).forEach(([key, value]) => {
+              updateMeta({ [key]: value });
+            });
+          }
+          toast.success('Shared project loaded');
+          setActiveTab('editor');
+        }
+      });
+    }
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    if (!user) { setAuthOpen(true); return; }
+    await saveProject(project);
+  }, [user, project, saveProject]);
+
+  const handleLoadProject = useCallback((p: Project, id: string) => {
+    setScenes(p.scenes || []);
+    if (p.meta) {
+      Object.entries(p.meta).forEach(([key, value]) => {
+        updateMeta({ [key]: value });
+      });
+    }
+    setCurrentProjectId(id);
+    setActiveTab('editor');
+  }, [setScenes, updateMeta, setCurrentProjectId, setActiveTab]);
 
   const handleGenerate = useCallback(async (topic: string) => {
     setIsGenerating(true);
@@ -168,52 +213,77 @@ export default function Index() {
   }, [t]);
 
   return (
-    <StudioLayout
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      scenes={project.scenes}
-      hasProject={hasProject}
-    >
-      {!hasProject && activeTab === 'dashboard' ? (
-        <WelcomeScreen onStart={handleGenerate} isGenerating={isGenerating} />
-      ) : (
-        <>
-          {activeTab === 'dashboard' && (
-            <DashboardView
-              meta={project.meta}
-              onUpdateMeta={updateMeta}
-              onGenerate={handleGenerate}
-              isGenerating={isGenerating}
-              scenesCount={project.scenes.length}
-            />
-          )}
-          {activeTab === 'editor' && (
-            <EditorView
-              scenes={project.scenes}
-              onUpdateScene={updateScene}
-              onRemoveScene={removeScene}
-              onAddScene={addScene}
-              onReorder={reorderScenes}
-              onDuplicateScene={handleDuplicateScene}
-              onRegenerateImage={handleRegenerateImage}
-              onRegenerateAudio={handleRegenerateAudio}
-              onGenerateAllImages={handleGenerateAllImages}
-            />
-          )}
-          {activeTab === 'preview' && (
-            <PreviewView scenes={project.scenes} />
-          )}
-          {activeTab === 'assets' && (
-            <AssetsView scenes={project.scenes} />
-          )}
-          {activeTab === 'apis' && (
-            <ApiManagementView onConnectProvider={handleConnectProvider} />
-          )}
-          {activeTab === 'about' && (
-            <AboutView onNavigate={setActiveTab} />
-          )}
-        </>
-      )}
-    </StudioLayout>
+    <>
+      <StudioLayout
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        scenes={project.scenes}
+        hasProject={hasProject}
+        user={user}
+        onSave={handleSave}
+        onOpenProjects={() => setProjectsOpen(true)}
+        onOpenAuth={() => setAuthOpen(true)}
+        onSignOut={signOut}
+      >
+        {!hasProject && activeTab === 'dashboard' ? (
+          <WelcomeScreen onStart={handleGenerate} isGenerating={isGenerating} />
+        ) : (
+          <>
+            {activeTab === 'dashboard' && (
+              <DashboardView
+                meta={project.meta}
+                onUpdateMeta={updateMeta}
+                onGenerate={handleGenerate}
+                isGenerating={isGenerating}
+                scenesCount={project.scenes.length}
+              />
+            )}
+            {activeTab === 'editor' && (
+              <EditorView
+                scenes={project.scenes}
+                onUpdateScene={updateScene}
+                onRemoveScene={removeScene}
+                onAddScene={addScene}
+                onReorder={reorderScenes}
+                onDuplicateScene={handleDuplicateScene}
+                onRegenerateImage={handleRegenerateImage}
+                onRegenerateAudio={handleRegenerateAudio}
+                onGenerateAllImages={handleGenerateAllImages}
+              />
+            )}
+            {activeTab === 'preview' && (
+              <PreviewView scenes={project.scenes} />
+            )}
+            {activeTab === 'assets' && (
+              <AssetsView scenes={project.scenes} />
+            )}
+            {activeTab === 'apis' && (
+              <ApiManagementView onConnectProvider={handleConnectProvider} />
+            )}
+            {activeTab === 'about' && (
+              <AboutView onNavigate={setActiveTab} />
+            )}
+          </>
+        )}
+      </StudioLayout>
+
+      <AuthDialog
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        onSignIn={signIn}
+        onSignUp={signUp}
+      />
+
+      <ProjectsDialog
+        open={projectsOpen}
+        onOpenChange={setProjectsOpen}
+        projects={savedProjects}
+        currentProjectId={currentProjectId}
+        onLoad={handleLoadProject}
+        onDelete={deleteProject}
+        onShare={generateShareLink}
+        loading={projectsLoading}
+      />
+    </>
   );
 }

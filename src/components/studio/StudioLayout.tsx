@@ -1,11 +1,12 @@
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info } from 'lucide-react';
+import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { Locale, LOCALE_LABELS } from '@/i18n/translations';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import type { User as SupaUser } from '@supabase/supabase-js';
 
 interface StudioLayoutProps {
   activeTab: string;
@@ -13,9 +14,14 @@ interface StudioLayoutProps {
   children: React.ReactNode;
   scenes: Scene[];
   hasProject: boolean;
+  user: SupaUser | null;
+  onSave?: () => void;
+  onOpenProjects?: () => void;
+  onOpenAuth?: () => void;
+  onSignOut?: () => void;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
 
   const tabs = [
@@ -32,7 +38,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
   const completedAudios = scenes.filter(s => s.audio.status === 'completed').length;
   const totalAssets = totalScenes * 2;
   const completedAssets = completedImages + completedAudios;
-  const progress = totalAssets > 0 ? (completedAssets / totalAssets) * 100 : 0;
+  const progressVal = totalAssets > 0 ? (completedAssets / totalAssets) * 100 : 0;
   const totalDuration = scenes.reduce((sum, s) => sum + s.duration, 0);
   const hasErrors = scenes.some(s => s.image.status === 'error' || s.audio.status === 'error');
 
@@ -81,7 +87,19 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             })}
           </nav>
 
-          <div className="flex items-center gap-3 w-40 justify-end">
+          <div className="flex items-center gap-2">
+            {/* Save & Projects */}
+            {user && hasProject && (
+              <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={onSave}>
+                <Save className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{t.save}</span>
+              </Button>
+            )}
+            {user && (
+              <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={onOpenProjects}>
+                <FolderOpen className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{t.myProjects}</span>
+              </Button>
+            )}
+
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -103,8 +121,30 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* User Menu */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full bg-primary/20">
+                    <User className="w-3.5 h-3.5 text-primary" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground truncate max-w-[200px]">{user.email}</div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onSignOut} className="text-destructive">
+                    <LogOut className="w-3.5 h-3.5 mr-2" /> {t.authLogout}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={onOpenAuth}>
+                <User className="w-3.5 h-3.5" /> {t.authLogin}
+              </Button>
+            )}
+
             {hasProject && (
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground ml-2">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" />
                   {Math.floor(totalDuration / 60)}:{String(totalDuration % 60).padStart(2, '0')}
@@ -113,21 +153,21 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
                   <span className="flex items-center gap-1 text-destructive">
                     <AlertCircle className="w-3.5 h-3.5" />
                   </span>
-                ) : progress === 100 ? (
+                ) : progressVal === 100 ? (
                   <span className="flex items-center gap-1 text-success">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </span>
                 ) : totalScenes > 0 ? (
-                  <span>{Math.round(progress)}%</span>
+                  <span>{Math.round(progressVal)}%</span>
                 ) : null}
               </div>
             )}
           </div>
         </div>
 
-        {hasProject && totalScenes > 0 && progress < 100 && (
+        {hasProject && totalScenes > 0 && progressVal < 100 && (
           <div className="px-6 pb-1">
-            <Progress value={progress} className="h-1" />
+            <Progress value={progressVal} className="h-1" />
           </div>
         )}
       </header>
