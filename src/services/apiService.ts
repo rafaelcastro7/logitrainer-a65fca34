@@ -14,6 +14,68 @@ export interface GeneratedScene {
   duration: number;
 }
 
+// ==================== User API Keys ====================
+
+export async function getUserApiKeys(): Promise<Record<string, { api_key: string; is_active: boolean }>> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return {};
+
+  const { data, error } = await supabase
+    .from('user_api_keys')
+    .select('provider_id, api_key, is_active')
+    .eq('user_id', user.id);
+
+  if (error || !data) return {};
+
+  const keys: Record<string, { api_key: string; is_active: boolean }> = {};
+  for (const row of data) {
+    keys[row.provider_id] = { api_key: row.api_key, is_active: row.is_active };
+  }
+  return keys;
+}
+
+export async function saveUserApiKey(providerId: string, apiKey: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('user_api_keys')
+    .upsert({
+      user_id: user.id,
+      provider_id: providerId,
+      api_key: apiKey,
+      is_active: true,
+    }, { onConflict: 'user_id,provider_id' });
+
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteUserApiKey(providerId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('user_api_keys')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('provider_id', providerId);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function toggleUserApiKey(providerId: string, isActive: boolean): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('user_api_keys')
+    .update({ is_active: isActive })
+    .eq('user_id', user.id)
+    .eq('provider_id', providerId);
+
+  if (error) throw new Error(error.message);
+}
+
 // ==================== Script Generation ====================
 
 export async function generateScript(params: {
@@ -38,6 +100,8 @@ export async function generateScript(params: {
 export async function generateImage(params: {
   prompt: string;
   modelTier: 'prototyping' | 'production';
+  provider?: string;
+  userApiKey?: string;
 }): Promise<{ imageUrl: string; usage: ApiUsage }> {
   const { data, error } = await supabase.functions.invoke('generate-image', {
     body: params,
@@ -54,6 +118,8 @@ export async function generateTTS(params: {
   text: string;
   voiceName?: string;
   emotion?: string;
+  provider?: string;
+  userApiKey?: string;
 }): Promise<{ audioBase64: string | null; provider: string; message?: string }> {
   const { data, error } = await supabase.functions.invoke('generate-tts', {
     body: params,
@@ -74,14 +140,17 @@ export interface ApiProvider {
   status: 'active' | 'available' | 'coming_soon';
   requiresKey: boolean;
   models: { id: string; name: string; tier: string; speed: string }[];
-  icon: string; // lucide icon name
+  icon: string;
+  keyPlaceholder?: string;
+  docsUrl?: string;
+  keyInstructions?: string;
 }
 
 export const API_PROVIDERS: ApiProvider[] = [
   {
     id: 'lovable-ai',
     name: 'Lovable AI',
-    description: 'Gateway integrado con modelos Gemini y GPT-5. Sin configuración adicional.',
+    description: 'Gateway integrado con Gemini y GPT-5. Sin configuración adicional.',
     capabilities: ['script_generation', 'image_generation', 'text_analysis'],
     status: 'active',
     requiresKey: false,
@@ -100,51 +169,132 @@ export const API_PROVIDERS: ApiProvider[] = [
   {
     id: 'elevenlabs',
     name: 'ElevenLabs',
-    description: 'Voces ultra-realistas multilingüe. Requiere conexión de API.',
-    capabilities: ['tts'],
+    description: 'Voces ultra-realistas multilingüe y generación de música con IA.',
+    capabilities: ['tts', 'music_generation'],
     status: 'available',
     requiresKey: true,
     icon: 'AudioLines',
+    keyPlaceholder: 'xi-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    docsUrl: 'https://elevenlabs.io/app/settings/api-keys',
+    keyInstructions: 'Ve a elevenlabs.io → Profile → API Keys → Create API Key',
     models: [
       { id: 'eleven_multilingual_v2', name: 'Multilingual v2', tier: 'production', speed: '🔥 Alta calidad' },
       { id: 'eleven_turbo_v2_5', name: 'Turbo v2.5', tier: 'prototyping', speed: '⚡ Baja latencia' },
+      { id: 'eleven_music_v1', name: 'Music v1', tier: 'production', speed: '🎵 Música IA' },
     ],
   },
   {
-    id: 'perplexity',
-    name: 'Perplexity',
-    description: 'Búsqueda IA para investigación de temas. Requiere conexión.',
-    capabilities: ['research'],
+    id: 'openai',
+    name: 'OpenAI (Directo)',
+    description: 'Acceso directo a DALL·E 3, GPT-4o y Whisper con tu propia API key.',
+    capabilities: ['image_generation', 'script_generation', 'tts'],
     status: 'available',
     requiresKey: true,
-    icon: 'Search',
+    icon: 'Sparkles',
+    keyPlaceholder: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    docsUrl: 'https://platform.openai.com/api-keys',
+    keyInstructions: 'Ve a platform.openai.com → API Keys → Create new secret key',
     models: [
-      { id: 'sonar', name: 'Sonar', tier: 'prototyping', speed: '⚡ Búsqueda rápida' },
+      { id: 'dall-e-3', name: 'DALL·E 3', tier: 'production', speed: '🔥 Imágenes HD' },
+      { id: 'gpt-4o', name: 'GPT-4o', tier: 'production', speed: '🔥 Multimodal' },
+      { id: 'gpt-4o-mini', name: 'GPT-4o Mini', tier: 'prototyping', speed: '⚡ Rápido' },
+      { id: 'tts-1-hd', name: 'TTS-1 HD', tier: 'production', speed: '🔥 Voz HD' },
+      { id: 'tts-1', name: 'TTS-1', tier: 'prototyping', speed: '⚡ Voz rápida' },
     ],
   },
   {
-    id: 'runway',
-    name: 'Runway ML',
-    description: 'Generación de video con IA. Próximamente.',
-    capabilities: ['video_generation'],
-    status: 'coming_soon',
+    id: 'anthropic',
+    name: 'Anthropic Claude',
+    description: 'Claude 4 para scripts de alta calidad con razonamiento avanzado.',
+    capabilities: ['script_generation', 'text_analysis'],
+    status: 'available',
     requiresKey: true,
-    icon: 'Film',
+    icon: 'Sparkles',
+    keyPlaceholder: 'sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    docsUrl: 'https://console.anthropic.com/settings/keys',
+    keyInstructions: 'Ve a console.anthropic.com → Settings → API Keys → Create Key',
     models: [
-      { id: 'gen-3', name: 'Gen-3 Alpha', tier: 'production', speed: '🔥 Video IA' },
+      { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', tier: 'production', speed: '🔥 Premium' },
+      { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', tier: 'prototyping', speed: '⚡ Rápido' },
     ],
   },
   {
     id: 'stability',
     name: 'Stability AI',
-    description: 'Generación de imágenes Stable Diffusion. Próximamente.',
+    description: 'Stable Diffusion 3 y SDXL para imágenes fotorrealistas y artísticas.',
     capabilities: ['image_generation'],
-    status: 'coming_soon',
+    status: 'available',
     requiresKey: true,
     icon: 'ImagePlus',
+    keyPlaceholder: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    docsUrl: 'https://platform.stability.ai/account/keys',
+    keyInstructions: 'Ve a platform.stability.ai → Account → API Keys',
     models: [
-      { id: 'sdxl', name: 'SDXL', tier: 'production', speed: '🔥 Alta calidad' },
-      { id: 'sd3', name: 'Stable Diffusion 3', tier: 'production', speed: '🔥 Última gen' },
+      { id: 'sd3-large', name: 'SD3 Large', tier: 'production', speed: '🔥 Última gen' },
+      { id: 'sd3-medium', name: 'SD3 Medium', tier: 'prototyping', speed: '⚡ Balanceado' },
+      { id: 'sdxl-1.0', name: 'SDXL 1.0', tier: 'prototyping', speed: '⚡ Clásico' },
+    ],
+  },
+  {
+    id: 'replicate',
+    name: 'Replicate',
+    description: 'Miles de modelos open-source: Flux, MusicGen, Bark y más.',
+    capabilities: ['image_generation', 'tts', 'music_generation'],
+    status: 'available',
+    requiresKey: true,
+    icon: 'Film',
+    keyPlaceholder: 'r8_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    docsUrl: 'https://replicate.com/account/api-tokens',
+    keyInstructions: 'Ve a replicate.com → Account → API Tokens',
+    models: [
+      { id: 'black-forest-labs/flux-1.1-pro', name: 'Flux 1.1 Pro', tier: 'production', speed: '🔥 Imágenes HD' },
+      { id: 'black-forest-labs/flux-schnell', name: 'Flux Schnell', tier: 'prototyping', speed: '⚡ Ultra rápido' },
+      { id: 'meta/musicgen', name: 'MusicGen', tier: 'production', speed: '🎵 Música' },
+      { id: 'suno-ai/bark', name: 'Bark TTS', tier: 'production', speed: '🎙️ Voces' },
+    ],
+  },
+  {
+    id: 'perplexity',
+    name: 'Perplexity',
+    description: 'Búsqueda IA con fuentes verificadas para investigación de temas.',
+    capabilities: ['research'],
+    status: 'available',
+    requiresKey: true,
+    icon: 'Search',
+    keyPlaceholder: 'pplx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    docsUrl: 'https://docs.perplexity.ai',
+    keyInstructions: 'Ve a perplexity.ai → Settings → API → Generate API Key',
+    models: [
+      { id: 'sonar-pro', name: 'Sonar Pro', tier: 'production', speed: '🔥 Búsqueda profunda' },
+      { id: 'sonar', name: 'Sonar', tier: 'prototyping', speed: '⚡ Búsqueda rápida' },
+    ],
+  },
+  {
+    id: 'fal',
+    name: 'fal.ai',
+    description: 'Infraestructura GPU rápida para Flux, animación y video IA.',
+    capabilities: ['image_generation', 'video_generation'],
+    status: 'available',
+    requiresKey: true,
+    icon: 'Film',
+    keyPlaceholder: 'fal-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    docsUrl: 'https://fal.ai/dashboard/keys',
+    keyInstructions: 'Ve a fal.ai → Dashboard → API Keys',
+    models: [
+      { id: 'fal-ai/flux-pro/v1.1', name: 'Flux Pro v1.1', tier: 'production', speed: '🔥 Imágenes HD' },
+      { id: 'fal-ai/minimax/video-01', name: 'MiniMax Video', tier: 'production', speed: '🎬 Video IA' },
+    ],
+  },
+  {
+    id: 'runway',
+    name: 'Runway ML',
+    description: 'Generación de video con Gen-3 Alpha. Líder en video IA.',
+    capabilities: ['video_generation'],
+    status: 'coming_soon',
+    requiresKey: true,
+    icon: 'Film',
+    models: [
+      { id: 'gen-3-alpha', name: 'Gen-3 Alpha', tier: 'production', speed: '🎬 Video IA' },
     ],
   },
 ];
@@ -154,7 +304,7 @@ export const API_PROVIDERS: ApiProvider[] = [
 export interface UsageRecord {
   provider: string;
   model: string;
-  type: 'script' | 'image' | 'tts';
+  type: 'script' | 'image' | 'tts' | 'music' | 'research';
   tokens: number;
   timestamp: number;
 }
