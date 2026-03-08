@@ -24,6 +24,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
     { id: 'apis', label: t.apis, icon: Server },
+    { id: 'about', label: t.about, icon: Info },
   ];
 
   const totalScenes = scenes.length;
