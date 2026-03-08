@@ -193,6 +193,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
           selectedSceneId={selectedSceneId}
           onSelectScene={onSelectScene}
           onReorder={onReorderScenes}
+          onUpdateScene={onUpdateScene}
         />
         <main className="flex-1 overflow-auto">
           {children}
