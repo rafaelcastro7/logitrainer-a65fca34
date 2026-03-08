@@ -191,6 +191,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           selectedSceneId={selectedSceneId}
           onSelectScene={onSelectScene}
+          onReorder={onReorderScenes}
         />
         <main className="flex-1 overflow-auto">
           {children}
