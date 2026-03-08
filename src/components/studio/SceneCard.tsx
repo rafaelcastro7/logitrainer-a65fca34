@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import {
   Image, Mic, RotateCw, Trash2, ChevronDown, ChevronUp,
   Clock, GripVertical, Copy, ArrowUp, ArrowDown, FileText, Type,
-  Shuffle, AlignLeft
+  Shuffle, AlignLeft, Wand2, Scissors, Loader2, Sparkles,
+  ArrowDownToLine, ArrowUpFromLine, Pen, Drama, MessageCircle
 } from 'lucide-react';
 import { Scene, AnimationSettings, TransitionType, TextOverlay } from '@/types/project';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +23,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/i18n/LanguageContext';
+import { enhanceScript, type EnhanceAction } from '@/services/scriptEnhancer';
+import { toast } from 'sonner';
+
+const VOICES = ['Puck', 'Kore', 'Fenrir', 'Charon', 'Aoede', 'Leda'];
 
 interface SceneCardProps {
   scene: Scene;
@@ -36,7 +41,9 @@ interface SceneCardProps {
   onRegenerateImage?: (id: string) => void;
   onRegenerateAudio?: (id: string) => void;
   onSelect: (id: string) => void;
+  onSplit?: (sceneId: string, splitTime: number) => void;
   dragHandleProps?: Record<string, any>;
+  projectLanguage?: string;
 }
 
 function getWordCount(text: string): number {
@@ -56,12 +63,22 @@ const TRANSITION_OPTIONS: { value: TransitionType; label: string; icon: string }
   { value: 'none', label: 'None', icon: '⏹️' },
 ];
 
+const ENHANCE_ACTIONS: { value: EnhanceAction; label: string; icon: typeof Wand2 }[] = [
+  { value: 'improve', label: 'Mejorar', icon: Wand2 },
+  { value: 'shorten', label: 'Acortar', icon: ArrowDownToLine },
+  { value: 'expand', label: 'Expandir', icon: ArrowUpFromLine },
+  { value: 'rewrite', label: 'Reescribir', icon: Pen },
+  { value: 'dramatic', label: 'Dramático', icon: Drama },
+  { value: 'casual', label: 'Casual', icon: MessageCircle },
+];
+
 export default function SceneCard({
   scene, index, total, isActive, onUpdate, onRemove, onDuplicate,
   onMoveUp, onMoveDown, onRegenerateImage, onRegenerateAudio, onSelect,
-  dragHandleProps,
+  onSplit, dragHandleProps, projectLanguage,
 }: SceneCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
   const { t } = useTranslation();
   const wordCount = getWordCount(scene.script);
   const estimatedTime = getReadingTime(scene.script);
@@ -79,6 +96,33 @@ export default function SceneCard({
   const handleToggle = () => {
     setExpanded(!expanded);
     onSelect(scene.id);
+  };
+
+  const handleEnhance = async (action: EnhanceAction) => {
+    if (!scene.script.trim()) {
+      toast.error('Escribe un guión primero');
+      return;
+    }
+    setEnhancing(true);
+    try {
+      const result = await enhanceScript({
+        script: scene.script,
+        action,
+        language: projectLanguage || 'es',
+        context: scene.name,
+      });
+      onUpdate(scene.id, { script: result.enhanced });
+      toast.success(`✨ Script ${action === 'improve' ? 'mejorado' : action === 'shorten' ? 'acortado' : action === 'expand' ? 'expandido' : action === 'rewrite' ? 'reescrito' : action === 'dramatic' ? 'dramatizado' : 'casualizado'}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Enhancement failed');
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
+  const handleSplit = () => {
+    const midpoint = scene.duration / 2;
+    onSplit?.(scene.id, midpoint);
   };
 
   const overlay = scene.textOverlay || { enabled: false, text: '', position: 'bottom' as const, style: 'subtitle' as const };
@@ -116,6 +160,7 @@ export default function SceneCard({
           <span className="font-medium text-sm truncate block">{scene.name}</span>
           <span className="text-[11px] text-muted-foreground">
             {t.wordsCount(wordCount)} · {t.readingTime(estimatedTime)}
+            {scene.voiceName && <span className="ml-1 text-primary/60">🎙 {scene.voiceName}</span>}
           </span>
         </div>
 
@@ -178,7 +223,34 @@ export default function SceneCard({
                   rows={4}
                   className="bg-muted/50 border-border/50 resize-none text-sm"
                 />
+                
+                {/* AI Enhancement buttons */}
+                <div className="flex flex-wrap gap-1">
+                  {ENHANCE_ACTIONS.map(action => {
+                    const Icon = action.icon;
+                    return (
+                      <Tooltip key={action.value}>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 text-[10px] gap-1 px-2"
+                            disabled={enhancing || !scene.script.trim()}
+                            onClick={() => handleEnhance(action.value)}
+                          >
+                            {enhancing ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Icon className="w-2.5 h-2.5" />}
+                            {action.label}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {action.label} con IA
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
               </div>
+              
               <div className="space-y-1.5">
                 <Label className="text-xs flex items-center gap-1"><Type className="w-3 h-3" /> {t.imagePrompt}</Label>
                 <Textarea
@@ -187,6 +259,23 @@ export default function SceneCard({
                   rows={3}
                   className="bg-muted/50 border-border/50 resize-none text-sm font-mono"
                 />
+              </div>
+
+              {/* Per-scene voice selector */}
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><Mic className="w-3 h-3" /> Voz de escena</Label>
+                <Select
+                  value={scene.voiceName || ''}
+                  onValueChange={v => onUpdate(scene.id, { voiceName: v || undefined })}
+                >
+                  <SelectTrigger className="bg-muted/50 border-border/50 h-8 text-xs">
+                    <SelectValue placeholder="Usar voz del proyecto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Voz del proyecto</SelectItem>
+                    {VOICES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Text Overlay */}
@@ -313,6 +402,16 @@ export default function SceneCard({
             <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => onRegenerateAudio?.(scene.id)}>
               <RotateCw className="w-3 h-3" /> {t.regenerateAudio}
             </Button>
+            {onSplit && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={handleSplit}>
+                    <Scissors className="w-3 h-3" /> Split
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="text-xs">Dividir escena en dos</TooltipContent>
+              </Tooltip>
+            )}
             <div className="flex-1" />
             <AlertDialog>
               <AlertDialogTrigger asChild>

@@ -18,6 +18,8 @@ interface SortableSceneCardProps {
   onRegenerateImage?: (id: string) => void;
   onRegenerateAudio?: (id: string) => void;
   onSelect: (id: string) => void;
+  onSplit?: (sceneId: string, splitTime: number) => void;
+  projectLanguage?: string;
 }
 
 export default function SortableSceneCard({ scene, isDragging, ...props }: SortableSceneCardProps) {
