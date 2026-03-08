@@ -21,7 +21,6 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/utilities' as any;
 import SortableSceneCard from './SortableSceneCard';
 
 interface EditorViewProps {
