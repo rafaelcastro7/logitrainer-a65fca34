@@ -406,7 +406,7 @@ export async function playPreview(
       drawKenBurns(ctx, img, width, height, scene.animation, progress);
     }
 
-    drawSubtitle(ctx, scene.script, width, height);
+    drawSubtitle(ctx, scene.script, width, height, scene);
     drawTransition(ctx, width, height, progress, 'in', transType);
     drawTransition(ctx, width, height, progress, 'out', transType);
 
