@@ -6,7 +6,9 @@ import DashboardView from '@/components/studio/DashboardView';
 import EditorView from '@/components/studio/EditorView';
 import PreviewView from '@/components/studio/PreviewView';
 import AssetsView from '@/components/studio/AssetsView';
+import ApiManagementView from '@/components/studio/ApiManagementView';
 import { Scene } from '@/types/project';
+import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
 import { toast } from 'sonner';
 
 export default function Index() {
@@ -17,80 +19,141 @@ export default function Index() {
   const [isGenerating, setIsGenerating] = useState(false);
   const hasProject = project.scenes.length > 0;
 
+  // ==================== Script Generation (Real AI) ====================
   const handleGenerate = useCallback(async (topic: string) => {
     setIsGenerating(true);
-    toast.info('Generando estructura del video...', { duration: 2000 });
+    toast.info('Generando guión con IA...', { duration: 3000 });
 
-    // Demo: simulate AI generation
-    setTimeout(() => {
-      const style = project.meta.visualStyle;
-      const dur = project.meta.secondsPerScene;
+    try {
+      const result = await generateScript({
+        topic,
+        language: project.meta.language,
+        durationTarget: project.meta.durationTarget,
+        scenesCount: Math.floor(project.meta.durationTarget / project.meta.secondsPerScene),
+        visualStyle: project.meta.visualStyle,
+        modelTier: project.meta.modelTier,
+      });
 
-      const demoScenes: Scene[] = [
-        {
-          id: crypto.randomUUID(),
-          name: '🎬 Introducción',
-          script: `Bienvenidos a este video sobre ${topic}. Hoy exploraremos los aspectos más fascinantes de este tema, desde sus orígenes hasta su impacto en el mundo actual.`,
-          image_prompt: `A cinematic establishing shot representing ${topic}, wide angle, dramatic lighting, ${style}`,
-          duration: dur,
-          audio: { status: 'pending', url: null },
-          image: { status: 'pending', url: null },
-          animation: { type: 'zoom_in', intensity: 0.3 },
-          notes: '',
-        },
-        {
-          id: crypto.randomUUID(),
-          name: '📚 Contexto Histórico',
-          script: `Para entender ${topic}, debemos remontarnos a sus orígenes. La historia nos muestra cómo este fenómeno surgió y se desarrolló a lo largo del tiempo, transformando sociedades enteras.`,
-          image_prompt: `Historical context visualization for ${topic}, vintage documentary style, old photographs mixed with illustrations, ${style}`,
-          duration: dur,
-          audio: { status: 'pending', url: null },
-          image: { status: 'pending', url: null },
-          animation: { type: 'pan_left', intensity: 0.4 },
-          notes: '',
-        },
-        {
-          id: crypto.randomUUID(),
-          name: '🔬 Análisis Detallado',
-          script: `Ahora profundicemos en los aspectos más importantes de ${topic}. Los expertos coinciden en que hay varios factores clave que debemos considerar para comprender este tema en su totalidad.`,
-          image_prompt: `Detailed analysis visualization of ${topic}, infographic style with data points and diagrams, modern clean design, ${style}`,
-          duration: dur,
-          audio: { status: 'pending', url: null },
-          image: { status: 'pending', url: null },
-          animation: { type: 'zoom_out', intensity: 0.5 },
-          notes: '',
-        },
-        {
-          id: crypto.randomUUID(),
-          name: '🌍 Impacto Global',
-          script: `El impacto de ${topic} en la sociedad moderna es innegable. Desde la economía hasta la cultura, su influencia se extiende por todos los rincones del planeta.`,
-          image_prompt: `Global impact of ${topic}, world map visualization, interconnected nodes and networks, ${style}`,
-          duration: dur,
-          audio: { status: 'pending', url: null },
-          image: { status: 'pending', url: null },
-          animation: { type: 'pan_right', intensity: 0.3 },
-          notes: '',
-        },
-        {
-          id: crypto.randomUUID(),
-          name: '🔮 Futuro y Conclusión',
-          script: `En conclusión, ${topic} seguirá siendo un tema fundamental en los próximos años. Esperamos que este video haya sido útil para comprender mejor este fascinante tema. ¡Gracias por acompañarnos!`,
-          image_prompt: `Futuristic conclusion for ${topic}, hopeful mood, golden hour lighting, looking toward the horizon, ${style}`,
-          duration: dur,
-          audio: { status: 'pending', url: null },
-          image: { status: 'pending', url: null },
-          animation: { type: 'zoom_in', intensity: 0.3 },
-          notes: '',
-        },
-      ];
+      trackUsage({
+        provider: 'lovable-ai',
+        model: result.usage.model,
+        type: 'script',
+        tokens: result.usage.total_tokens || result.usage.prompt_tokens + result.usage.completion_tokens,
+        timestamp: Date.now(),
+      });
 
-      setScenes(demoScenes);
-      setIsGenerating(false);
+      const scenes: Scene[] = result.scenes.map(s => ({
+        id: crypto.randomUUID(),
+        name: s.name,
+        script: s.script,
+        image_prompt: s.image_prompt,
+        duration: s.duration || project.meta.secondsPerScene,
+        audio: { status: 'pending', url: null },
+        image: { status: 'pending', url: null },
+        animation: { type: 'zoom_in', intensity: 0.3 },
+        notes: '',
+      }));
+
+      setScenes(scenes);
       setActiveTab('editor');
-      toast.success(`¡${demoScenes.length} escenas generadas para "${topic}"!`, { duration: 3000 });
-    }, 2000);
+      toast.success(`¡${scenes.length} escenas generadas con ${result.usage.model}!`);
+    } catch (error) {
+      console.error('Script generation error:', error);
+      toast.error(error instanceof Error ? error.message : 'Error generando el guión');
+    } finally {
+      setIsGenerating(false);
+    }
   }, [project.meta, setScenes, setActiveTab]);
 
+  // ==================== Image Generation ====================
+  const handleRegenerateImage = useCallback(async (sceneId: string) => {
+    const scene = project.scenes.find(s => s.id === sceneId);
+    if (!scene) return;
+
+    updateScene(sceneId, { image: { status: 'generating', url: null } });
+    toast.info(`Generando imagen para "${scene.name}"...`);
+
+    try {
+      const result = await generateImage({
+        prompt: scene.image_prompt,
+        modelTier: project.meta.modelTier,
+      });
+
+      trackUsage({
+        provider: 'lovable-ai',
+        model: result.usage.model,
+        type: 'image',
+        tokens: result.usage.prompt_tokens + result.usage.completion_tokens,
+        timestamp: Date.now(),
+      });
+
+      updateScene(sceneId, { image: { status: 'completed', url: result.imageUrl } });
+      toast.success(`Imagen generada para "${scene.name}"`);
+    } catch (error) {
+      console.error('Image generation error:', error);
+      updateScene(sceneId, { image: { status: 'error', url: null } });
+      toast.error(error instanceof Error ? error.message : 'Error generando imagen');
+    }
+  }, [project.scenes, project.meta.modelTier, updateScene]);
+
+  // ==================== TTS Generation ====================
+  const handleRegenerateAudio = useCallback(async (sceneId: string) => {
+    const scene = project.scenes.find(s => s.id === sceneId);
+    if (!scene || !scene.script.trim()) {
+      toast.error('La escena necesita un guión para generar audio');
+      return;
+    }
+
+    updateScene(sceneId, { audio: { status: 'generating', url: null } });
+    toast.info(`Generando audio para "${scene.name}"...`);
+
+    try {
+      const result = await generateTTS({
+        text: scene.script,
+        voiceName: scene.voiceName || project.meta.voiceName,
+        emotion: project.meta.defaultEmotion,
+      });
+
+      trackUsage({
+        provider: result.provider,
+        model: result.provider === 'elevenlabs' ? 'eleven_multilingual_v2' : 'gemini-tts',
+        type: 'tts',
+        tokens: scene.script.length,
+        timestamp: Date.now(),
+      });
+
+      if (result.audioBase64) {
+        const audioUrl = `data:audio/mpeg;base64,${result.audioBase64}`;
+        updateScene(sceneId, { audio: { status: 'completed', url: audioUrl } });
+        toast.success(`Audio generado con ${result.provider}`);
+      } else {
+        updateScene(sceneId, { audio: { status: 'completed', url: null } });
+        toast.info(result.message || 'Audio procesado (conecta ElevenLabs para audio de alta calidad)');
+      }
+    } catch (error) {
+      console.error('TTS error:', error);
+      updateScene(sceneId, { audio: { status: 'error', url: null } });
+      toast.error(error instanceof Error ? error.message : 'Error generando audio');
+    }
+  }, [project.scenes, project.meta, updateScene]);
+
+  // ==================== Batch Generation ====================
+  const handleGenerateAllImages = useCallback(async () => {
+    const pendingScenes = project.scenes.filter(s => s.image.status !== 'completed');
+    if (pendingScenes.length === 0) {
+      toast.info('Todas las imágenes ya están generadas');
+      return;
+    }
+
+    toast.info(`Generando ${pendingScenes.length} imágenes en cola...`);
+    for (const scene of pendingScenes) {
+      await handleRegenerateImage(scene.id);
+      // Small delay to avoid rate limiting
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }, [project.scenes, handleRegenerateImage]);
+
+  // ==================== Scene Actions ====================
   const handleDuplicateScene = useCallback((scene: Scene) => {
     const newScene: Scene = {
       ...scene,
@@ -102,6 +165,10 @@ export default function Index() {
     addScene(newScene);
     toast.info('Escena duplicada');
   }, [addScene]);
+
+  const handleConnectProvider = useCallback((providerId: string) => {
+    toast.info(`Para conectar ${providerId}, ve a Settings → Connectors en tu proyecto.`);
+  }, []);
 
   return (
     <StudioLayout
@@ -131,6 +198,9 @@ export default function Index() {
               onAddScene={addScene}
               onReorder={reorderScenes}
               onDuplicateScene={handleDuplicateScene}
+              onRegenerateImage={handleRegenerateImage}
+              onRegenerateAudio={handleRegenerateAudio}
+              onGenerateAllImages={handleGenerateAllImages}
             />
           )}
           {activeTab === 'preview' && (
@@ -138,6 +208,9 @@ export default function Index() {
           )}
           {activeTab === 'assets' && (
             <AssetsView scenes={project.scenes} />
+          )}
+          {activeTab === 'apis' && (
+            <ApiManagementView onConnectProvider={handleConnectProvider} />
           )}
         </>
       )}
