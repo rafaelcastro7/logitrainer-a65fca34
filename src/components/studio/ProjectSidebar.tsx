@@ -5,8 +5,10 @@ import {
   LayoutDashboard, Clapperboard, Play, Images, Activity,
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
-  ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle
+  ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle,
+  RefreshCw, Copy, Trash2
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from '@/i18n/LanguageContext';
