@@ -203,6 +203,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
           onRegenerateAudio={onRegenerateAudio}
           onDuplicateScene={onDuplicateScene}
           onRemoveScene={onRemoveScene}
+          isAdmin={isAdmin}
         />
         <main className="flex-1 overflow-auto">
           {children}
