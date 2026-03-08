@@ -254,6 +254,15 @@ const en = {
   downloadVideo: 'Download Video',
   playing: 'Playing',
   stopPreview: 'Stop',
+
+  // New keys
+  newProject: 'New Project',
+  sharedProjectLoaded: 'Shared project loaded',
+  autoSaveRecovered: 'Previous session recovered',
+  newProjectCreated: 'New project',
+  toastAllAudiosReady: 'All audios are already generated',
+  toastBatchAudios: (n: number) => `Generating ${n} audios in queue...`,
+  generateNAudios: (n: number) => `Generate ${n} Audios`,
 };
 
 const fr: TranslationKeys = {
