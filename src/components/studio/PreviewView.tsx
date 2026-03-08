@@ -1,9 +1,12 @@
-import { Play, Download, MonitorPlay, Image, Mic, Clock, Film } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Play, Download, MonitorPlay, Image, Mic, Clock, Film, Square, Loader2 } from 'lucide-react';
 import { Scene } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import MiniTimeline from './MiniTimeline';
 import { useTranslation } from '@/i18n/LanguageContext';
+import { renderVideo, playPreview, RenderProgress } from '@/lib/videoRenderer';
+import { toast } from 'sonner';
 
 interface PreviewViewProps {
   scenes: Scene[];
@@ -11,12 +14,61 @@ interface PreviewViewProps {
 
 export default function PreviewView({ scenes }: PreviewViewProps) {
   const { t } = useTranslation();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cancelRef = useRef<(() => void) | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isRendering, setIsRendering] = useState(false);
+  const [progress, setProgress] = useState<RenderProgress | null>(null);
+
   const readyImages = scenes.filter(s => s.image.status === 'completed').length;
   const readyAudios = scenes.filter(s => s.audio.status === 'completed').length;
   const totalDuration = scenes.reduce((sum, s) => sum + s.duration, 0);
   const readyPercent = scenes.length > 0
     ? ((readyImages + readyAudios) / (scenes.length * 2)) * 100
     : 0;
+
+  const handlePlay = useCallback(async () => {
+    if (!canvasRef.current || scenes.length === 0) return;
+    if (isPlaying && cancelRef.current) {
+      cancelRef.current();
+      cancelRef.current = null;
+      setIsPlaying(false);
+      return;
+    }
+
+    setIsPlaying(true);
+    const canvas = canvasRef.current;
+    canvas.width = 1280;
+    canvas.height = 720;
+
+    const cancel = await playPreview(canvas, scenes, setProgress, () => {
+      setIsPlaying(false);
+      setProgress(null);
+    });
+    cancelRef.current = cancel;
+  }, [scenes, isPlaying]);
+
+  const handleRender = useCallback(async () => {
+    if (scenes.length === 0) return;
+    setIsRendering(true);
+    toast.info(t.renderingVideo);
+    try {
+      const blob = await renderVideo(scenes, setProgress, { width: 1920, height: 1080, fps: 30 });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'video.webm';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(t.renderComplete);
+    } catch (err) {
+      console.error(err);
+      toast.error('Render failed');
+    } finally {
+      setIsRendering(false);
+      setProgress(null);
+    }
+  }, [scenes, t]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6">
@@ -27,34 +79,68 @@ export default function PreviewView({ scenes }: PreviewViewProps) {
 
       <div className="glass-panel rounded-xl overflow-hidden">
         <div className="aspect-video bg-muted/10 flex items-center justify-center relative">
-          <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.03)_2px,rgba(0,0,0,0.03)_4px)] pointer-events-none" />
-          <div className="text-center text-muted-foreground/40 relative z-10">
-            <Film className="w-16 h-16 mx-auto mb-3 opacity-20" />
-            <p className="text-lg font-semibold text-foreground/60">{t.videoPreview}</p>
-            <p className="text-sm mt-1">
-              {scenes.length === 0
-                ? t.generateScenesFirst
-                : t.imagesAndAudios(readyImages, scenes.length, readyAudios)
-              }
-            </p>
-            {readyPercent > 0 && readyPercent < 100 && (
-              <div className="mt-4 w-48 mx-auto">
-                <Progress value={readyPercent} className="h-1.5" />
-                <p className="text-[10px] mt-1 text-muted-foreground">{t.assetsReady(Math.round(readyPercent))}</p>
-              </div>
-            )}
-          </div>
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full object-contain"
+            style={{ display: isPlaying ? 'block' : 'none' }}
+          />
+          {!isPlaying && (
+            <div className="text-center text-muted-foreground/40 relative z-10">
+              <Film className="w-16 h-16 mx-auto mb-3 opacity-20" />
+              <p className="text-lg font-semibold text-foreground/60">{t.videoPreview}</p>
+              <p className="text-sm mt-1">
+                {scenes.length === 0
+                  ? t.generateScenesFirst
+                  : t.imagesAndAudios(readyImages, scenes.length, readyAudios)
+                }
+              </p>
+              {readyPercent > 0 && readyPercent < 100 && (
+                <div className="mt-4 w-48 mx-auto">
+                  <Progress value={readyPercent} className="h-1.5" />
+                  <p className="text-[10px] mt-1 text-muted-foreground">{t.assetsReady(Math.round(readyPercent))}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {(progress && (isPlaying || isRendering)) && (
+        <div className="glass-panel rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              {progress.phase === 'loading' ? t.loadingAssets
+                : progress.phase === 'rendering' ? t.renderingScene(progress.currentScene, progress.totalScenes)
+                : progress.phase === 'encoding' ? t.encodingVideo
+                : t.renderComplete}
+            </span>
+            <span className="font-mono text-primary">{Math.round(progress.percent)}%</span>
+          </div>
+          <Progress value={progress.percent} className="h-1.5" />
+        </div>
+      )}
 
       {scenes.length > 0 && <MiniTimeline scenes={scenes} />}
 
       <div className="flex items-center gap-3 justify-center">
-        <Button size="lg" className="gap-2 glow-primary" disabled={readyImages === 0}>
-          <Play className="w-5 h-5" /> {t.playPreview}
+        <Button
+          size="lg"
+          className="gap-2 glow-primary"
+          disabled={readyImages === 0 || isRendering}
+          onClick={handlePlay}
+        >
+          {isPlaying ? <Square className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+          {isPlaying ? t.stopPreview : t.playPreview}
         </Button>
-        <Button size="lg" variant="outline" className="gap-2" disabled={readyImages === 0}>
-          <Download className="w-5 h-5" /> {t.renderVideo}
+        <Button
+          size="lg"
+          variant="outline"
+          className="gap-2"
+          disabled={readyImages === 0 || isPlaying || isRendering}
+          onClick={handleRender}
+        >
+          {isRendering ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+          {isRendering ? t.renderingVideo : t.renderVideo}
         </Button>
       </div>
 
