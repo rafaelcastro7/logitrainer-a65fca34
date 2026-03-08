@@ -336,7 +336,11 @@ export default function Index() {
         canRedo={canRedo}
       >
         {!hasProject && activeTab === 'dashboard' ? (
-          <WelcomeScreen onStart={handleGenerate} isGenerating={isGenerating} />
+          <WelcomeScreen
+            onStart={handleGenerate}
+            isGenerating={isGenerating}
+            onApplyTemplate={handleApplyTemplate}
+          />
         ) : (
           <>
             {activeTab === 'dashboard' && (
