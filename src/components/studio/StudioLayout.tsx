@@ -31,6 +31,7 @@ interface StudioLayoutProps {
 
 export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const tabs = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
