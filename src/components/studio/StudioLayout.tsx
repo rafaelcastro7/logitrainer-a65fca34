@@ -37,6 +37,7 @@ interface StudioLayoutProps {
   onRegenerateAudio?: (sceneId: string) => void;
   onDuplicateScene?: (scene: Scene) => void;
   onRemoveScene?: (sceneId: string) => void;
+  isAdmin?: boolean;
 }
 
 export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene, onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene }: StudioLayoutProps) {
