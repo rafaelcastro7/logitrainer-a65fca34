@@ -14,7 +14,7 @@ import ApiManagementView from '@/components/studio/ApiManagementView';
 import AboutView from '@/components/studio/AboutView';
 import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
-import { Scene, Project, DEFAULT_PROJECT } from '@/types/project';
+import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/LanguageContext';
