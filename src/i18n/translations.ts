@@ -689,6 +689,33 @@ const es: TranslationKeys = {
   aboutBottomTitle: '¿Listo para crear tu primer video?',
   aboutBottomDesc: 'Sin registro necesario. Ingresa un tema y mira cómo la IA construye tu video en tiempo real.',
   aboutBottomCTA: 'Comenzar ahora',
+
+  authLogin: 'Iniciar Sesión',
+  authSignup: 'Registrarse',
+  authName: 'Nombre',
+  authEmail: 'Correo',
+  authPassword: 'Contraseña',
+  authNoAccount: '¿No tienes cuenta?',
+  authHasAccount: '¿Ya tienes cuenta?',
+  authLogout: 'Cerrar Sesión',
+
+  myProjects: 'Mis Proyectos',
+  loading: 'Cargando...',
+  noProjectsSaved: 'No hay proyectos guardados',
+  share: 'Compartir',
+  load: 'Cargar',
+  save: 'Guardar',
+  saveProject: 'Guardar Proyecto',
+  loginToSave: 'Inicia sesión para guardar',
+
+  renderingVideo: 'Renderizando Video',
+  loadingAssets: 'Cargando recursos...',
+  renderingScene: (n: number, total: number) => `Renderizando escena ${n}/${total}`,
+  encodingVideo: 'Codificando video...',
+  renderComplete: '¡Render completo!',
+  downloadVideo: 'Descargar Video',
+  playing: 'Reproduciendo',
+  stopPreview: 'Detener',
 };
 
 export const translations: Record<Locale, TranslationKeys> = { en, fr, es };

@@ -60,7 +60,7 @@ export function useProjects(user: User | null) {
     } else {
       const { data, error } = await supabase
         .from('projects')
-        .insert({ user_id: user.id, name: project.meta.name, data: project as unknown as Record<string, unknown> })
+        .insert([{ user_id: user.id, name: project.meta.name, data: JSON.parse(JSON.stringify(project)) }])
         .select('id')
         .single();
       if (error || !data) { toast.error('Save failed'); return null; }
