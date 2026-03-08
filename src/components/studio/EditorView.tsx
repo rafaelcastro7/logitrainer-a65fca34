@@ -1,11 +1,27 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Clapperboard, Clock, Wand2, Image, Mic, Zap } from 'lucide-react';
 import { Scene } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import SceneCard from './SceneCard';
 import MiniTimeline from './MiniTimeline';
-import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from '@/i18n/LanguageContext';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import SortableSceneCard from './SortableSceneCard';
 
 interface EditorViewProps {
   scenes: Scene[];
@@ -25,6 +41,7 @@ export default function EditorView({
   onDuplicateScene, onRegenerateImage, onRegenerateAudio, onGenerateAllImages, onGenerateAllAudios,
 }: EditorViewProps) {
   const [activeSceneId, setActiveSceneId] = useState<string | undefined>(scenes[0]?.id);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const { t } = useTranslation();
   const totalDuration = scenes.reduce((sum, s) => sum + s.duration, 0);
   const totalWords = scenes.reduce((sum, s) => sum + s.script.trim().split(/\s+/).filter(Boolean).length, 0);
@@ -33,6 +50,29 @@ export default function EditorView({
   const pendingImages = scenes.filter(s => s.image.status !== 'completed').length;
   const pendingAudios = scenes.filter(s => s.audio.status !== 'completed' && s.script.trim()).length;
   const generatingAny = scenes.some(s => s.image.status === 'generating' || s.audio.status === 'generating');
+
+  const sceneIds = useMemo(() => scenes.map(s => s.id), [scenes]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setDraggingId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setDraggingId(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = scenes.findIndex(s => s.id === active.id);
+    const newIndex = scenes.findIndex(s => s.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      onReorder(oldIndex, newIndex);
+    }
+  };
 
   const handleMoveUp = (index: number) => { if (index > 0) onReorder(index, index - 1); };
   const handleMoveDown = (index: number) => { if (index < scenes.length - 1) onReorder(index, index + 1); };
@@ -51,6 +91,8 @@ export default function EditorView({
     };
   }
 
+  const draggingScene = draggingId ? scenes.find(s => s.id === draggingId) : null;
+
   return (
     <div className="max-w-4xl mx-auto space-y-4 p-6">
       <div className="flex items-center justify-between">
@@ -68,7 +110,7 @@ export default function EditorView({
               disabled={generatingAny}
             >
               <Mic className="w-3.5 h-3.5" />
-              {generatingAny ? t.generating : (t.generateNAudios?.(pendingAudios) || `Generate ${pendingAudios} Audios`)}
+              {generatingAny ? t.generating : t.generateNAudios(pendingAudios)}
             </Button>
           )}
           {pendingImages > 0 && (
@@ -119,27 +161,55 @@ export default function EditorView({
           <p className="text-sm text-muted-foreground/60 mt-1">{t.noScenesHint}</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          <AnimatePresence mode="popLayout">
-            {scenes.map((scene, i) => (
-              <SceneCard
-                key={scene.id}
-                scene={scene}
-                index={i}
-                total={scenes.length}
-                isActive={scene.id === activeSceneId}
-                onUpdate={onUpdateScene}
-                onRemove={onRemoveScene}
-                onDuplicate={onDuplicateScene}
-                onMoveUp={handleMoveUp}
-                onMoveDown={handleMoveDown}
-                onRegenerateImage={onRegenerateImage}
-                onRegenerateAudio={onRegenerateAudio}
-                onSelect={setActiveSceneId}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={sceneIds} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {scenes.map((scene, i) => (
+                <SortableSceneCard
+                  key={scene.id}
+                  scene={scene}
+                  index={i}
+                  total={scenes.length}
+                  isActive={scene.id === activeSceneId}
+                  isDragging={scene.id === draggingId}
+                  onUpdate={onUpdateScene}
+                  onRemove={onRemoveScene}
+                  onDuplicate={onDuplicateScene}
+                  onMoveUp={handleMoveUp}
+                  onMoveDown={handleMoveDown}
+                  onRegenerateImage={onRegenerateImage}
+                  onRegenerateAudio={onRegenerateAudio}
+                  onSelect={setActiveSceneId}
+                />
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay>
+            {draggingScene && (
+              <div className="glass-panel rounded-xl overflow-hidden opacity-90 shadow-2xl ring-2 ring-primary/50 rotate-1">
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-12 h-8 rounded bg-muted/30 shrink-0 overflow-hidden">
+                    {draggingScene.image.url ? (
+                      <img src={draggingScene.image.url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-[10px] font-mono text-muted-foreground/40">
+                          {scenes.findIndex(s => s.id === draggingScene.id) + 1}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="font-medium text-sm truncate">{draggingScene.name}</span>
+                </div>
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
       )}
     </div>
   );

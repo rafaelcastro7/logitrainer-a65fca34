@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Wand2, Settings2, Palette, Clock, Sparkles, ChevronDown, ChevronRight } from 'lucide-react';
-import { ProjectMeta } from '@/types/project';
+import { ProjectMeta, BackgroundMusic } from '@/types/project';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/LanguageContext';
-import { LOCALE_LABELS, Locale } from '@/i18n/translations';
+import BackgroundMusicPanel from './BackgroundMusicPanel';
 
 interface DashboardViewProps {
   meta: ProjectMeta;
@@ -17,6 +17,10 @@ interface DashboardViewProps {
   onGenerate: (topic: string) => void;
   isGenerating: boolean;
   scenesCount: number;
+  backgroundMusic: BackgroundMusic;
+  onUpdateMusic: (updates: Partial<BackgroundMusic>) => void;
+  onGenerateMusic: (prompt: string) => void;
+  isMusicGenerating: boolean;
 }
 
 const voices = ['Puck', 'Kore', 'Fenrir', 'Charon', 'Aoede', 'Leda'];
@@ -28,7 +32,7 @@ const contentLanguages = [
   { value: 'pt', label: '🇧🇷 Português' },
 ];
 
-export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenerating, scenesCount }: DashboardViewProps) {
+export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenerating, scenesCount, backgroundMusic, onUpdateMusic, onGenerateMusic, isMusicGenerating }: DashboardViewProps) {
   const [topic, setTopic] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(true);
   const { t } = useTranslation();
@@ -192,18 +196,27 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
       )}
 
       {settingsOpen && (
-        <section className="glass-panel rounded-xl p-5 space-y-3">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Palette className="w-4 h-4 text-primary" /> {t.globalVisualStyle}
-          </h3>
-          <Textarea
-            value={meta.visualStyle}
-            onChange={e => onUpdateMeta({ visualStyle: e.target.value })}
-            rows={2}
-            placeholder={t.visualStylePlaceholder}
-            className="bg-muted/50 border-border/50 resize-none text-sm"
+        <>
+          <section className="glass-panel rounded-xl p-5 space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Palette className="w-4 h-4 text-primary" /> {t.globalVisualStyle}
+            </h3>
+            <Textarea
+              value={meta.visualStyle}
+              onChange={e => onUpdateMeta({ visualStyle: e.target.value })}
+              rows={2}
+              placeholder={t.visualStylePlaceholder}
+              className="bg-muted/50 border-border/50 resize-none text-sm"
+            />
+          </section>
+
+          <BackgroundMusicPanel
+            music={backgroundMusic}
+            onUpdate={onUpdateMusic}
+            onGenerate={onGenerateMusic}
+            isGenerating={isMusicGenerating}
           />
-        </section>
+        </>
       )}
     </div>
   );

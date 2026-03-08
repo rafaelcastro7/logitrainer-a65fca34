@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
-import { Play, Download, MonitorPlay, Image, Mic, Clock, Film, Square, Loader2 } from 'lucide-react';
-import { Scene } from '@/types/project';
+import { Play, Download, MonitorPlay, Image, Mic, Clock, Film, Square, Loader2, Music, Volume2 } from 'lucide-react';
+import { Scene, BackgroundMusic } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import MiniTimeline from './MiniTimeline';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { renderVideo, playPreview, RenderProgress } from '@/lib/videoRenderer';
@@ -10,12 +11,14 @@ import { toast } from 'sonner';
 
 interface PreviewViewProps {
   scenes: Scene[];
+  backgroundMusic?: BackgroundMusic;
 }
 
-export default function PreviewView({ scenes }: PreviewViewProps) {
+export default function PreviewView({ scenes, backgroundMusic }: PreviewViewProps) {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cancelRef = useRef<(() => void) | null>(null);
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [progress, setProgress] = useState<RenderProgress | null>(null);
@@ -26,12 +29,54 @@ export default function PreviewView({ scenes }: PreviewViewProps) {
   const readyPercent = scenes.length > 0
     ? ((readyImages + readyAudios) / (scenes.length * 2)) * 100
     : 0;
+  const hasBgMusic = backgroundMusic?.url && backgroundMusic.status === 'ready';
+
+  const startBgMusic = useCallback(() => {
+    if (!hasBgMusic || !backgroundMusic?.url) return;
+    const audio = new Audio(backgroundMusic.url);
+    audio.volume = 0;
+    audio.loop = backgroundMusic.loop;
+    audio.play().catch(() => {});
+    
+    // Fade in
+    const fadeIn = backgroundMusic.fadeIn || 2;
+    const targetVol = backgroundMusic.volume || 0.15;
+    const steps = 20;
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      audio.volume = Math.min(targetVol, (step / steps) * targetVol);
+      if (step >= steps) clearInterval(interval);
+    }, (fadeIn * 1000) / steps);
+
+    bgMusicRef.current = audio;
+  }, [backgroundMusic, hasBgMusic]);
+
+  const stopBgMusic = useCallback(() => {
+    const audio = bgMusicRef.current;
+    if (!audio) return;
+    const fadeOut = backgroundMusic?.fadeOut || 3;
+    const startVol = audio.volume;
+    const steps = 20;
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      audio.volume = Math.max(0, startVol * (1 - step / steps));
+      if (step >= steps) {
+        clearInterval(interval);
+        audio.pause();
+        audio.currentTime = 0;
+        bgMusicRef.current = null;
+      }
+    }, (fadeOut * 1000) / steps);
+  }, [backgroundMusic]);
 
   const handlePlay = useCallback(async () => {
     if (!canvasRef.current || scenes.length === 0) return;
     if (isPlaying && cancelRef.current) {
       cancelRef.current();
       cancelRef.current = null;
+      stopBgMusic();
       setIsPlaying(false);
       return;
     }
@@ -41,12 +86,15 @@ export default function PreviewView({ scenes }: PreviewViewProps) {
     canvas.width = 1280;
     canvas.height = 720;
 
+    startBgMusic();
+
     const cancel = await playPreview(canvas, scenes, setProgress, () => {
+      stopBgMusic();
       setIsPlaying(false);
       setProgress(null);
     });
     cancelRef.current = cancel;
-  }, [scenes, isPlaying]);
+  }, [scenes, isPlaying, startBgMusic, stopBgMusic]);
 
   const handleRender = useCallback(async () => {
     if (scenes.length === 0) return;
@@ -75,6 +123,11 @@ export default function PreviewView({ scenes }: PreviewViewProps) {
       <div className="flex items-center gap-3">
         <MonitorPlay className="w-5 h-5 text-primary" />
         <h2 className="text-lg font-bold">{t.previewAndRender}</h2>
+        {hasBgMusic && (
+          <Badge variant="outline" className="text-[10px] gap-1 bg-primary/10 text-primary">
+            <Music className="w-2.5 h-2.5" /> {t.backgroundMusic}
+          </Badge>
+        )}
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden">

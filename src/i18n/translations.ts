@@ -263,6 +263,26 @@ const en = {
   toastAllAudiosReady: 'All audios are already generated',
   toastBatchAudios: (n: number) => `Generating ${n} audios in queue...`,
   generateNAudios: (n: number) => `Generate ${n} Audios`,
+
+  // Background Music
+  backgroundMusic: 'Background Music',
+  musicMoods: 'Quick Moods',
+  mood_cinematic: 'Cinematic',
+  mood_calm: 'Calm',
+  mood_upbeat: 'Upbeat',
+  mood_dramatic: 'Dramatic',
+  mood_educational: 'Educational',
+  mood_lofi: 'Lo-Fi',
+  musicPromptPlaceholder: 'Describe the music style you want...',
+  generateMusic: 'Generate',
+  generatedTrack: 'Generated Track',
+  musicVolume: 'Volume',
+  fadeIn: 'Fade In',
+  fadeOut: 'Fade Out',
+  loopMusic: 'Loop',
+  generatingMusic: 'Generating background music...',
+  musicError: 'Failed to generate music. Connect ElevenLabs API.',
+  musicConnectHint: 'Connect ElevenLabs in APIs to generate music',
 };
 
 const fr: TranslationKeys = {
@@ -502,6 +522,25 @@ const fr: TranslationKeys = {
   toastAllAudiosReady: 'Tous les audios sont déjà générés',
   toastBatchAudios: (n: number) => `Génération de ${n} audios en file d'attente...`,
   generateNAudios: (n: number) => `Générer ${n} audios`,
+
+  backgroundMusic: 'Musique de fond',
+  musicMoods: 'Ambiances rapides',
+  mood_cinematic: 'Cinématique',
+  mood_calm: 'Calme',
+  mood_upbeat: 'Dynamique',
+  mood_dramatic: 'Dramatique',
+  mood_educational: 'Éducatif',
+  mood_lofi: 'Lo-Fi',
+  musicPromptPlaceholder: 'Décrivez le style musical souhaité...',
+  generateMusic: 'Générer',
+  generatedTrack: 'Piste générée',
+  musicVolume: 'Volume',
+  fadeIn: 'Fondu entrant',
+  fadeOut: 'Fondu sortant',
+  loopMusic: 'Boucle',
+  generatingMusic: 'Génération de la musique de fond...',
+  musicError: 'Échec de la génération. Connectez l\'API ElevenLabs.',
+  musicConnectHint: 'Connectez ElevenLabs dans APIs pour générer de la musique',
 };
 
 const es: TranslationKeys = {
@@ -741,6 +780,25 @@ const es: TranslationKeys = {
   toastAllAudiosReady: 'Todos los audios ya están generados',
   toastBatchAudios: (n: number) => `Generando ${n} audios en cola...`,
   generateNAudios: (n: number) => `Generar ${n} Audios`,
+
+  backgroundMusic: 'Música de fondo',
+  musicMoods: 'Ambientes rápidos',
+  mood_cinematic: 'Cinemático',
+  mood_calm: 'Tranquilo',
+  mood_upbeat: 'Energético',
+  mood_dramatic: 'Dramático',
+  mood_educational: 'Educativo',
+  mood_lofi: 'Lo-Fi',
+  musicPromptPlaceholder: 'Describe el estilo de música que quieres...',
+  generateMusic: 'Generar',
+  generatedTrack: 'Pista generada',
+  musicVolume: 'Volumen',
+  fadeIn: 'Fade In',
+  fadeOut: 'Fade Out',
+  loopMusic: 'Loop',
+  generatingMusic: 'Generando música de fondo...',
+  musicError: 'Error al generar música. Conecta la API de ElevenLabs.',
+  musicConnectHint: 'Conecta ElevenLabs en APIs para generar música',
 };
 
 export const translations: Record<Locale, TranslationKeys> = { en, fr, es };

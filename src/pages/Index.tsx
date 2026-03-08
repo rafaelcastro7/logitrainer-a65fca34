@@ -19,27 +19,28 @@ import { generateScript, generateImage, generateTTS, trackUsage } from '@/servic
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { Loader2, Film } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Index() {
   const {
     project, activeTab, setActiveTab,
     updateMeta, setScenes, updateScene, removeScene, addScene, reorderScenes,
     loadProject, resetProject, undo, redo, canUndo, canRedo,
+    updateBackgroundMusic,
   } = useProject();
   const { user, loading: authLoading, signUp, signIn, signOut } = useAuth();
   const { savedProjects, loading: projectsLoading, currentProjectId, setCurrentProjectId, saveProject, deleteProject, generateShareLink, loadSharedProject } = useProjects(user);
   
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isMusicGenerating, setIsMusicGenerating] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
 
-  // Auto-save
   useAutoSave(project, hasProject);
 
-  // Recover auto-saved project on mount
   useEffect(() => {
     if (initialized) return;
     setInitialized(true);
@@ -50,7 +51,7 @@ export default function Index() {
       loadSharedProject(sharedToken).then(p => {
         if (p) {
           loadProject(p);
-          toast.success(t.sharedProjectLoaded || 'Shared project loaded');
+          toast.success(t.sharedProjectLoaded);
           setActiveTab('editor');
         }
       });
@@ -60,7 +61,7 @@ export default function Index() {
     const autoSaved = getAutoSavedProject();
     if (autoSaved && autoSaved.scenes?.length > 0) {
       loadProject(autoSaved);
-      toast.info(t.autoSaveRecovered || 'Previous session recovered');
+      toast.info(t.autoSaveRecovered);
     }
   }, [initialized]);
 
@@ -80,10 +81,9 @@ export default function Index() {
     resetProject();
     setCurrentProjectId(null);
     clearAutoSave();
-    toast.info(t.newProjectCreated || 'New project');
+    toast.info(t.newProjectCreated);
   }, [resetProject, setCurrentProjectId, t]);
 
-  // Keyboard shortcuts
   const shortcutHandlers = useMemo(() => ({
     onSave: () => handleSave(),
     onUndo: undo,
@@ -225,16 +225,59 @@ export default function Index() {
   const handleGenerateAllAudios = useCallback(async () => {
     const pendingScenes = project.scenes.filter(s => s.audio.status !== 'completed' && s.script.trim());
     if (pendingScenes.length === 0) {
-      toast.info(t.toastAllAudiosReady || 'All audios are ready');
+      toast.info(t.toastAllAudiosReady);
       return;
     }
 
-    toast.info(t.toastBatchAudios?.(pendingScenes.length) || `Generating ${pendingScenes.length} audios...`);
+    toast.info(t.toastBatchAudios(pendingScenes.length));
     for (const scene of pendingScenes) {
       await handleRegenerateAudio(scene.id);
       await new Promise(r => setTimeout(r, 1500));
     }
   }, [project.scenes, handleRegenerateAudio, t]);
+
+  const handleGenerateMusic = useCallback(async (prompt: string) => {
+    setIsMusicGenerating(true);
+    updateBackgroundMusic({ status: 'generating', prompt });
+    toast.info(t.generatingMusic);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-music`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ prompt, duration: 30 }),
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `Music generation failed: ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      updateBackgroundMusic({
+        url: audioUrl,
+        name: prompt.slice(0, 50),
+        status: 'ready',
+        prompt,
+      });
+      toast.success('🎵 ' + (t.ready || 'Ready'));
+    } catch (error) {
+      console.error('Music generation error:', error);
+      updateBackgroundMusic({ status: 'error' });
+      toast.error(error instanceof Error ? error.message : t.musicError);
+    } finally {
+      setIsMusicGenerating(false);
+    }
+  }, [updateBackgroundMusic, t]);
 
   const handleDuplicateScene = useCallback((scene: Scene) => {
     const newScene: Scene = {
@@ -252,7 +295,6 @@ export default function Index() {
     toast.info(t.toastConnectProvider(providerId));
   }, [t]);
 
-  // Loading splash
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background gap-4">
@@ -296,6 +338,10 @@ export default function Index() {
                 onGenerate={handleGenerate}
                 isGenerating={isGenerating}
                 scenesCount={project.scenes.length}
+                backgroundMusic={project.backgroundMusic}
+                onUpdateMusic={updateBackgroundMusic}
+                onGenerateMusic={handleGenerateMusic}
+                isMusicGenerating={isMusicGenerating}
               />
             )}
             {activeTab === 'editor' && (
@@ -313,7 +359,7 @@ export default function Index() {
               />
             )}
             {activeTab === 'preview' && (
-              <PreviewView scenes={project.scenes} />
+              <PreviewView scenes={project.scenes} backgroundMusic={project.backgroundMusic} />
             )}
             {activeTab === 'assets' && (
               <AssetsView scenes={project.scenes} />
