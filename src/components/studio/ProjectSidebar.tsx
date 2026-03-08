@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Scene } from '@/types/project';
+import { Scene, TransitionType, AnimationSettings } from '@/types/project';
 import {
   LayoutDashboard, Clapperboard, Play, Images, Activity,
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
-  ChevronDown, ChevronUp, Clock, Sparkles, GripVertical
+  ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
   useSensor, useSensors, DragEndEvent
@@ -30,6 +32,20 @@ interface ProjectSidebarProps {
   selectedSceneId?: string | null;
   onSelectScene?: (id: string) => void;
   onReorder?: (scenes: Scene[]) => void;
+  onUpdateScene?: (id: string, updates: Partial<Scene>) => void;
+}
+
+// Mini progress dot component
+function StatusDot({ status }: { status: string }) {
+  return (
+    <span className={cn(
+      "w-1.5 h-1.5 rounded-full shrink-0",
+      status === 'completed' ? 'bg-success' :
+      status === 'generating' ? 'bg-warning animate-pulse' :
+      status === 'error' ? 'bg-destructive' :
+      'bg-muted-foreground/30'
+    )} />
+  );
 }
 
 function SortableSceneItem({ scene, index, isSelected, onSelect, onNavigate }: {
@@ -44,38 +60,58 @@ function SortableSceneItem({ scene, index, isSelected, onSelect, onNavigate }: {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const imgProgress = scene.image.status === 'completed' ? 100 : scene.image.status === 'generating' ? 50 : 0;
+  const audProgress = scene.audio.status === 'completed' ? 100 : scene.audio.status === 'generating' ? 50 : 0;
+  const totalProgress = (imgProgress + audProgress) / 2;
+
   return (
     <div ref={setNodeRef} style={style} className="relative">
       <button
         onClick={() => { onSelect?.(scene.id); onNavigate('editor'); }}
         className={cn(
-          "w-full flex items-center gap-1.5 px-1.5 py-1.5 rounded-md text-[11px] transition-all group",
+          "w-full flex flex-col gap-1 px-1.5 py-1.5 rounded-md text-[11px] transition-all group",
           isSelected ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
         )}
       >
-        <span
-          {...attributes} {...listeners}
-          className="cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-muted/50 shrink-0"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <GripVertical className="w-3 h-3 text-muted-foreground/50" />
-        </span>
-        <span className="w-4 h-4 rounded bg-muted flex items-center justify-center text-[9px] font-mono font-bold shrink-0">
-          {index + 1}
-        </span>
-        <span className="truncate flex-1 text-left">{scene.name}</span>
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          {scene.image.status === 'completed' && <ImageIcon className="w-2.5 h-2.5 text-success" />}
-          {scene.audio.status === 'completed' && <Mic className="w-2.5 h-2.5 text-success" />}
+        <div className="flex items-center gap-1.5 w-full">
+          <span
+            {...attributes} {...listeners}
+            className="cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-muted/50 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="w-3 h-3 text-muted-foreground/50" />
+          </span>
+          <span className="w-4 h-4 rounded bg-muted flex items-center justify-center text-[9px] font-mono font-bold shrink-0">
+            {index + 1}
+          </span>
+          <span className="truncate flex-1 text-left">{scene.name}</span>
+          <div className="flex items-center gap-1">
+            <StatusDot status={scene.image.status} />
+            <StatusDot status={scene.audio.status} />
+          </div>
+        </div>
+        {/* Mini progress bar */}
+        <div className="w-full h-[3px] rounded-full bg-muted/50 overflow-hidden ml-[26px] mr-1" style={{ width: 'calc(100% - 30px)' }}>
+          <div
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              totalProgress === 100 ? "bg-success" :
+              totalProgress > 0 ? "bg-primary" : "bg-transparent"
+            )}
+            style={{ width: `${totalProgress}%` }}
+          />
         </div>
       </button>
     </div>
   );
 }
 
+const ANIMATION_TYPES: AnimationSettings['type'][] = ['static', 'zoom_in', 'zoom_out', 'pan_left', 'pan_right'];
+const TRANSITION_TYPES: TransitionType[] = ['fade', 'wipe_left', 'wipe_right', 'dissolve', 'slide_up', 'none'];
+
 export default function ProjectSidebar({
   activeTab, onTabChange, scenes, collapsed,
-  onToggleCollapse, selectedSceneId, onSelectScene, onReorder,
+  onToggleCollapse, selectedSceneId, onSelectScene, onReorder, onUpdateScene,
 }: ProjectSidebarProps) {
   const { t } = useTranslation();
   const [treeOpen, setTreeOpen] = useState(true);
@@ -96,11 +132,16 @@ export default function ProjectSidebar({
   const completedImages = scenes.filter(s => s.image.status === 'completed').length;
   const completedAudios = scenes.filter(s => s.audio.status === 'completed').length;
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
+
   return (
     <aside
       className={cn(
         "shrink-0 border-r border-border/30 bg-sidebar flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
-        collapsed ? "w-12" : "w-60"
+        collapsed ? "w-12" : "w-64"
       )}
     >
       {/* Collapse toggle */}
@@ -165,10 +206,7 @@ export default function ProjectSidebar({
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-px mt-1">
               <DndContext
-                sensors={useSensors(
-                  useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-                  useSensor(KeyboardSensor)
-                )}
+                sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={(event: DragEndEvent) => {
                   const { active, over } = event;
@@ -192,11 +230,29 @@ export default function ProjectSidebar({
                   ))}
                 </SortableContext>
               </DndContext>
+
+              {/* Global progress summary */}
+              <div className="flex items-center gap-2 px-2 py-2 mt-1 border-t border-border/20">
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <ImageIcon className="w-2.5 h-2.5" />
+                  <span>{completedImages}/{scenes.length}</span>
+                </div>
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <Mic className="w-2.5 h-2.5" />
+                  <span>{completedAudios}/{scenes.length}</span>
+                </div>
+                <div className="flex-1 h-[3px] rounded-full bg-muted/50 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    style={{ width: `${scenes.length > 0 ? ((completedImages + completedAudios) / (scenes.length * 2)) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         )}
 
-        {/* Contextual Properties Panel */}
+        {/* Editable Properties Panel */}
         {!collapsed && selectedScene && (
           <Collapsible open={propsOpen} onOpenChange={setPropsOpen} className="px-2 mt-3">
             <CollapsibleTrigger className="w-full flex items-center justify-between px-2 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider hover:text-sidebar-foreground transition-colors">
@@ -207,45 +263,111 @@ export default function ProjectSidebar({
               {propsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-1 space-y-2 px-1">
-              <div className="glass-panel rounded-lg p-3 space-y-2.5">
+              <div className="glass-panel rounded-lg p-3 space-y-3">
+                {/* Scene name */}
                 <div className="flex items-center gap-2">
                   <Film className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs font-semibold truncate">{selectedScene.name}</span>
                 </div>
 
+                {/* Status indicators */}
+                <div className="flex gap-2">
+                  <div className={cn("flex-1 rounded-md px-2 py-1.5 text-center text-[10px] font-medium border",
+                    selectedScene.image.status === 'completed' ? 'border-success/30 bg-success/10 text-success' :
+                    selectedScene.image.status === 'generating' ? 'border-warning/30 bg-warning/10 text-warning' :
+                    selectedScene.image.status === 'error' ? 'border-destructive/30 bg-destructive/10 text-destructive' :
+                    'border-border/30 bg-muted/30 text-muted-foreground'
+                  )}>
+                    <ImageIcon className="w-3 h-3 mx-auto mb-0.5" />
+                    {selectedScene.image.status}
+                  </div>
+                  <div className={cn("flex-1 rounded-md px-2 py-1.5 text-center text-[10px] font-medium border",
+                    selectedScene.audio.status === 'completed' ? 'border-success/30 bg-success/10 text-success' :
+                    selectedScene.audio.status === 'generating' ? 'border-warning/30 bg-warning/10 text-warning' :
+                    selectedScene.audio.status === 'error' ? 'border-destructive/30 bg-destructive/10 text-destructive' :
+                    'border-border/30 bg-muted/30 text-muted-foreground'
+                  )}>
+                    <Mic className="w-3 h-3 mx-auto mb-0.5" />
+                    {selectedScene.audio.status}
+                  </div>
+                </div>
+
+                {/* Duration slider */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[10px]">
                     <span className="text-muted-foreground flex items-center gap-1"><Clock className="w-2.5 h-2.5" /> Duration</span>
-                    <span className="font-mono text-foreground">{selectedScene.duration}s</span>
+                    <span className="font-mono text-foreground font-medium">{selectedScene.duration}s</span>
                   </div>
+                  <Slider
+                    value={[selectedScene.duration]}
+                    onValueChange={([val]) => onUpdateScene?.(selectedScene.id, { duration: val })}
+                    min={2}
+                    max={30}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Animation type */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" /> Animation</span>
+                  <Select
+                    value={selectedScene.animation.type}
+                    onValueChange={(val) => onUpdateScene?.(selectedScene.id, {
+                      animation: { ...selectedScene.animation, type: val as AnimationSettings['type'] }
+                    })}
+                  >
+                    <SelectTrigger className="h-7 text-[11px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ANIMATION_TYPES.map(type => (
+                        <SelectItem key={type} value={type} className="text-xs">{type.replace('_', ' ')}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Animation intensity */}
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-muted-foreground flex items-center gap-1"><ImageIcon className="w-2.5 h-2.5" /> Image</span>
-                    <span className={cn("font-medium capitalize",
-                      selectedScene.image.status === 'completed' ? 'text-success' :
-                      selectedScene.image.status === 'error' ? 'text-destructive' :
-                      selectedScene.image.status === 'generating' ? 'text-warning' : 'text-muted-foreground'
-                    )}>
-                      {selectedScene.image.status}
-                    </span>
+                    <span className="text-muted-foreground">Intensity</span>
+                    <span className="font-mono text-foreground">{Math.round(selectedScene.animation.intensity * 100)}%</span>
                   </div>
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-muted-foreground flex items-center gap-1"><Mic className="w-2.5 h-2.5" /> Audio</span>
-                    <span className={cn("font-medium capitalize",
-                      selectedScene.audio.status === 'completed' ? 'text-success' :
-                      selectedScene.audio.status === 'error' ? 'text-destructive' :
-                      selectedScene.audio.status === 'generating' ? 'text-warning' : 'text-muted-foreground'
-                    )}>
-                      {selectedScene.audio.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-muted-foreground flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" /> Animation</span>
-                    <span className="font-mono text-foreground">{selectedScene.animation.type}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-muted-foreground flex items-center gap-1"><FileText className="w-2.5 h-2.5" /> Words</span>
-                    <span className="font-mono text-foreground">{selectedScene.script.split(/\s+/).filter(Boolean).length}</span>
-                  </div>
+                  <Slider
+                    value={[selectedScene.animation.intensity * 100]}
+                    onValueChange={([val]) => onUpdateScene?.(selectedScene.id, {
+                      animation: { ...selectedScene.animation, intensity: val / 100 }
+                    })}
+                    min={10}
+                    max={100}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Transition type */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Shuffle className="w-2.5 h-2.5" /> Transition</span>
+                  <Select
+                    value={selectedScene.transition}
+                    onValueChange={(val) => onUpdateScene?.(selectedScene.id, { transition: val as TransitionType })}
+                  >
+                    <SelectTrigger className="h-7 text-[11px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TRANSITION_TYPES.map(type => (
+                        <SelectItem key={type} value={type} className="text-xs">{type.replace('_', ' ')}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Word count */}
+                <div className="flex items-center justify-between text-[10px] pt-1 border-t border-border/30">
+                  <span className="text-muted-foreground flex items-center gap-1"><FileText className="w-2.5 h-2.5" /> Words</span>
+                  <span className="font-mono text-foreground">{selectedScene.script.split(/\s+/).filter(Boolean).length}</span>
                 </div>
 
                 {selectedScene.script && (
