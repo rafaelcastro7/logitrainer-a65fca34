@@ -306,10 +306,26 @@ export default function ProjectSidebar({
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-1 space-y-2 px-1">
               <div className="glass-panel rounded-lg p-3 space-y-3">
-                {/* Scene name */}
-                <div className="flex items-center gap-2">
-                  <Film className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-xs font-semibold truncate">{selectedScene.name}</span>
+                {/* Scene name - double click to rename */}
+                <div className="flex items-center gap-2" onDoubleClick={startRename}>
+                  <Film className="w-3.5 h-3.5 text-primary shrink-0" />
+                  {editingName ? (
+                    <input
+                      ref={nameInputRef}
+                      value={nameValue}
+                      onChange={(e) => setNameValue(e.target.value)}
+                      onBlur={commitRename}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') commitRename();
+                        if (e.key === 'Escape') setEditingName(false);
+                      }}
+                      className="text-xs font-semibold bg-muted/50 border border-border/50 rounded px-1.5 py-0.5 w-full outline-none focus:border-primary/50"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold truncate cursor-text" title="Double-click to rename">
+                      {selectedScene.name}
+                    </span>
+                  )}
                 </div>
 
                 {/* Status indicators */}
