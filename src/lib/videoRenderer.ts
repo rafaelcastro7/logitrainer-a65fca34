@@ -315,7 +315,7 @@ export async function renderVideo(
         ctx.fillText(scene.name, width / 2, height / 2);
       }
 
-      drawSubtitle(ctx, scene.script, width, height);
+      drawSubtitle(ctx, scene.script, width, height, scene);
       drawTransition(ctx, width, height, progress, 'in', transType);
       drawTransition(ctx, width, height, progress, 'out', transType);
 
