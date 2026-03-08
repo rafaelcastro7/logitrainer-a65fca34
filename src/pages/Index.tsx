@@ -35,6 +35,7 @@ export default function Index() {
   const { savedProjects, loading: projectsLoading, currentProjectId, setCurrentProjectId, saveProject, deleteProject, generateShareLink, loadSharedProject } = useProjects(user);
   
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
   const [isMusicGenerating, setIsMusicGenerating] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
