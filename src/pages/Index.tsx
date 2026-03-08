@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useProject } from '@/hooks/useProject';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
+import { useAutoSave, getAutoSavedProject, clearAutoSave } from '@/hooks/useAutoSave';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import StudioLayout from '@/components/studio/StudioLayout';
 import WelcomeScreen from '@/components/studio/WelcomeScreen';
 import DashboardView from '@/components/studio/DashboardView';
@@ -16,56 +18,80 @@ import { Scene, Project, DEFAULT_PROJECT } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/LanguageContext';
+import { Loader2, Film } from 'lucide-react';
 
 export default function Index() {
   const {
     project, activeTab, setActiveTab,
     updateMeta, setScenes, updateScene, removeScene, addScene, reorderScenes,
+    loadProject, resetProject, undo, redo, canUndo, canRedo,
   } = useProject();
-  const { user, signUp, signIn, signOut } = useAuth();
+  const { user, loading: authLoading, signUp, signIn, signOut } = useAuth();
   const { savedProjects, loading: projectsLoading, currentProjectId, setCurrentProjectId, saveProject, deleteProject, generateShareLink, loadSharedProject } = useProjects(user);
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
 
-  // Load shared project from URL
+  // Auto-save
+  useAutoSave(project, hasProject);
+
+  // Recover auto-saved project on mount
   useEffect(() => {
+    if (initialized) return;
+    setInitialized(true);
+
     const params = new URLSearchParams(window.location.search);
     const sharedToken = params.get('shared');
     if (sharedToken) {
       loadSharedProject(sharedToken).then(p => {
         if (p) {
-          setScenes(p.scenes);
-          if (p.meta) {
-            Object.entries(p.meta).forEach(([key, value]) => {
-              updateMeta({ [key]: value });
-            });
-          }
-          toast.success('Shared project loaded');
+          loadProject(p);
+          toast.success(t.sharedProjectLoaded || 'Shared project loaded');
           setActiveTab('editor');
         }
       });
+      return;
     }
-  }, []);
+
+    const autoSaved = getAutoSavedProject();
+    if (autoSaved && autoSaved.scenes?.length > 0) {
+      loadProject(autoSaved);
+      toast.info(t.autoSaveRecovered || 'Previous session recovered');
+    }
+  }, [initialized]);
 
   const handleSave = useCallback(async () => {
     if (!user) { setAuthOpen(true); return; }
     await saveProject(project);
+    clearAutoSave();
   }, [user, project, saveProject]);
 
   const handleLoadProject = useCallback((p: Project, id: string) => {
-    setScenes(p.scenes || []);
-    if (p.meta) {
-      Object.entries(p.meta).forEach(([key, value]) => {
-        updateMeta({ [key]: value });
-      });
-    }
+    loadProject(p);
     setCurrentProjectId(id);
     setActiveTab('editor');
-  }, [setScenes, updateMeta, setCurrentProjectId, setActiveTab]);
+  }, [loadProject, setCurrentProjectId, setActiveTab]);
+
+  const handleNewProject = useCallback(() => {
+    resetProject();
+    setCurrentProjectId(null);
+    clearAutoSave();
+    toast.info(t.newProjectCreated || 'New project');
+  }, [resetProject, setCurrentProjectId, t]);
+
+  // Keyboard shortcuts
+  const shortcutHandlers = useMemo(() => ({
+    onSave: () => handleSave(),
+    onUndo: undo,
+    onRedo: redo,
+    onNewProject: handleNewProject,
+    onPreview: () => setActiveTab('preview'),
+  }), [handleSave, undo, redo, handleNewProject, setActiveTab]);
+  useKeyboardShortcuts(shortcutHandlers);
 
   const handleGenerate = useCallback(async (topic: string) => {
     setIsGenerating(true);
@@ -196,6 +222,20 @@ export default function Index() {
     }
   }, [project.scenes, handleRegenerateImage, t]);
 
+  const handleGenerateAllAudios = useCallback(async () => {
+    const pendingScenes = project.scenes.filter(s => s.audio.status !== 'completed' && s.script.trim());
+    if (pendingScenes.length === 0) {
+      toast.info(t.toastAllAudiosReady || 'All audios are ready');
+      return;
+    }
+
+    toast.info(t.toastBatchAudios?.(pendingScenes.length) || `Generating ${pendingScenes.length} audios...`);
+    for (const scene of pendingScenes) {
+      await handleRegenerateAudio(scene.id);
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }, [project.scenes, handleRegenerateAudio, t]);
+
   const handleDuplicateScene = useCallback((scene: Scene) => {
     const newScene: Scene = {
       ...scene,
@@ -212,6 +252,21 @@ export default function Index() {
     toast.info(t.toastConnectProvider(providerId));
   }, [t]);
 
+  // Loading splash
+  if (authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-background gap-4">
+        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 glow-primary">
+          <Film className="w-8 h-8 text-primary animate-pulse-glow" />
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-medium">LogiTrainer Studio</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <StudioLayout
@@ -224,6 +279,11 @@ export default function Index() {
         onOpenProjects={() => setProjectsOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onSignOut={signOut}
+        onNewProject={handleNewProject}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen onStart={handleGenerate} isGenerating={isGenerating} />
@@ -249,6 +309,7 @@ export default function Index() {
                 onRegenerateImage={handleRegenerateImage}
                 onRegenerateAudio={handleRegenerateAudio}
                 onGenerateAllImages={handleGenerateAllImages}
+                onGenerateAllAudios={handleGenerateAllAudios}
               />
             )}
             {activeTab === 'preview' && (
