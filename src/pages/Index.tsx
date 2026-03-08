@@ -371,7 +371,7 @@ export default function Index() {
               />
             )}
             {activeTab === 'preview' && (
-              <PreviewView scenes={project.scenes} backgroundMusic={project.backgroundMusic} />
+              <PreviewView scenes={project.scenes} backgroundMusic={project.backgroundMusic} aspectRatio={project.meta.aspectRatio} />
             )}
             {activeTab === 'assets' && (
               <AssetsView scenes={project.scenes} />
