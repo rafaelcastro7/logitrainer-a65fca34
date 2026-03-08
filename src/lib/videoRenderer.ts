@@ -1,4 +1,4 @@
-import { Scene } from '@/types/project';
+import { Scene, TransitionType as SceneTransitionType } from '@/types/project';
 
 export interface RenderProgress {
   phase: 'loading' | 'rendering' | 'encoding' | 'done';
