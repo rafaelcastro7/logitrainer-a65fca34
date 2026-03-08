@@ -1,4 +1,4 @@
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe } from 'lucide-react';
+import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
@@ -24,6 +24,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
     { id: 'apis', label: t.apis, icon: Server },
+    { id: 'about', label: t.about, icon: Info },
   ];
 
   const totalScenes = scenes.length;
