@@ -140,7 +140,7 @@ export default function AboutView({ onNavigate }: AboutViewProps) {
           return (
             <motion.div
               key={stat.label}
-              variants={fadeUp}
+              variants={scaleUp}
               custom={i}
               className="glass-panel rounded-2xl p-6 text-center group hover:border-primary/30 transition-colors"
             >
