@@ -61,41 +61,11 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             </h1>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex items-center gap-0.5 bg-muted/40 rounded-lg p-0.5">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              const badge = tab.id === 'editor' ? (totalScenes || null) :
-                           tab.id === 'assets' ? (completedImages || null) : null;
-              return (
-                <Tooltip key={tab.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => onTabChange(tab.id)}
-                      className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200 relative",
-                        activeTab === tab.id
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                      )}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                      <span className="hidden lg:inline">{tab.label}</span>
-                      {badge !== null && badge > 0 && (
-                        <span className={cn(
-                          "text-[9px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full",
-                          activeTab === tab.id ? "bg-primary-foreground/20" : "bg-primary/20 text-primary"
-                        )}>
-                          {badge}
-                        </span>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs lg:hidden">{tab.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </nav>
+          {/* Active tab indicator */}
+          <div className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-1">
+            <span className="text-[11px] text-muted-foreground">Tab:</span>
+            <span className="text-xs font-semibold text-foreground capitalize">{activeTab}</span>
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-1">
