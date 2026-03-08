@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
@@ -8,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { User as SupaUser } from '@supabase/supabase-js';
+import KeyboardShortcutsDialog from './KeyboardShortcutsDialog';
 
 interface StudioLayoutProps {
   activeTab: string;
@@ -29,6 +31,7 @@ interface StudioLayoutProps {
 
 export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const tabs = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
@@ -222,6 +225,8 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
       <main className="flex-1 overflow-auto">
         {children}
       </main>
+
+      <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </div>
   );
 }

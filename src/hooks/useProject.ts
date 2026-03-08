@@ -41,9 +41,13 @@ export function useProject() {
 
   const loadProject = useCallback((p: Project) => {
     const clone = JSON.parse(JSON.stringify(p));
-    // Ensure backgroundMusic exists for older projects
     if (!clone.backgroundMusic) {
       clone.backgroundMusic = { id: crypto.randomUUID(), name: '', url: null, volume: 0.15, fadeIn: 2, fadeOut: 3, loop: true, status: 'none' };
+    }
+    if (!clone.meta.aspectRatio) clone.meta.aspectRatio = '16:9';
+    // Ensure all scenes have transition
+    if (clone.scenes) {
+      clone.scenes = clone.scenes.map((s: any) => ({ transition: 'fade', ...s }));
     }
     setProject(clone);
     historyRef.current = [{ project: clone, label: 'load' }];

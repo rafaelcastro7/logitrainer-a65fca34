@@ -14,7 +14,7 @@ import ApiManagementView from '@/components/studio/ApiManagementView';
 import AboutView from '@/components/studio/AboutView';
 import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
-import { Scene, Project, DEFAULT_PROJECT } from '@/types/project';
+import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage } from '@/services/apiService';
 import { toast } from 'sonner';
 import { useTranslation } from '@/i18n/LanguageContext';
@@ -125,6 +125,7 @@ export default function Index() {
         image: { status: 'pending', url: null },
         animation: { type: 'zoom_in', intensity: 0.3 },
         notes: '',
+        transition: 'fade' as const,
       }));
 
       setScenes(scenes);
@@ -286,10 +287,17 @@ export default function Index() {
       name: `${scene.name} ${t.copy}`,
       audio: { status: 'pending', url: null },
       image: { status: 'pending', url: null },
+      transition: scene.transition || 'fade',
     };
     addScene(newScene);
     toast.info(t.toastDuplicated);
   }, [addScene, t]);
+
+  const handleApplyTemplate = useCallback((template: VideoTemplate) => {
+    if (template.meta) {
+      updateMeta(template.meta);
+    }
+  }, [updateMeta]);
 
   const handleConnectProvider = useCallback((providerId: string) => {
     toast.info(t.toastConnectProvider(providerId));
@@ -328,7 +336,11 @@ export default function Index() {
         canRedo={canRedo}
       >
         {!hasProject && activeTab === 'dashboard' ? (
-          <WelcomeScreen onStart={handleGenerate} isGenerating={isGenerating} />
+          <WelcomeScreen
+            onStart={handleGenerate}
+            isGenerating={isGenerating}
+            onApplyTemplate={handleApplyTemplate}
+          />
         ) : (
           <>
             {activeTab === 'dashboard' && (
@@ -359,7 +371,7 @@ export default function Index() {
               />
             )}
             {activeTab === 'preview' && (
-              <PreviewView scenes={project.scenes} backgroundMusic={project.backgroundMusic} />
+              <PreviewView scenes={project.scenes} backgroundMusic={project.backgroundMusic} aspectRatio={project.meta.aspectRatio} />
             )}
             {activeTab === 'assets' && (
               <AssetsView scenes={project.scenes} />
