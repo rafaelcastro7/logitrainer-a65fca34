@@ -51,7 +51,7 @@ export function useProjects(user: User | null) {
     if (currentProjectId) {
       const { error } = await supabase
         .from('projects')
-        .update({ name: project.meta.name, data: project as unknown as Record<string, unknown> })
+        .update({ name: project.meta.name, data: JSON.parse(JSON.stringify(project)) })
         .eq('id', currentProjectId);
       if (error) { toast.error('Save failed'); return null; }
       toast.success('Project saved');
