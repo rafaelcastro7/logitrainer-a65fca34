@@ -16,6 +16,8 @@ import MultiSourceImport from '@/components/studio/MultiSourceImport';
 import AboutView from '@/components/studio/AboutView';
 import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
+import AdminApprovalPanel from '@/components/studio/AdminApprovalPanel';
+import PendingApprovalScreen from '@/components/studio/PendingApprovalScreen';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
