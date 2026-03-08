@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Activity, Command } from 'lucide-react';
+import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { User as SupaUser } from '@supabase/supabase-js';
 import KeyboardShortcutsDialog from './KeyboardShortcutsDialog';
 import StatusBar from './StatusBar';
+import ProjectSidebar from './ProjectSidebar';
 
 interface StudioLayoutProps {
   activeTab: string;
@@ -28,21 +29,14 @@ interface StudioLayoutProps {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  selectedSceneId?: string | null;
+  onSelectScene?: (id: string) => void;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-
-  const tabs = [
-    { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
-    { id: 'editor', label: t.editor, icon: Clapperboard },
-    { id: 'preview', label: t.preview, icon: Play },
-    { id: 'assets', label: t.assets, icon: Images },
-    { id: 'analytics', label: 'Analytics', icon: Activity },
-    { id: 'apis', label: t.apis, icon: Server },
-    { id: 'about', label: t.about, icon: Info },
-  ];
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const totalScenes = scenes.length;
   const completedImages = scenes.filter(s => s.image.status === 'completed').length;
@@ -67,41 +61,11 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             </h1>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex items-center gap-0.5 bg-muted/40 rounded-lg p-0.5">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              const badge = tab.id === 'editor' ? (totalScenes || null) :
-                           tab.id === 'assets' ? (completedImages || null) : null;
-              return (
-                <Tooltip key={tab.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => onTabChange(tab.id)}
-                      className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200 relative",
-                        activeTab === tab.id
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                      )}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                      <span className="hidden lg:inline">{tab.label}</span>
-                      {badge !== null && badge > 0 && (
-                        <span className={cn(
-                          "text-[9px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full",
-                          activeTab === tab.id ? "bg-primary-foreground/20" : "bg-primary/20 text-primary"
-                        )}>
-                          {badge}
-                        </span>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs lg:hidden">{tab.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </nav>
+          {/* Active tab indicator */}
+          <div className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-1">
+            <span className="text-[11px] text-muted-foreground">Tab:</span>
+            <span className="text-xs font-semibold text-foreground capitalize">{activeTab}</span>
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-1">
@@ -216,10 +180,21 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
         )}
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      {/* Body with sidebar */}
+      <div className="flex flex-1 overflow-hidden">
+        <ProjectSidebar
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          scenes={scenes}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          selectedSceneId={selectedSceneId}
+          onSelectScene={onSelectScene}
+        />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
 
       {/* Status Bar */}
       <StatusBar scenes={scenes} user={user} hasProject={hasProject} />

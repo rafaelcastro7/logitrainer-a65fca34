@@ -9,9 +9,33 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/LanguageContext';
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 40, scale: 0.97 },
   visible: (i: number) => ({
-    opacity: 1, y: 0,
+    opacity: 1, y: 0, scale: 1,
+    transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" as const },
+  }),
+};
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -60 },
+  visible: (i: number) => ({
+    opacity: 1, x: 0,
+    transition: { delay: i * 0.12, duration: 0.7, ease: "easeOut" as const },
+  }),
+};
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 60 },
+  visible: (i: number) => ({
+    opacity: 1, x: 0,
+    transition: { delay: i * 0.12, duration: 0.7, ease: "easeOut" as const },
+  }),
+};
+
+const scaleUp = {
+  hidden: { opacity: 0, scale: 0.85 },
+  visible: (i: number) => ({
+    opacity: 1, scale: 1,
     transition: { delay: i * 0.08, duration: 0.5, ease: "easeOut" as const },
   }),
 };
@@ -116,7 +140,7 @@ export default function AboutView({ onNavigate }: AboutViewProps) {
           return (
             <motion.div
               key={stat.label}
-              variants={fadeUp}
+              variants={scaleUp}
               custom={i}
               className="glass-panel rounded-2xl p-6 text-center group hover:border-primary/30 transition-colors"
             >
@@ -147,7 +171,7 @@ export default function AboutView({ onNavigate }: AboutViewProps) {
             return (
               <motion.div
                 key={pillar.title}
-                variants={fadeUp}
+                variants={i % 2 === 0 ? slideInLeft : slideInRight}
                 custom={i + 1}
                 className="glass-panel rounded-2xl p-6 group hover:border-primary/30 transition-all relative overflow-hidden"
               >
