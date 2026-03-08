@@ -38,6 +38,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     { id: 'editor', label: t.editor, icon: Clapperboard },
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
+    { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
   ];
