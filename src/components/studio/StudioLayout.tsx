@@ -1,4 +1,4 @@
-import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut } from 'lucide-react';
+import { Film, LayoutDashboard, Clapperboard, Play, Images, Server, Clock, CheckCircle2, AlertCircle, Globe, Info, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
@@ -6,6 +6,7 @@ import { useTranslation } from '@/i18n/LanguageContext';
 import { Locale, LOCALE_LABELS } from '@/i18n/translations';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { User as SupaUser } from '@supabase/supabase-js';
 
 interface StudioLayoutProps {
@@ -19,9 +20,14 @@ interface StudioLayoutProps {
   onOpenProjects?: () => void;
   onOpenAuth?: () => void;
   onSignOut?: () => void;
+  onNewProject?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
 
   const tabs = [
@@ -45,7 +51,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="shrink-0 border-b border-border/50 glass-panel">
-        <div className="flex items-center justify-between px-6 h-14">
+        <div className="flex items-center justify-between px-4 sm:px-6 h-14">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/20">
               <Film className="w-4 h-4 text-primary" />
@@ -87,20 +93,61 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             })}
           </nav>
 
-          <div className="flex items-center gap-2">
-            {/* Save & Projects */}
-            {user && hasProject && (
-              <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={onSave}>
-                <Save className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{t.save}</span>
-              </Button>
+          <div className="flex items-center gap-1.5">
+            {/* Undo/Redo */}
+            {hasProject && (
+              <div className="flex items-center gap-0.5 mr-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onUndo} disabled={!canUndo}>
+                      <Undo2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">Undo (⌘Z)</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onRedo} disabled={!canRedo}>
+                      <Redo2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">Redo (⌘⇧Z)</TooltipContent>
+                </Tooltip>
+              </div>
             )}
+
+            {/* New Project */}
+            {hasProject && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onNewProject}>
+                    <FilePlus2 className="w-3.5 h-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">{t.newProject || 'New Project'} (⌘⇧N)</TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Save */}
+            {user && hasProject && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={onSave}>
+                    <Save className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{t.save}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">{t.save} (⌘S)</TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Projects */}
             {user && (
               <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={onOpenProjects}>
                 <FolderOpen className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{t.myProjects}</span>
               </Button>
             )}
 
-            {/* Language Switcher */}
+            {/* Language */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 px-2">
@@ -144,7 +191,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             )}
 
             {hasProject && (
-              <div className="flex items-center gap-3 text-xs text-muted-foreground ml-2">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground ml-1">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" />
                   {Math.floor(totalDuration / 60)}:{String(totalDuration % 60).padStart(2, '0')}

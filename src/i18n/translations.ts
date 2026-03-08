@@ -254,6 +254,15 @@ const en = {
   downloadVideo: 'Download Video',
   playing: 'Playing',
   stopPreview: 'Stop',
+
+  // New keys
+  newProject: 'New Project',
+  sharedProjectLoaded: 'Shared project loaded',
+  autoSaveRecovered: 'Previous session recovered',
+  newProjectCreated: 'New project',
+  toastAllAudiosReady: 'All audios are already generated',
+  toastBatchAudios: (n: number) => `Generating ${n} audios in queue...`,
+  generateNAudios: (n: number) => `Generate ${n} Audios`,
 };
 
 const fr: TranslationKeys = {
@@ -485,6 +494,14 @@ const fr: TranslationKeys = {
   downloadVideo: 'Télécharger la vidéo',
   playing: 'Lecture',
   stopPreview: 'Arrêter',
+
+  newProject: 'Nouveau projet',
+  sharedProjectLoaded: 'Projet partagé chargé',
+  autoSaveRecovered: 'Session précédente récupérée',
+  newProjectCreated: 'Nouveau projet',
+  toastAllAudiosReady: 'Tous les audios sont déjà générés',
+  toastBatchAudios: (n: number) => `Génération de ${n} audios en file d'attente...`,
+  generateNAudios: (n: number) => `Générer ${n} audios`,
 };
 
 const es: TranslationKeys = {
@@ -716,6 +733,14 @@ const es: TranslationKeys = {
   downloadVideo: 'Descargar Video',
   playing: 'Reproduciendo',
   stopPreview: 'Detener',
+
+  newProject: 'Nuevo Proyecto',
+  sharedProjectLoaded: 'Proyecto compartido cargado',
+  autoSaveRecovered: 'Sesión anterior recuperada',
+  newProjectCreated: 'Nuevo proyecto',
+  toastAllAudiosReady: 'Todos los audios ya están generados',
+  toastBatchAudios: (n: number) => `Generando ${n} audios en cola...`,
+  generateNAudios: (n: number) => `Generar ${n} Audios`,
 };
 
 export const translations: Record<Locale, TranslationKeys> = { en, fr, es };

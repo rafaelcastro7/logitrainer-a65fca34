@@ -17,11 +17,12 @@ interface EditorViewProps {
   onRegenerateImage?: (id: string) => void;
   onRegenerateAudio?: (id: string) => void;
   onGenerateAllImages?: () => void;
+  onGenerateAllAudios?: () => void;
 }
 
 export default function EditorView({
   scenes, onUpdateScene, onRemoveScene, onAddScene, onReorder,
-  onDuplicateScene, onRegenerateImage, onRegenerateAudio, onGenerateAllImages,
+  onDuplicateScene, onRegenerateImage, onRegenerateAudio, onGenerateAllImages, onGenerateAllAudios,
 }: EditorViewProps) {
   const [activeSceneId, setActiveSceneId] = useState<string | undefined>(scenes[0]?.id);
   const { t } = useTranslation();
@@ -30,6 +31,7 @@ export default function EditorView({
   const completedImages = scenes.filter(s => s.image.status === 'completed').length;
   const completedAudios = scenes.filter(s => s.audio.status === 'completed').length;
   const pendingImages = scenes.filter(s => s.image.status !== 'completed').length;
+  const pendingAudios = scenes.filter(s => s.audio.status !== 'completed' && s.script.trim()).length;
   const generatingAny = scenes.some(s => s.image.status === 'generating' || s.audio.status === 'generating');
 
   const handleMoveUp = (index: number) => { if (index > 0) onReorder(index, index - 1); };
@@ -57,6 +59,18 @@ export default function EditorView({
           <h2 className="text-lg font-bold">{t.timeline}</h2>
         </div>
         <div className="flex items-center gap-2">
+          {pendingAudios > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs"
+              onClick={onGenerateAllAudios}
+              disabled={generatingAny}
+            >
+              <Mic className="w-3.5 h-3.5" />
+              {generatingAny ? t.generating : (t.generateNAudios?.(pendingAudios) || `Generate ${pendingAudios} Audios`)}
+            </Button>
+          )}
           {pendingImages > 0 && (
             <Button
               size="sm"

@@ -7,6 +7,7 @@ export interface RenderProgress {
   percent: number;
 }
 
+export type TransitionType = 'fade' | 'wipe_left' | 'wipe_right' | 'dissolve' | 'slide_up';
 export type ProgressCallback = (progress: RenderProgress) => void;
 
 async function loadImage(url: string): Promise<HTMLImageElement> {
@@ -25,7 +26,7 @@ function drawKenBurns(
   width: number,
   height: number,
   animation: Scene['animation'],
-  progress: number // 0-1
+  progress: number
 ) {
   const scale = 1 + animation.intensity * progress;
   const dw = width * scale;
@@ -90,13 +91,11 @@ function drawSubtitle(ctx: CanvasRenderingContext2D, text: string, width: number
   }
   if (currentLine) lines.push(currentLine);
 
-  // Only show last 2 lines max
   const visibleLines = lines.slice(-2);
   const lineHeight = fontSize * 1.4;
   const blockHeight = visibleLines.length * lineHeight + 20;
   const y = height - 30;
 
-  // Background bar
   ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
   const rx = width * 0.05;
   const ry = y - blockHeight;
@@ -106,7 +105,6 @@ function drawSubtitle(ctx: CanvasRenderingContext2D, text: string, width: number
   ctx.roundRect(rx, ry, rw, rh, 8);
   ctx.fill();
 
-  // Text
   ctx.fillStyle = '#FFFFFF';
   visibleLines.forEach((line, i) => {
     ctx.fillText(line, width / 2, y - (visibleLines.length - 1 - i) * lineHeight);
@@ -115,14 +113,71 @@ function drawSubtitle(ctx: CanvasRenderingContext2D, text: string, width: number
   ctx.restore();
 }
 
-function drawTransition(ctx: CanvasRenderingContext2D, width: number, height: number, progress: number, type: 'fadeIn' | 'fadeOut') {
-  if (type === 'fadeIn' && progress < 0.05) {
-    ctx.fillStyle = `rgba(0, 0, 0, ${1 - progress / 0.05})`;
-    ctx.fillRect(0, 0, width, height);
-  } else if (type === 'fadeOut' && progress > 0.95) {
-    ctx.fillStyle = `rgba(0, 0, 0, ${(progress - 0.95) / 0.05})`;
-    ctx.fillRect(0, 0, width, height);
+function drawTransition(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  progress: number,
+  phase: 'in' | 'out',
+  type: TransitionType = 'fade'
+) {
+  const transitionDuration = 0.08;
+  let alpha = 0;
+
+  if (phase === 'in' && progress < transitionDuration) {
+    alpha = 1 - progress / transitionDuration;
+  } else if (phase === 'out' && progress > 1 - transitionDuration) {
+    alpha = (progress - (1 - transitionDuration)) / transitionDuration;
+  } else {
+    return;
   }
+
+  switch (type) {
+    case 'wipe_left': {
+      const wipeX = phase === 'in' ? width * (1 - alpha) : width * alpha;
+      ctx.fillStyle = '#000000';
+      if (phase === 'in') {
+        ctx.fillRect(0, 0, width - wipeX, height);
+      } else {
+        ctx.fillRect(width - wipeX, 0, wipeX, height);
+      }
+      break;
+    }
+    case 'wipe_right': {
+      const wipeX = phase === 'in' ? width * alpha : width * (1 - alpha);
+      ctx.fillStyle = '#000000';
+      if (phase === 'in') {
+        ctx.fillRect(wipeX, 0, width - wipeX, height);
+      } else {
+        ctx.fillRect(0, 0, width - wipeX, height);
+      }
+      break;
+    }
+    case 'slide_up': {
+      ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+      const slideY = height * alpha;
+      ctx.fillRect(0, height - slideY, width, slideY);
+      break;
+    }
+    case 'dissolve': {
+      // Pixelated dissolve
+      ctx.fillStyle = `rgba(0, 0, 0, ${alpha * 0.9})`;
+      ctx.fillRect(0, 0, width, height);
+      break;
+    }
+    case 'fade':
+    default: {
+      ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+      ctx.fillRect(0, 0, width, height);
+      break;
+    }
+  }
+}
+
+// Scene-level transition type selection
+function getTransitionType(sceneIndex: number): TransitionType {
+  const types: TransitionType[] = ['fade', 'wipe_left', 'dissolve', 'slide_up', 'wipe_right'];
+  return types[sceneIndex % types.length];
 }
 
 export async function renderVideo(
@@ -139,7 +194,6 @@ export async function renderVideo(
   canvas.height = height;
   const ctx = canvas.getContext('2d')!;
 
-  // Load all images
   onProgress({ phase: 'loading', currentScene: 0, totalScenes: scenes.length, percent: 0 });
   const images: (HTMLImageElement | null)[] = [];
   for (let i = 0; i < scenes.length; i++) {
@@ -155,7 +209,6 @@ export async function renderVideo(
     }
   }
 
-  // Load audio elements
   const audioElements: (HTMLAudioElement | null)[] = scenes.map(s => {
     if (s.audio.url) {
       const audio = new Audio(s.audio.url);
@@ -165,14 +218,9 @@ export async function renderVideo(
     return null;
   });
 
-  // Setup MediaRecorder
   const stream = canvas.captureStream(fps);
-  
-  // Create audio context for mixing
   const audioCtx = new AudioContext();
   const destination = audioCtx.createMediaStreamDestination();
-  
-  // Add audio tracks to stream
   destination.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
   const mediaRecorder = new MediaRecorder(stream, {
@@ -205,17 +253,15 @@ export async function renderVideo(
       const scene = scenes[sceneIndex];
       const totalFrames = scene.duration * fps;
       const progress = frameInScene / totalFrames;
+      const transType = getTransitionType(sceneIndex);
 
-      // Clear
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, width, height);
 
-      // Draw image with Ken Burns
       const img = images[sceneIndex];
       if (img) {
         drawKenBurns(ctx, img, width, height, scene.animation, progress);
       } else {
-        // Placeholder gradient
         const grd = ctx.createLinearGradient(0, 0, width, height);
         grd.addColorStop(0, '#1a1a2e');
         grd.addColorStop(1, '#16213e');
@@ -227,14 +273,10 @@ export async function renderVideo(
         ctx.fillText(scene.name, width / 2, height / 2);
       }
 
-      // Subtitle
       drawSubtitle(ctx, scene.script, width, height);
+      drawTransition(ctx, width, height, progress, 'in', transType);
+      drawTransition(ctx, width, height, progress, 'out', transType);
 
-      // Transitions
-      drawTransition(ctx, width, height, progress, 'fadeIn');
-      drawTransition(ctx, width, height, progress, 'fadeOut');
-
-      // Progress
       const completedFrames = scenes.slice(0, sceneIndex).reduce((s, sc) => s + sc.duration * fps, 0) + frameInScene;
       const totalFramesAll = scenes.reduce((s, sc) => s + sc.duration * fps, 0);
       onProgress({
@@ -248,7 +290,6 @@ export async function renderVideo(
       if (frameInScene >= totalFrames) {
         sceneIndex++;
         frameInScene = 0;
-        // Play next scene audio
         if (sceneIndex < scenes.length && audioElements[sceneIndex]) {
           try {
             const source = audioCtx.createMediaElementSource(audioElements[sceneIndex]!);
@@ -261,7 +302,6 @@ export async function renderVideo(
       requestAnimationFrame(renderFrame);
     };
 
-    // Play first audio
     if (audioElements[0]) {
       try {
         const source = audioCtx.createMediaElementSource(audioElements[0]);
@@ -274,7 +314,6 @@ export async function renderVideo(
   });
 }
 
-// Preview playback (not recording, just canvas animation)
 export async function playPreview(
   canvas: HTMLCanvasElement,
   scenes: Scene[],
@@ -297,7 +336,6 @@ export async function playPreview(
     }
   }
 
-  // Audio playback
   const audioElements: (HTMLAudioElement | null)[] = scenes.map(s => {
     if (s.audio.url) return new Audio(s.audio.url);
     return null;
@@ -316,6 +354,7 @@ export async function playPreview(
     const scene = scenes[sceneIndex];
     const totalFrames = scene.duration * fps;
     const progress = frameInScene / totalFrames;
+    const transType = getTransitionType(sceneIndex);
 
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, width, height);
@@ -326,8 +365,8 @@ export async function playPreview(
     }
 
     drawSubtitle(ctx, scene.script, width, height);
-    drawTransition(ctx, width, height, progress, 'fadeIn');
-    drawTransition(ctx, width, height, progress, 'fadeOut');
+    drawTransition(ctx, width, height, progress, 'in', transType);
+    drawTransition(ctx, width, height, progress, 'out', transType);
 
     const completedFrames = scenes.slice(0, sceneIndex).reduce((s, sc) => s + sc.duration * fps, 0) + frameInScene;
     const totalFramesAll = scenes.reduce((s, sc) => s + sc.duration * fps, 0);
@@ -354,7 +393,6 @@ export async function playPreview(
     setTimeout(() => requestAnimationFrame(render), 1000 / fps);
   };
 
-  // Start first audio
   if (audioElements[0]) audioElements[0].play().catch(() => {});
   render();
 
