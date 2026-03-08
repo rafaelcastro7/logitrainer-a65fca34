@@ -28,6 +28,7 @@ interface SceneCardProps {
   onRegenerateImage?: (id: string) => void;
   onRegenerateAudio?: (id: string) => void;
   onSelect: (id: string) => void;
+  dragHandleProps?: Record<string, any>;
 }
 
 function getWordCount(text: string): number {
@@ -40,7 +41,8 @@ function getReadingTime(text: string): number {
 
 export default function SceneCard({
   scene, index, total, isActive, onUpdate, onRemove, onDuplicate,
-  onMoveUp, onMoveDown, onRegenerateImage, onRegenerateAudio, onSelect
+  onMoveUp, onMoveDown, onRegenerateImage, onRegenerateAudio, onSelect,
+  dragHandleProps,
 }: SceneCardProps) {
   const [expanded, setExpanded] = useState(false);
   const { t } = useTranslation();
@@ -63,12 +65,7 @@ export default function SceneCard({
   };
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
+    <div
       className={cn(
         "glass-panel rounded-xl overflow-hidden transition-all",
         isActive && "ring-1 ring-primary/40"
@@ -78,7 +75,13 @@ export default function SceneCard({
         className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/30 transition-colors"
         onClick={handleToggle}
       >
-        <GripVertical className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+        <div
+          className="touch-none cursor-grab active:cursor-grabbing p-0.5 -ml-1"
+          {...dragHandleProps}
+          onClick={e => e.stopPropagation()}
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground/40 shrink-0 hover:text-muted-foreground transition-colors" />
+        </div>
 
         <div className="w-12 h-8 rounded bg-muted/30 shrink-0 overflow-hidden">
           {scene.image.url ? (
@@ -151,12 +154,7 @@ export default function SceneCard({
       </div>
 
       {expanded && (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          className="px-4 pb-4 space-y-4 border-t border-border/30"
-        >
+        <div className="px-4 pb-4 space-y-4 border-t border-border/30">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4">
             <div className="space-y-3">
               <div className="space-y-1.5">
@@ -248,8 +246,8 @@ export default function SceneCard({
               <Trash2 className="w-3 h-3" /> {t.delete}
             </Button>
           </div>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }

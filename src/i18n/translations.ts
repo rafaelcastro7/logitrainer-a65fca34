@@ -780,6 +780,25 @@ const es: TranslationKeys = {
   toastAllAudiosReady: 'Todos los audios ya están generados',
   toastBatchAudios: (n: number) => `Generando ${n} audios en cola...`,
   generateNAudios: (n: number) => `Generar ${n} Audios`,
+
+  backgroundMusic: 'Música de fondo',
+  musicMoods: 'Ambientes rápidos',
+  mood_cinematic: 'Cinemático',
+  mood_calm: 'Tranquilo',
+  mood_upbeat: 'Energético',
+  mood_dramatic: 'Dramático',
+  mood_educational: 'Educativo',
+  mood_lofi: 'Lo-Fi',
+  musicPromptPlaceholder: 'Describe el estilo de música que quieres...',
+  generateMusic: 'Generar',
+  generatedTrack: 'Pista generada',
+  musicVolume: 'Volumen',
+  fadeIn: 'Fade In',
+  fadeOut: 'Fade Out',
+  loopMusic: 'Loop',
+  generatingMusic: 'Generando música de fondo...',
+  musicError: 'Error al generar música. Conecta la API de ElevenLabs.',
+  musicConnectHint: 'Conecta ElevenLabs en APIs para generar música',
 };
 
 export const translations: Record<Locale, TranslationKeys> = { en, fr, es };
