@@ -33,6 +33,10 @@ interface ProjectSidebarProps {
   onSelectScene?: (id: string) => void;
   onReorder?: (scenes: Scene[]) => void;
   onUpdateScene?: (id: string, updates: Partial<Scene>) => void;
+  onRegenerateImage?: (sceneId: string) => void;
+  onRegenerateAudio?: (sceneId: string) => void;
+  onDuplicateScene?: (scene: Scene) => void;
+  onRemoveScene?: (sceneId: string) => void;
 }
 
 // Mini progress dot component
