@@ -9,9 +9,29 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // SECURITY: Verify the caller is using the service role key
+    const authHeader = req.headers.get("Authorization");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!authHeader || !serviceRoleKey) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Only allow calls with the service role key (not anon key)
+    const token = authHeader.replace("Bearer ", "");
+    if (token !== serviceRoleKey) {
+      return new Response(JSON.stringify({ error: "Forbidden - service role required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      serviceRoleKey
     );
 
     const adminEmail = "rafaelcastro7@gmail.com";
@@ -25,7 +45,6 @@ Deno.serve(async (req) => {
 
     if (existingUser) {
       userId = existingUser.id;
-      // Update password
       await supabaseAdmin.auth.admin.updateUserById(userId, { password: adminPassword, email_confirm: true });
     } else {
       const { data: newUser, error } = await supabaseAdmin.auth.admin.createUser({
@@ -56,7 +75,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
