@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { User as SupaUser } from '@supabase/supabase-js';
+import KeyboardShortcutsDialog from './KeyboardShortcutsDialog';
 
 interface StudioLayoutProps {
   activeTab: string;
