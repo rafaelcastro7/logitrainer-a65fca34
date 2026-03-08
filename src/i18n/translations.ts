@@ -522,6 +522,25 @@ const fr: TranslationKeys = {
   toastAllAudiosReady: 'Tous les audios sont déjà générés',
   toastBatchAudios: (n: number) => `Génération de ${n} audios en file d'attente...`,
   generateNAudios: (n: number) => `Générer ${n} audios`,
+
+  backgroundMusic: 'Musique de fond',
+  musicMoods: 'Ambiances rapides',
+  mood_cinematic: 'Cinématique',
+  mood_calm: 'Calme',
+  mood_upbeat: 'Dynamique',
+  mood_dramatic: 'Dramatique',
+  mood_educational: 'Éducatif',
+  mood_lofi: 'Lo-Fi',
+  musicPromptPlaceholder: 'Décrivez le style musical souhaité...',
+  generateMusic: 'Générer',
+  generatedTrack: 'Piste générée',
+  musicVolume: 'Volume',
+  fadeIn: 'Fondu entrant',
+  fadeOut: 'Fondu sortant',
+  loopMusic: 'Boucle',
+  generatingMusic: 'Génération de la musique de fond...',
+  musicError: 'Échec de la génération. Connectez l\'API ElevenLabs.',
+  musicConnectHint: 'Connectez ElevenLabs dans APIs pour générer de la musique',
 };
 
 const es: TranslationKeys = {
