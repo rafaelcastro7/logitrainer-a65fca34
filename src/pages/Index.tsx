@@ -389,7 +389,26 @@ export default function Index() {
               <PreviewView scenes={project.scenes} backgroundMusic={project.backgroundMusic} aspectRatio={project.meta.aspectRatio} />
             )}
             {activeTab === 'assets' && (
-              <AssetsView scenes={project.scenes} />
+              <div className="max-w-5xl mx-auto space-y-6 p-6">
+                <AssetsView scenes={project.scenes} />
+                <MultiSourceImport
+                  onImportImage={(url, name) => {
+                    toast.success(`🖼️ ${name} listo para usar en escenas`);
+                  }}
+                />
+              </div>
+            )}
+            {activeTab === 'analytics' && (
+              <div className="max-w-5xl mx-auto p-6">
+                <ProductionAnalytics
+                  scenesCount={project.scenes.length}
+                  completedImages={project.scenes.filter(s => s.image.status === 'completed').length}
+                  completedAudios={project.scenes.filter(s => s.audio.status === 'completed').length}
+                  connectedProviders={connectedProviders}
+                  priority={routerPriority}
+                  onChangePriority={setRouterPriority}
+                />
+              </div>
             )}
             {activeTab === 'apis' && (
               <ApiManagementView onConnectProvider={handleConnectProvider} isAuthenticated={!!user} />
