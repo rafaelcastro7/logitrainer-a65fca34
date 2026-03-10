@@ -374,6 +374,8 @@ export default function Index() {
         onDuplicateScene={handleDuplicateScene}
         onRemoveScene={removeScene}
         isAdmin={isAdmin}
+        onGenerateAllImages={handleGenerateAllImages}
+        onGenerateAllAudios={handleGenerateAllAudios}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen
