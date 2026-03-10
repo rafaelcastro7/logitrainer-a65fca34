@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/i18n/LanguageContext';
-import { LogIn, UserPlus, Loader2 } from 'lucide-react';
+import { LogIn, UserPlus, Loader2, Sparkles, Film } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
 import { Separator } from '@/components/ui/separator';
 
@@ -59,17 +59,28 @@ export default function AuthDialog({ open, onOpenChange, onSignIn, onSignUp }: A
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md glass-panel border-border/50">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md glass-panel-elevated border-border/30 overflow-hidden">
+        {/* Top gradient accent */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary via-accent to-primary" />
+        
+        <DialogHeader className="text-center pb-2">
+          <div className="flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/10 flex items-center justify-center">
+              <Film className="w-6 h-6 text-primary" />
+            </div>
+          </div>
           <DialogTitle className="text-gradient-primary text-xl">
             {mode === 'login' ? t.authLogin : t.authSignup}
           </DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            {mode === 'login' ? 'Welcome back to LogiTrainer Studio' : 'Create your account to get started'}
+          </p>
         </DialogHeader>
 
         <Button
           type="button"
           variant="outline"
-          className="w-full gap-2 h-10"
+          className="w-full gap-2 h-11 bg-card/60 border-border/30 hover:bg-muted/50 transition-all"
           disabled={googleLoading}
           onClick={handleGoogleSignIn}
         >
@@ -87,32 +98,36 @@ export default function AuthDialog({ open, onOpenChange, onSignIn, onSignUp }: A
         </Button>
 
         <div className="flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="text-xs text-muted-foreground">o</span>
-          <Separator className="flex-1" />
+          <Separator className="flex-1 bg-border/20" />
+          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">o</span>
+          <Separator className="flex-1 bg-border/20" />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {mode === 'signup' && (
             <div className="space-y-1.5">
-              <Label className="text-xs">{t.authName}</Label>
-              <Input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" className="bg-muted/50 border-border/50" />
+              <Label className="text-xs text-muted-foreground">{t.authName}</Label>
+              <Input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" className="bg-muted/30 border-border/30 h-10" />
             </div>
           )}
           <div className="space-y-1.5">
-            <Label className="text-xs">{t.authEmail}</Label>
-            <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="bg-muted/50 border-border/50" />
+            <Label className="text-xs text-muted-foreground">{t.authEmail}</Label>
+            <Input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="bg-muted/30 border-border/30 h-10" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">{t.authPassword}</Label>
-            <Input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="bg-muted/50 border-border/50" />
+            <Label className="text-xs text-muted-foreground">{t.authPassword}</Label>
+            <Input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="bg-muted/30 border-border/30 h-10" />
           </div>
-          {error && <p className="text-xs text-destructive">{error}</p>}
-          <Button type="submit" disabled={loading} className="w-full gap-2 glow-primary">
+          {error && (
+            <div className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+              {error}
+            </div>
+          )}
+          <Button type="submit" disabled={loading} className="w-full gap-2 h-10 glow-primary">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
             {mode === 'login' ? t.authLogin : t.authSignup}
           </Button>
-          <p className="text-xs text-center text-muted-foreground">
+          <p className="text-xs text-center text-muted-foreground/70">
             {mode === 'login' ? t.authNoAccount : t.authHasAccount}{' '}
             <button type="button" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="text-primary hover:underline font-medium">
               {mode === 'login' ? t.authSignup : t.authLogin}

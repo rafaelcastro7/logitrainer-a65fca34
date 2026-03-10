@@ -20,26 +20,18 @@ const TECH_PARTNERS = [
   { name: 'AI Pipeline', icon: Wand2, category: 'Orchestration' },
 ];
 
-// Duplicate for seamless infinite scroll
 const ITEMS = [...TECH_PARTNERS, ...TECH_PARTNERS];
 
 export default function LogoCarousel() {
   return (
-    <div className="w-full overflow-hidden py-6 relative">
-      {/* Fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+    <div className="w-full overflow-hidden py-4 relative">
+      <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
       <motion.div
-        className="flex gap-6 items-center"
+        className="flex gap-4 items-center"
         animate={{ x: ['0%', '-50%'] }}
-        transition={{
-          x: {
-            duration: 40,
-            repeat: Infinity,
-            ease: 'linear',
-          },
-        }}
+        transition={{ x: { duration: 45, repeat: Infinity, ease: 'linear' } }}
         style={{ width: 'max-content' }}
       >
         {ITEMS.map((partner, i) => {
@@ -47,16 +39,16 @@ export default function LogoCarousel() {
           return (
             <div
               key={`${partner.name}-${i}`}
-              className="flex items-center gap-3 px-5 py-3 rounded-xl border border-border/30 bg-card/40 backdrop-blur-sm hover:border-primary/40 hover:bg-card/70 transition-all duration-300 group shrink-0 min-w-[180px]"
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-border/15 bg-card/20 backdrop-blur-sm hover:border-primary/25 hover:bg-card/40 transition-all duration-300 group shrink-0"
             >
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Icon className="w-4.5 h-4.5 text-primary/70 group-hover:text-primary transition-colors" />
+              <div className="w-7 h-7 rounded-lg bg-primary/[0.06] flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <Icon className="w-3.5 h-3.5 text-primary/50 group-hover:text-primary/80 transition-colors" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground/80 group-hover:text-foreground transition-colors whitespace-nowrap">
+                <p className="text-[11px] font-semibold text-foreground/60 group-hover:text-foreground/80 transition-colors whitespace-nowrap">
                   {partner.name}
                 </p>
-                <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                <p className="text-[9px] text-muted-foreground/50 whitespace-nowrap">
                   {partner.category}
                 </p>
               </div>
