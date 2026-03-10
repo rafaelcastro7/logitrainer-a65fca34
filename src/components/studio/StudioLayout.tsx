@@ -161,6 +161,9 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Shortcuts */}
             <Tooltip>
               <TooltipTrigger asChild>
