@@ -325,13 +325,19 @@ export default function Index() {
 
   if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background gap-4">
-        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 glow-primary">
-          <Film className="w-8 h-8 text-primary animate-pulse-glow" />
+      <div className="flex flex-col items-center justify-center h-screen bg-background gap-6 gradient-mesh">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-2xl scale-150 animate-pulse-glow" />
+          <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/10 border border-primary/10">
+            <Film className="w-8 h-8 text-primary animate-pulse-glow" />
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="text-sm font-medium">LogiTrainer Studio</span>
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <span className="text-sm font-bold text-gradient-primary">LogiTrainer Studio</span>
+          </div>
+          <span className="text-[10px] text-muted-foreground/50">Loading your workspace...</span>
         </div>
       </div>
     );
