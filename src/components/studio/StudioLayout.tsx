@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command, Shield, Search, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
+import ThemeToggle from './ThemeToggle';
 import { Progress } from '@/components/ui/progress';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { Locale, LOCALE_LABELS } from '@/i18n/translations';
@@ -159,6 +160,9 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Shortcuts */}
             <Tooltip>

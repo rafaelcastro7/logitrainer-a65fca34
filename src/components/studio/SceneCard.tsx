@@ -392,6 +392,18 @@ export default function SceneCard({
                   min={2} max={30} step={1}
                 />
               </div>
+
+              {/* Scene Notes */}
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><FileText className="w-3 h-3" /> Notes</Label>
+                <Textarea
+                  value={scene.notes}
+                  onChange={e => onUpdate(scene.id, { notes: e.target.value })}
+                  rows={2}
+                  placeholder="Director notes, ideas, references..."
+                  className="bg-muted/50 border-border/50 resize-none text-xs"
+                />
+              </div>
             </div>
           </div>
 
