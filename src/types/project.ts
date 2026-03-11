@@ -156,6 +156,8 @@ export const DEFAULT_META: ProjectMeta = {
   voiceName: 'Kore',
   modelTier: 'prototyping',
   aspectRatio: '16:9',
+  brandKit: DEFAULT_BRAND_KIT,
+  subtitles: DEFAULT_SUBTITLE_SETTINGS,
 };
 
 export const DEFAULT_PROJECT: Project = {
