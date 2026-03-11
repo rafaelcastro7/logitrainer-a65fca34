@@ -238,12 +238,19 @@ export default function EditorView({
         </div>
       )}
 
-      {/* Interactive Pro Timeline */}
-      <InteractiveTimeline
+      {/* Multi-Track Pro Timeline */}
+      <MultiTrackTimeline
         scenes={scenes}
         activeSceneId={activeSceneId}
         onSceneClick={(id) => setActiveSceneId(id)}
         onSplitScene={handleSplitScene}
+        hasBgMusic={false}
+      />
+
+      {/* AI Smart Suggestions */}
+      <SceneSuggestionPanel
+        scenes={scenes}
+        onApplySuggestion={(id, updates) => onUpdateScene(id, updates)}
       />
 
       {scenes.length === 0 ? (
