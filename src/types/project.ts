@@ -2,6 +2,54 @@ export type AspectRatio = '16:9' | '9:16' | '1:1';
 export type TransitionType = 'fade' | 'wipe_left' | 'wipe_right' | 'dissolve' | 'slide_up' | 'none';
 export type ExportQuality = '720p' | '1080p' | '4k';
 
+export type SubtitleStyle = 'none' | 'classic' | 'karaoke' | 'fade_word' | 'typewriter' | 'bounce' | 'glow';
+
+export interface BrandKit {
+  logoUrl: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  fontFamily: string;
+  watermarkPosition: 'none' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  watermarkOpacity: number;
+  introText: string;
+  outroText: string;
+}
+
+export const DEFAULT_BRAND_KIT: BrandKit = {
+  logoUrl: '',
+  primaryColor: '#6C5CE7',
+  secondaryColor: '#A29BFE',
+  accentColor: '#FD79A8',
+  fontFamily: 'Inter',
+  watermarkPosition: 'none',
+  watermarkOpacity: 0.3,
+  introText: '',
+  outroText: '',
+};
+
+export interface SubtitleSettings {
+  enabled: boolean;
+  style: SubtitleStyle;
+  fontSize: number;
+  color: string;
+  backgroundColor: string;
+  backgroundOpacity: number;
+  position: 'top' | 'center' | 'bottom';
+  animation: boolean;
+}
+
+export const DEFAULT_SUBTITLE_SETTINGS: SubtitleSettings = {
+  enabled: false,
+  style: 'classic',
+  fontSize: 24,
+  color: '#FFFFFF',
+  backgroundColor: '#000000',
+  backgroundOpacity: 0.6,
+  position: 'bottom',
+  animation: true,
+};
+
 export interface ProjectMeta {
   name: string;
   author: string;
@@ -16,6 +64,8 @@ export interface ProjectMeta {
   voiceName?: string;
   modelTier: 'prototyping' | 'production';
   aspectRatio: AspectRatio;
+  brandKit: BrandKit;
+  subtitles: SubtitleSettings;
 }
 
 export interface MediaAsset {
