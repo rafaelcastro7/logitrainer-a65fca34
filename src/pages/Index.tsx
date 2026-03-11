@@ -50,6 +50,9 @@ export default function Index() {
   const [connectedProviders, setConnectedProviders] = useState<Set<string>>(new Set());
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem('logitrainer-onboarded');
+  });
 
   // Load connected providers
   useEffect(() => {
