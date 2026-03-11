@@ -353,8 +353,19 @@ export default function Index() {
     return <PendingApprovalScreen status={approvalStatus} onSignOut={signOut} />;
   }
 
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('logitrainer-onboarded', 'true');
+    setShowOnboarding(false);
+  };
+
   return (
     <>
+      {showOnboarding && (
+        <OnboardingTour
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingComplete}
+        />
+      )}
       <StudioLayout
         activeTab={activeTab}
         onTabChange={setActiveTab}
