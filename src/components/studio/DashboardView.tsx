@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Wand2, Settings2, Palette, Clock, Sparkles, ChevronDown, ChevronRight, Monitor, Smartphone, Square } from 'lucide-react';
-import { ProjectMeta, BackgroundMusic, AspectRatio } from '@/types/project';
+import { ProjectMeta, BackgroundMusic, AspectRatio, BrandKit, SubtitleSettings } from '@/types/project';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
 import BackgroundMusicPanel from './BackgroundMusicPanel';
+import BrandKitPanel from './BrandKitPanel';
+import SubtitlePanel from './SubtitlePanel';
 
 interface DashboardViewProps {
   meta: ProjectMeta;
