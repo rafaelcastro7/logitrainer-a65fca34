@@ -4,6 +4,8 @@ import { Scene, Project } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import SceneCard from './SceneCard';
 import InteractiveTimeline from './InteractiveTimeline';
+import MultiTrackTimeline from './MultiTrackTimeline';
+import SceneSuggestionPanel from './SceneSuggestionPanel';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { toast } from 'sonner';
 import {
@@ -236,12 +238,19 @@ export default function EditorView({
         </div>
       )}
 
-      {/* Interactive Pro Timeline */}
-      <InteractiveTimeline
+      {/* Multi-Track Pro Timeline */}
+      <MultiTrackTimeline
         scenes={scenes}
         activeSceneId={activeSceneId}
         onSceneClick={(id) => setActiveSceneId(id)}
         onSplitScene={handleSplitScene}
+        hasBgMusic={false}
+      />
+
+      {/* AI Smart Suggestions */}
+      <SceneSuggestionPanel
+        scenes={scenes}
+        onApplySuggestion={(id, updates) => onUpdateScene(id, updates)}
       />
 
       {scenes.length === 0 ? (
