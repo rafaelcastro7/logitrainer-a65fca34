@@ -15,6 +15,8 @@ import ApiManagementView from '@/components/studio/ApiManagementView';
 import ProductionAnalytics from '@/components/studio/ProductionAnalytics';
 import MultiSourceImport from '@/components/studio/MultiSourceImport';
 import AboutView from '@/components/studio/AboutView';
+import StockMediaPanel from '@/components/studio/StockMediaPanel';
+import OnboardingTour from '@/components/studio/OnboardingTour';
 import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
 import AdminApprovalPanel from '@/components/studio/AdminApprovalPanel';
