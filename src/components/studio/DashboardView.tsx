@@ -248,6 +248,16 @@ export default function DashboardView({ meta, onUpdateMeta, onGenerate, isGenera
             onGenerate={onGenerateMusic}
             isGenerating={isMusicGenerating}
           />
+
+          <BrandKitPanel
+            brandKit={meta.brandKit}
+            onUpdate={(updates) => onUpdateMeta({ brandKit: { ...meta.brandKit, ...updates } })}
+          />
+
+          <SubtitlePanel
+            subtitles={meta.subtitles}
+            onUpdate={(updates) => onUpdateMeta({ subtitles: { ...meta.subtitles, ...updates } })}
+          />
         </>
       )}
     </div>
