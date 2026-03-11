@@ -4,6 +4,8 @@ import { Scene, Project } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import SceneCard from './SceneCard';
 import InteractiveTimeline from './InteractiveTimeline';
+import MultiTrackTimeline from './MultiTrackTimeline';
+import SceneSuggestionPanel from './SceneSuggestionPanel';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { toast } from 'sonner';
 import {
