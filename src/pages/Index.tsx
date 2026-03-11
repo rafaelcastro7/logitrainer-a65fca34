@@ -421,6 +421,11 @@ export default function Index() {
             {activeTab === 'assets' && (
               <div className="max-w-5xl mx-auto space-y-6 p-6">
                 <AssetsView scenes={project.scenes} />
+                <StockMediaPanel
+                  onSelectImage={(url, name) => {
+                    toast.success(`📸 ${name} ready to use`);
+                  }}
+                />
                 <MultiSourceImport
                   onImportImage={(url, name) => {
                     toast.success(`🖼️ ${name} listo para usar en escenas`);
