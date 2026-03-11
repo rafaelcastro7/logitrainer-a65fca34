@@ -15,6 +15,8 @@ import ApiManagementView from '@/components/studio/ApiManagementView';
 import ProductionAnalytics from '@/components/studio/ProductionAnalytics';
 import MultiSourceImport from '@/components/studio/MultiSourceImport';
 import AboutView from '@/components/studio/AboutView';
+import StockMediaPanel from '@/components/studio/StockMediaPanel';
+import OnboardingTour from '@/components/studio/OnboardingTour';
 import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
 import AdminApprovalPanel from '@/components/studio/AdminApprovalPanel';
@@ -48,6 +50,9 @@ export default function Index() {
   const [connectedProviders, setConnectedProviders] = useState<Set<string>>(new Set());
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem('logitrainer-onboarded');
+  });
 
   // Load connected providers
   useEffect(() => {
@@ -348,8 +353,19 @@ export default function Index() {
     return <PendingApprovalScreen status={approvalStatus} onSignOut={signOut} />;
   }
 
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('logitrainer-onboarded', 'true');
+    setShowOnboarding(false);
+  };
+
   return (
     <>
+      {showOnboarding && (
+        <OnboardingTour
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingComplete}
+        />
+      )}
       <StudioLayout
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -421,6 +437,11 @@ export default function Index() {
             {activeTab === 'assets' && (
               <div className="max-w-5xl mx-auto space-y-6 p-6">
                 <AssetsView scenes={project.scenes} />
+                <StockMediaPanel
+                  onSelectImage={(url, name) => {
+                    toast.success(`📸 ${name} ready to use`);
+                  }}
+                />
                 <MultiSourceImport
                   onImportImage={(url, name) => {
                     toast.success(`🖼️ ${name} listo para usar en escenas`);
