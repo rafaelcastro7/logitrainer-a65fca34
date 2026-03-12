@@ -14,6 +14,7 @@ import AssetsView from '@/components/studio/AssetsView';
 import ApiManagementView from '@/components/studio/ApiManagementView';
 import ProductionAnalytics from '@/components/studio/ProductionAnalytics';
 import MultiSourceImport from '@/components/studio/MultiSourceImport';
+import ExportHub from '@/components/studio/ExportHub';
 import AboutView from '@/components/studio/AboutView';
 import StockMediaPanel from '@/components/studio/StockMediaPanel';
 import OnboardingTour from '@/components/studio/OnboardingTour';
