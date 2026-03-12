@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 import { Play, Download, MonitorPlay, Image, Mic, Clock, Film, Square, Loader2, Music, Volume2, Maximize, SkipBack, SkipForward } from 'lucide-react';
 import { Scene, BackgroundMusic, AspectRatio, ExportQuality, ASPECT_RATIO_DIMENSIONS, EXPORT_QUALITIES } from '@/types/project';
 import { Button } from '@/components/ui/button';
@@ -279,6 +280,44 @@ export default function PreviewView({ scenes, backgroundMusic, aspectRatio = '16
             <span className="font-mono text-primary">{Math.round(progress.percent)}%</span>
           </div>
           <Progress value={progress.percent} className="h-1.5" />
+        </div>
+      )}
+
+      {/* Scene Thumbnail Strip */}
+      {scenes.length > 0 && (
+        <div className="glass-panel rounded-xl p-3 space-y-2">
+          <p className="text-[11px] text-muted-foreground font-medium">Scene Navigator</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {scenes.map((scene, i) => (
+              <button
+                key={scene.id}
+                onClick={() => setCurrentSceneIndex(i)}
+                className={cn(
+                  "shrink-0 rounded-lg border overflow-hidden transition-all",
+                  currentSceneIndex === i
+                    ? "ring-2 ring-primary border-primary/40 scale-105"
+                    : "border-border/30 opacity-70 hover:opacity-100"
+                )}
+                style={{ width: 80 }}
+              >
+                <div className="aspect-video bg-muted/30 relative">
+                  {scene.image.url ? (
+                    <img src={scene.image.url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-[10px] font-mono text-muted-foreground/40">{i + 1}</span>
+                    </div>
+                  )}
+                  {/* Status indicators */}
+                  <div className="absolute bottom-0.5 right-0.5 flex gap-0.5">
+                    {scene.image.status === 'completed' && <div className="w-1.5 h-1.5 rounded-full bg-success" />}
+                    {scene.audio.status === 'completed' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                  </div>
+                </div>
+                <p className="text-[9px] text-muted-foreground truncate px-1 py-0.5">{scene.name}</p>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

@@ -6,7 +6,7 @@ import {
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
   ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle,
-  RefreshCw, Copy, Trash2, Shield
+  RefreshCw, Copy, Trash2, Shield, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -165,6 +165,7 @@ export default function ProjectSidebar({
     { id: 'editor', label: t.editor, icon: Clapperboard },
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
+    { id: 'export', label: 'Export', icon: Download },
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
