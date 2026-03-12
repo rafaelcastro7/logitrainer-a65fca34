@@ -165,6 +165,7 @@ export default function ProjectSidebar({
     { id: 'editor', label: t.editor, icon: Clapperboard },
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
+    { id: 'export', label: 'Export', icon: Download },
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
