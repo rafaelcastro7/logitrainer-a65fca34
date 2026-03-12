@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 import { Play, Download, MonitorPlay, Image, Mic, Clock, Film, Square, Loader2, Music, Volume2, Maximize, SkipBack, SkipForward } from 'lucide-react';
 import { Scene, BackgroundMusic, AspectRatio, ExportQuality, ASPECT_RATIO_DIMENSIONS, EXPORT_QUALITIES } from '@/types/project';
 import { Button } from '@/components/ui/button';
