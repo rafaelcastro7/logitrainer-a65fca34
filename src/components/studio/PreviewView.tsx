@@ -310,8 +310,8 @@ export default function PreviewView({ scenes, backgroundMusic, aspectRatio = '16
                   )}
                   {/* Status indicators */}
                   <div className="absolute bottom-0.5 right-0.5 flex gap-0.5">
-                    {scene.image.status === 'completed' && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
-                    {scene.audio.status === 'completed' && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                    {scene.image.status === 'completed' && <div className="w-1.5 h-1.5 rounded-full bg-success" />}
+                    {scene.audio.status === 'completed' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
                   </div>
                 </div>
                 <p className="text-[9px] text-muted-foreground truncate px-1 py-0.5">{scene.name}</p>
