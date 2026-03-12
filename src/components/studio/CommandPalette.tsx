@@ -64,6 +64,9 @@ export default function CommandPalette({
           <CommandItem onSelect={() => run(() => onNavigate('assets'))}>
             <Images className="mr-2 h-4 w-4" /> Assets
           </CommandItem>
+          <CommandItem onSelect={() => run(() => onNavigate('export'))}>
+            <Download className="mr-2 h-4 w-4" /> Export Hub
+          </CommandItem>
           <CommandItem onSelect={() => run(() => onNavigate('analytics'))}>
             <Activity className="mr-2 h-4 w-4" /> Analytics
           </CommandItem>
