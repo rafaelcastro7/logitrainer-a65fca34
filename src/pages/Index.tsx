@@ -462,6 +462,9 @@ export default function Index() {
                 />
               </div>
             )}
+            {activeTab === 'export' && (
+              <ExportHub project={project} scenes={project.scenes} />
+            )}
             {activeTab === 'apis' && (
               <ApiManagementView onConnectProvider={handleConnectProvider} isAuthenticated={!!user} />
             )}
