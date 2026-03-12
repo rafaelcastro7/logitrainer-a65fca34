@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckSquare, Square, Trash2, Image, Mic, Shuffle, Zap,
-  X, SelectAll, RotateCw
+  X, RotateCw
 } from 'lucide-react';
 import { Scene, TransitionType, AnimationSettings } from '@/types/project';
 import { Button } from '@/components/ui/button';
