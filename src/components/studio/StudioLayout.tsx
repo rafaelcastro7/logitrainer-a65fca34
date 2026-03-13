@@ -235,7 +235,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
       </div>
 
       {/* Status Bar */}
-      <StatusBar scenes={scenes} user={user} hasProject={hasProject} />
+      <StatusBar scenes={scenes} user={user} hasProject={hasProject} lastSaved={lastSaved} isSaving={isSaving} />
 
       <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       <CommandPalette
