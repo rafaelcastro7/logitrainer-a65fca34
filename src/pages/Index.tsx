@@ -49,6 +49,8 @@ export default function Index() {
   const [initialized, setInitialized] = useState(false);
   const [routerPriority, setRouterPriority] = useState<Priority>('cost');
   const [connectedProviders, setConnectedProviders] = useState<Set<string>>(new Set());
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const hasProject = project.scenes.length > 0;
   const { t } = useTranslation();
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -93,8 +95,11 @@ export default function Index() {
 
   const handleSave = useCallback(async () => {
     if (!user) { setAuthOpen(true); return; }
+    setIsSaving(true);
     await saveProject(project);
     clearAutoSave();
+    setLastSaved(new Date());
+    setIsSaving(false);
   }, [user, project, saveProject]);
 
   const handleLoadProject = useCallback((p: Project, id: string) => {
@@ -393,6 +398,8 @@ export default function Index() {
         isAdmin={isAdmin}
         onGenerateAllImages={handleGenerateAllImages}
         onGenerateAllAudios={handleGenerateAllAudios}
+        lastSaved={lastSaved}
+        isSaving={isSaving}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen
