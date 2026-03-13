@@ -398,6 +398,8 @@ export default function Index() {
         isAdmin={isAdmin}
         onGenerateAllImages={handleGenerateAllImages}
         onGenerateAllAudios={handleGenerateAllAudios}
+        lastSaved={lastSaved}
+        isSaving={isSaving}
       >
         {!hasProject && activeTab === 'dashboard' ? (
           <WelcomeScreen
