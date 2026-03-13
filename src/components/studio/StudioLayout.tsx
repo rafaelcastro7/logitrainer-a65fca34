@@ -42,6 +42,8 @@ interface StudioLayoutProps {
   isAdmin?: boolean;
   onGenerateAllImages?: () => void;
   onGenerateAllAudios?: () => void;
+  lastSaved?: Date | null;
+  isSaving?: boolean;
 }
 
 export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene, onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene, isAdmin, onGenerateAllImages, onGenerateAllAudios }: StudioLayoutProps) {
