@@ -46,7 +46,7 @@ interface StudioLayoutProps {
   isSaving?: boolean;
 }
 
-export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene, onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene, isAdmin, onGenerateAllImages, onGenerateAllAudios }: StudioLayoutProps) {
+export default function StudioLayout({ activeTab, onTabChange, children, scenes, hasProject, user, onSave, onOpenProjects, onOpenAuth, onSignOut, onNewProject, onUndo, onRedo, canUndo, canRedo, selectedSceneId, onSelectScene, onReorderScenes, onUpdateScene, onRegenerateImage, onRegenerateAudio, onDuplicateScene, onRemoveScene, isAdmin, onGenerateAllImages, onGenerateAllAudios, lastSaved, isSaving }: StudioLayoutProps) {
   const { t, locale, setLocale } = useTranslation();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
