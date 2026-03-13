@@ -95,8 +95,11 @@ export default function Index() {
 
   const handleSave = useCallback(async () => {
     if (!user) { setAuthOpen(true); return; }
+    setIsSaving(true);
     await saveProject(project);
     clearAutoSave();
+    setLastSaved(new Date());
+    setIsSaving(false);
   }, [user, project, saveProject]);
 
   const handleLoadProject = useCallback((p: Project, id: string) => {
