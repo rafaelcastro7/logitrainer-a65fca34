@@ -28,6 +28,8 @@ import AdCreativeGenerator from '@/components/studio/AdCreativeGenerator';
 import PresentationGenerator from '@/components/studio/PresentationGenerator';
 import ContentCalendar from '@/components/studio/ContentCalendar';
 import EmailSequenceBuilder from '@/components/studio/EmailSequenceBuilder';
+import ReferralPanel from '@/components/studio/ReferralPanel';
+import AIChatAssistant from '@/components/studio/AIChatAssistant';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
@@ -493,8 +495,10 @@ export default function Index() {
             {activeTab === 'presentations' && <PresentationGenerator />}
             {activeTab === 'content-calendar' && <ContentCalendar />}
             {activeTab === 'email-sequences' && <EmailSequenceBuilder />}
+            {activeTab === 'referrals' && <ReferralPanel user={user} />}
           </>
         )}
+        <AIChatAssistant />
       </StudioLayout>
 
       <AuthDialog

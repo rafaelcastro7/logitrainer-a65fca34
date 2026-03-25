@@ -74,6 +74,39 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          converted_at: string | null
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          reward_claimed: boolean
+          status: string
+        }
+        Insert: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          reward_claimed?: boolean
+          status?: string
+        }
+        Update: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          reward_claimed?: boolean
+          status?: string
+        }
+        Relationships: []
+      }
       user_api_keys: {
         Row: {
           api_key: string
@@ -127,6 +160,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_referral: {
+        Args: { p_code: string; p_referred_id: string }
+        Returns: boolean
+      }
+      get_or_create_referral_code: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_shared_project: {
         Args: { p_share_token: string }
         Returns: {

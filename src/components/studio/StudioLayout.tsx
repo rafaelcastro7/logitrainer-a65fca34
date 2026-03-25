@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command, Shield, Search, Sparkles,
-  LayoutDashboard, Clapperboard, Play, Images, Download, BookOpen, Layout, Megaphone, Presentation, Calendar, Mail, Activity, Server, Info, Menu, X, MoreHorizontal
+  LayoutDashboard, Clapperboard, Play, Images, Download, BookOpen, Layout, Megaphone, Presentation, Calendar, Mail, Activity, Server, Info, Menu, X, MoreHorizontal, Gift, MessageCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
@@ -70,6 +70,7 @@ const ALL_TABS = [
   { id: 'content-calendar', icon: Calendar, label: 'Calendar', group: 'Marketing' },
   { id: 'email-sequences', icon: Mail, label: 'Emails', group: 'Marketing' },
   { id: 'analytics', icon: Activity, label: 'Analytics', group: 'System' },
+  { id: 'referrals', icon: Gift, label: 'Referidos', group: 'Growth' },
   { id: 'apis', icon: Server, label: 'APIs', group: 'System' },
   { id: 'about', icon: Info, label: 'About', group: 'System' },
 ];
@@ -95,6 +96,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     about: 'About', admin: 'Admin', export: 'Export',
     ebooks: 'Ebooks', landing: 'Landings', ads: 'Anuncios',
     presentations: 'Slides', 'content-calendar': 'Calendar', 'email-sequences': 'Emails',
+    referrals: 'Referidos',
   };
 
   const handleMobileTabChange = (tabId: string) => {

@@ -56,11 +56,19 @@ serve(async (req) => {
         userPrompt = `Product: ${product}\nAudience: ${audience}`;
         break;
       }
+      case "chat": {
+        const { prompt, context } = body;
+        systemPrompt = `You are an expert AI marketing assistant for LogiTrainer Studio, a digital marketing platform. You help users with: marketing strategies, content creation, copywriting, SEO, social media, email marketing, ad campaigns, sales funnels, and growth hacking. Be concise, actionable, and practical. Respond in the same language as the user's message.`;
+        userPrompt = context ? `Previous conversation:\n${context}\n\nUser: ${prompt}` : prompt;
+        break;
+      }
       default:
         return new Response(JSON.stringify({ error: "Invalid content type" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
     }
+
+    const isChat = type === "chat";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -95,6 +103,13 @@ serve(async (req) => {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content?.trim() || "";
 
+    // For chat, return plain text
+    if (isChat) {
+      return new Response(JSON.stringify({ content }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Extract JSON from response (handle markdown code blocks)
     let jsonStr = content;
     const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -104,7 +119,6 @@ serve(async (req) => {
     try {
       parsed = JSON.parse(jsonStr);
     } catch {
-      // Try to find JSON object in the response
       const objMatch = jsonStr.match(/\{[\s\S]*\}/);
       if (objMatch) {
         parsed = JSON.parse(objMatch[0]);
