@@ -70,6 +70,7 @@ const ALL_TABS = [
   { id: 'content-calendar', icon: Calendar, label: 'Calendar', group: 'Marketing' },
   { id: 'email-sequences', icon: Mail, label: 'Emails', group: 'Marketing' },
   { id: 'analytics', icon: Activity, label: 'Analytics', group: 'System' },
+  { id: 'referrals', icon: Gift, label: 'Referidos', group: 'Growth' },
   { id: 'apis', icon: Server, label: 'APIs', group: 'System' },
   { id: 'about', icon: Info, label: 'About', group: 'System' },
 ];
