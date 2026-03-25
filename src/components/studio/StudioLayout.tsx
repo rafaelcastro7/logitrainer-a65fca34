@@ -96,6 +96,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     about: 'About', admin: 'Admin', export: 'Export',
     ebooks: 'Ebooks', landing: 'Landings', ads: 'Anuncios',
     presentations: 'Slides', 'content-calendar': 'Calendar', 'email-sequences': 'Emails',
+    referrals: 'Referidos',
   };
 
   const handleMobileTabChange = (tabId: string) => {
