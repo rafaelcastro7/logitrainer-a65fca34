@@ -494,6 +494,12 @@ export default function Index() {
             {activeTab === 'admin' && (
               <AdminApprovalPanel user={user} />
             )}
+            {activeTab === 'ebooks' && <EbookGenerator />}
+            {activeTab === 'landing' && <LandingPageBuilder />}
+            {activeTab === 'ads' && <AdCreativeGenerator />}
+            {activeTab === 'presentations' && <PresentationGenerator />}
+            {activeTab === 'content-calendar' && <ContentCalendar />}
+            {activeTab === 'email-sequences' && <EmailSequenceBuilder />}
           </>
         )}
       </StudioLayout>
