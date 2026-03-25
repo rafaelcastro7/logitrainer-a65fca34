@@ -161,16 +161,34 @@ export default function ProjectSidebar({
     }
   }, [editingName]);
 
-  const tabs = [
+  const videoTabs = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
     { id: 'editor', label: t.editor, icon: Clapperboard },
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
     { id: 'export', label: 'Export', icon: Download },
+  ];
+
+  const marketingTabs = [
+    { id: 'ebooks', label: 'Ebooks', icon: BookOpen },
+    { id: 'landing', label: 'Landings', icon: Layout },
+    { id: 'ads', label: 'Anuncios', icon: Megaphone },
+    { id: 'presentations', label: 'Slides', icon: Presentation },
+    { id: 'content-calendar', label: 'Calendar', icon: Calendar },
+    { id: 'email-sequences', label: 'Emails', icon: Mail },
+  ];
+
+  const systemTabs = [
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
     ...(isAdmin ? [{ id: 'admin', label: 'Admin', icon: Shield }] : []),
+  ];
+
+  const allTabSections = [
+    { label: 'Video Studio', tabs: videoTabs },
+    { label: 'Marketing Tools', tabs: marketingTabs },
+    { label: 'System', tabs: systemTabs },
   ];
 
   const selectedScene = scenes.find(s => s.id === selectedSceneId);
