@@ -495,8 +495,10 @@ export default function Index() {
             {activeTab === 'presentations' && <PresentationGenerator />}
             {activeTab === 'content-calendar' && <ContentCalendar />}
             {activeTab === 'email-sequences' && <EmailSequenceBuilder />}
+            {activeTab === 'referrals' && <ReferralPanel user={user} />}
           </>
         )}
+        <AIChatAssistant />
       </StudioLayout>
 
       <AuthDialog
