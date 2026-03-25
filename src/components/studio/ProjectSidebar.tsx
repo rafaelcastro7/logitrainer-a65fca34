@@ -227,35 +227,39 @@ export default function ProjectSidebar({
       <ScrollArea className="flex-1">
         {/* Navigation */}
         <div className={cn("py-1", collapsed ? "px-1" : "px-2")}>
-          {!collapsed && (
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2 py-2">Navigation</p>
-          )}
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <Tooltip key={tab.id} delayDuration={collapsed ? 0 : 700}>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => onTabChange(tab.id)}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 rounded-md text-xs font-medium transition-all duration-150",
-                      collapsed ? "justify-center p-2 my-0.5" : "px-2.5 py-1.5 my-px",
-                      isActive
-                        ? "bg-primary/15 text-primary border-l-2 border-primary"
-                        : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          {allTabSections.map(section => (
+            <div key={section.label}>
+              {!collapsed && (
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2 py-2">{section.label}</p>
+              )}
+              {section.tabs.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <Tooltip key={tab.id} delayDuration={collapsed ? 0 : 700}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => onTabChange(tab.id)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 rounded-md text-xs font-medium transition-all duration-150",
+                          collapsed ? "justify-center p-2 my-0.5" : "px-2.5 py-1.5 my-px",
+                          isActive
+                            ? "bg-primary/15 text-primary border-l-2 border-primary"
+                            : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                        )}
+                      >
+                        <Icon className="w-3.5 h-3.5 shrink-0" />
+                        {!collapsed && <span>{tab.label}</span>}
+                      </button>
+                    </TooltipTrigger>
+                    {collapsed && (
+                      <TooltipContent side="right" className="text-xs">{tab.label}</TooltipContent>
                     )}
-                  >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
-                    {!collapsed && <span>{tab.label}</span>}
-                  </button>
-                </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="right" className="text-xs">{tab.label}</TooltipContent>
-                )}
-              </Tooltip>
-            );
-          })}
+                  </Tooltip>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
         {/* Project Tree */}
