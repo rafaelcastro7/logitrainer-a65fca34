@@ -62,7 +62,9 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
   const TAB_LABELS: Record<string, string> = {
     dashboard: 'Dashboard', editor: 'Editor', preview: 'Preview',
     assets: 'Assets', analytics: 'Analytics', apis: 'APIs',
-    about: 'About', admin: 'Admin'
+    about: 'About', admin: 'Admin', export: 'Export',
+    ebooks: 'Ebooks', landing: 'Landings', ads: 'Anuncios',
+    presentations: 'Slides', 'content-calendar': 'Calendar', 'email-sequences': 'Emails',
   };
 
   return (
