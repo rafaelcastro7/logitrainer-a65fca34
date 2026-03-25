@@ -6,7 +6,8 @@ import {
   Server, Info, ChevronLeft, ChevronRight, Film, Layers,
   Image as ImageIcon, Mic, FileText, Settings, FolderTree,
   ChevronDown, ChevronUp, Clock, Sparkles, GripVertical, Shuffle,
-  RefreshCw, Copy, Trash2, Shield, Download
+  RefreshCw, Copy, Trash2, Shield, Download,
+  BookOpen, Layout, Megaphone, Presentation, Calendar, Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -160,16 +161,34 @@ export default function ProjectSidebar({
     }
   }, [editingName]);
 
-  const tabs = [
+  const videoTabs = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
     { id: 'editor', label: t.editor, icon: Clapperboard },
     { id: 'preview', label: t.preview, icon: Play },
     { id: 'assets', label: t.assets, icon: Images },
     { id: 'export', label: 'Export', icon: Download },
+  ];
+
+  const marketingTabs = [
+    { id: 'ebooks', label: 'Ebooks', icon: BookOpen },
+    { id: 'landing', label: 'Landings', icon: Layout },
+    { id: 'ads', label: 'Anuncios', icon: Megaphone },
+    { id: 'presentations', label: 'Slides', icon: Presentation },
+    { id: 'content-calendar', label: 'Calendar', icon: Calendar },
+    { id: 'email-sequences', label: 'Emails', icon: Mail },
+  ];
+
+  const systemTabs = [
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
     ...(isAdmin ? [{ id: 'admin', label: 'Admin', icon: Shield }] : []),
+  ];
+
+  const allTabSections = [
+    { label: 'Video Studio', tabs: videoTabs },
+    { label: 'Marketing Tools', tabs: marketingTabs },
+    { label: 'System', tabs: systemTabs },
   ];
 
   const selectedScene = scenes.find(s => s.id === selectedSceneId);
@@ -208,35 +227,39 @@ export default function ProjectSidebar({
       <ScrollArea className="flex-1">
         {/* Navigation */}
         <div className={cn("py-1", collapsed ? "px-1" : "px-2")}>
-          {!collapsed && (
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2 py-2">Navigation</p>
-          )}
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <Tooltip key={tab.id} delayDuration={collapsed ? 0 : 700}>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => onTabChange(tab.id)}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 rounded-md text-xs font-medium transition-all duration-150",
-                      collapsed ? "justify-center p-2 my-0.5" : "px-2.5 py-1.5 my-px",
-                      isActive
-                        ? "bg-primary/15 text-primary border-l-2 border-primary"
-                        : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          {allTabSections.map(section => (
+            <div key={section.label}>
+              {!collapsed && (
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2 py-2">{section.label}</p>
+              )}
+              {section.tabs.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <Tooltip key={tab.id} delayDuration={collapsed ? 0 : 700}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => onTabChange(tab.id)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 rounded-md text-xs font-medium transition-all duration-150",
+                          collapsed ? "justify-center p-2 my-0.5" : "px-2.5 py-1.5 my-px",
+                          isActive
+                            ? "bg-primary/15 text-primary border-l-2 border-primary"
+                            : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                        )}
+                      >
+                        <Icon className="w-3.5 h-3.5 shrink-0" />
+                        {!collapsed && <span>{tab.label}</span>}
+                      </button>
+                    </TooltipTrigger>
+                    {collapsed && (
+                      <TooltipContent side="right" className="text-xs">{tab.label}</TooltipContent>
                     )}
-                  >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
-                    {!collapsed && <span>{tab.label}</span>}
-                  </button>
-                </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="right" className="text-xs">{tab.label}</TooltipContent>
-                )}
-              </Tooltip>
-            );
-          })}
+                  </Tooltip>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
         {/* Project Tree */}

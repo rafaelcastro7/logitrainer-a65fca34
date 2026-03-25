@@ -22,6 +22,12 @@ import AuthDialog from '@/components/studio/AuthDialog';
 import ProjectsDialog from '@/components/studio/ProjectsDialog';
 import AdminApprovalPanel from '@/components/studio/AdminApprovalPanel';
 import PendingApprovalScreen from '@/components/studio/PendingApprovalScreen';
+import EbookGenerator from '@/components/studio/EbookGenerator';
+import LandingPageBuilder from '@/components/studio/LandingPageBuilder';
+import AdCreativeGenerator from '@/components/studio/AdCreativeGenerator';
+import PresentationGenerator from '@/components/studio/PresentationGenerator';
+import ContentCalendar from '@/components/studio/ContentCalendar';
+import EmailSequenceBuilder from '@/components/studio/EmailSequenceBuilder';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
@@ -481,6 +487,12 @@ export default function Index() {
             {activeTab === 'admin' && (
               <AdminApprovalPanel user={user} />
             )}
+            {activeTab === 'ebooks' && <EbookGenerator />}
+            {activeTab === 'landing' && <LandingPageBuilder />}
+            {activeTab === 'ads' && <AdCreativeGenerator />}
+            {activeTab === 'presentations' && <PresentationGenerator />}
+            {activeTab === 'content-calendar' && <ContentCalendar />}
+            {activeTab === 'email-sequences' && <EmailSequenceBuilder />}
           </>
         )}
       </StudioLayout>
