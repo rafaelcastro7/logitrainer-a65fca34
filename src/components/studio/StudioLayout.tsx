@@ -72,6 +72,8 @@ const ALL_TABS = [
   { id: 'presentations', icon: Presentation, label: 'Slides', group: 'Marketing' },
   { id: 'content-calendar', icon: Calendar, label: 'Calendar', group: 'Marketing' },
   { id: 'email-sequences', icon: Mail, label: 'Emails', group: 'Marketing' },
+  { id: 'lead-magnets', icon: Sparkles, label: 'Lead Magnets', group: 'Marketing' },
+  { id: 'ai-chat', icon: MessageCircle, label: 'AI Chat', group: 'System' },
   { id: 'analytics', icon: Activity, label: 'Analytics', group: 'System' },
   { id: 'referrals', icon: Gift, label: 'Referidos', group: 'Growth' },
   { id: 'apis', icon: Server, label: 'APIs', group: 'System' },
