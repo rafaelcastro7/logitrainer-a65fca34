@@ -507,6 +507,7 @@ export default function Index() {
             {activeTab === 'offers' && <OfferBuilder />}
             {activeTab === 'lead-magnets' && <LeadMagnetGenerator />}
             {activeTab === 'webinar' && <WebinarSimulator />}
+            {activeTab === 'research' && <ResearchAIPanel />}
             {activeTab === 'ai-chat' && <AIChatAssistant />}
           </>
         )}
