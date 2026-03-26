@@ -20,9 +20,34 @@ serve(async (req) => {
 
     switch (type) {
       case "ebook": {
-        const { topic, niche, template, chaptersCount, language } = body;
-        systemPrompt = `You are a professional ebook writer and digital marketing expert. Generate a complete ebook with ${chaptersCount} chapters. Return valid JSON with this structure: { "title": "string", "chapters": [{ "title": "string", "content": "string (2-3 paragraphs per chapter)" }] }. Write in ${language === 'es' ? 'Spanish' : language === 'pt' ? 'Portuguese' : 'English'}. Niche: ${niche}. Template style: ${template}. Make it actionable, professional, and valuable. Each chapter should be 200-400 words.`;
-        userPrompt = `Create an ebook about: ${topic}`;
+        const { topic, niche, template, chaptersCount, language, detailLevel } = body;
+        const langMap: Record<string, string> = { es: 'Spanish', en: 'English', pt: 'Portuguese' };
+        const lang = langMap[language] || 'Spanish';
+        
+        const templateInstructions: Record<string, string> = {
+          guia: 'Write as a practical step-by-step guide. Each chapter must include: numbered steps, real-world examples, pro tips in callout boxes, and a practical exercise at the end.',
+          curso: 'Structure as an educational course. Each chapter is a lesson with: learning objectives, detailed explanations, examples, case studies, key takeaways, and homework/exercises.',
+          checklist: 'Format as actionable checklists. Each chapter includes: numbered action items with detailed explanations, templates to copy-paste, and quick-win tips.',
+          storytelling: 'Write with compelling narrative. Each chapter tells a story that teaches a lesson, includes dialogue, real or realistic case studies, and actionable insights.',
+          tecnico: 'Write as a TECHNICAL GUIDE. Each chapter MUST include: detailed code examples in markdown code blocks (```language), step-by-step implementation instructions, configuration snippets, API usage examples, troubleshooting tips, and best practices. Code must be real, functional, and copy-pasteable.',
+          playbook: 'Write as a marketing PLAYBOOK. Include: proven frameworks with fill-in templates, real metrics and benchmarks, swipe files (email templates, ad copy, headlines), ROI calculators, and campaign blueprints.',
+          workbook: 'Write as an interactive WORKBOOK. Each chapter includes: reflection questions, fill-in-the-blank exercises, self-assessment quizzes, planning templates, and action plan worksheets.',
+        };
+
+        const detail = detailLevel === 'extensive' ? '800-1200' : detailLevel === 'detailed' ? '500-800' : '300-500';
+        
+        systemPrompt = `You are a world-class author and subject matter expert. Generate a comprehensive, professional ebook with ${chaptersCount} chapters. 
+
+CRITICAL RULES:
+- Each chapter MUST be ${detail} words minimum — NOT a summary, a FULL chapter
+- Use **markdown formatting**: ## for sections, **bold** for key terms, \`code\` for inline code, \`\`\`language for code blocks, > for callouts, - for bullet lists, 1. for numbered lists
+- Include REAL examples, not generic placeholder text
+- ${templateInstructions[template] || templateInstructions.guia}
+
+Return valid JSON: { "title": "string", "subtitle": "string", "chapters": [{ "title": "string", "content": "string (FULL chapter content in markdown, ${detail} words minimum)", "keyTakeaways": ["string (3-5 key takeaways)"], "exercises": ["string (1-3 practical exercises)"] }] }
+
+Write entirely in ${lang}. Niche: ${niche}. Be specific, data-driven, and immediately actionable. Never use filler content.`;
+        userPrompt = `Create a comprehensive ebook about: ${topic}`;
         break;
       }
       case "landing": {
