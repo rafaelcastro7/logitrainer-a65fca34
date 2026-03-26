@@ -12,10 +12,12 @@ import { cn } from '@/lib/utils';
 const SEQUENCE_TYPES = [
   { id: 'welcome', name: 'Welcome Series', desc: '5 emails de bienvenida y nurturing', icon: '👋', emails: 5 },
   { id: 'launch', name: 'Lanzamiento', desc: '7 emails de pre-launch a cart close', icon: '🚀', emails: 7 },
+  { id: 'cash_machine', name: '4-Day Cash Machine (Kern)', desc: '4 emails: historia → prueba → oferta → cierre', icon: '💰', emails: 4 },
   { id: 'nurture', name: 'Nurture', desc: '5 emails de valor y autoridad', icon: '🌱', emails: 5 },
   { id: 'cart', name: 'Abandoned Cart', desc: '3 emails de recuperación', icon: '🛒', emails: 3 },
   { id: 'webinar', name: 'Post-Webinar', desc: '4 emails de seguimiento', icon: '🎓', emails: 4 },
   { id: 'reengagement', name: 'Re-engagement', desc: '3 emails para suscriptores inactivos', icon: '💌', emails: 3 },
+  { id: 'tripwire', name: 'Tripwire Sequence', desc: '3 emails: valor → oferta baja → upsell', icon: '⚡', emails: 3 },
 ];
 
 interface EmailItem {

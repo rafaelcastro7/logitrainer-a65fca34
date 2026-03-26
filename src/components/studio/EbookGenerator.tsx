@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import ModelSelector from './ModelSelector';
 
 const NICHES = [
   { id: 'fitness', label: '💪 Fitness & Salud', color: 'bg-success/10 text-success' },
@@ -45,6 +46,7 @@ export default function EbookGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [ebookTitle, setEbookTitle] = useState('');
   const [currentStep, setCurrentStep] = useState<'config' | 'generating' | 'review'>('config');
+  const [model, setModel] = useState('google/gemini-2.5-pro');
 
   const handleGenerate = async () => {
     if (!topic.trim()) { toast.error('Ingresa un tema para el ebook'); return; }
@@ -61,6 +63,7 @@ export default function EbookGenerator() {
           template,
           chaptersCount,
           language,
+          model,
         },
       });
 
@@ -197,6 +200,8 @@ export default function EbookGenerator() {
               </SelectContent>
             </Select>
           </div>
+
+          <ModelSelector value={model} onChange={setModel} />
 
           <Button onClick={handleGenerate} className="w-full glow-primary gap-2" size="lg">
             <Wand2 className="w-4 h-4" /> Generar Ebook Completo con IA

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import ModelSelector from './ModelSelector';
 
 const PLATFORMS = [
   { id: 'facebook', label: 'Facebook Ads', icon: '📘', sizes: '1200x628' },
@@ -22,7 +23,9 @@ const FRAMEWORKS = [
   { id: 'aida', name: 'AIDA', desc: 'Atención → Interés → Deseo → Acción' },
   { id: 'pas', name: 'PAS', desc: 'Problema → Agitación → Solución' },
   { id: 'bab', name: 'BAB', desc: 'Before → After → Bridge' },
+  { id: 'hso', name: 'HSO (Brunson)', desc: 'Hook → Story → Offer' },
   { id: 'storytelling', name: 'Storytelling', desc: 'Historia personal + transformación' },
+  { id: '4u', name: '4U', desc: 'Útil → Urgente → Único → Ultra-específico' },
 ];
 
 interface AdVariant {
@@ -41,6 +44,7 @@ export default function AdCreativeGenerator() {
   const [framework, setFramework] = useState('aida');
   const [variants, setVariants] = useState<AdVariant[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [model, setModel] = useState('google/gemini-3-flash-preview');
 
   const handleGenerate = async () => {
     if (!product.trim()) { toast.error('Ingresa el producto/servicio'); return; }
@@ -56,6 +60,7 @@ export default function AdCreativeGenerator() {
           platform,
           framework,
           variantsCount: 4,
+          model,
         },
       });
 
@@ -144,7 +149,9 @@ export default function AdCreativeGenerator() {
           </div>
         </div>
 
-        <Button onClick={handleGenerate} disabled={isGenerating} className="w-full glow-primary gap-2" size="lg">
+          <ModelSelector value={model} onChange={setModel} />
+
+          <Button onClick={handleGenerate} disabled={isGenerating} className="w-full glow-primary gap-2" size="lg">
           {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
           {isGenerating ? 'Generando variantes A/B...' : 'Generar 4 Variantes A/B'}
         </Button>
