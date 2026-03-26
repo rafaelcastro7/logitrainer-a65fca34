@@ -350,19 +350,19 @@ export default function Index() {
 
   if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background gap-6 gradient-mesh">
+      <div className="flex flex-col items-center justify-center h-screen bg-background gap-5">
         <div className="relative">
-          <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-2xl scale-150 animate-pulse-glow" />
-          <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/10 border border-primary/10">
-            <Film className="w-8 h-8 text-primary animate-pulse-glow" />
+          <div className="absolute inset-0 bg-primary/8 rounded-2xl blur-2xl scale-[2] animate-pulse-glow" />
+          <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/10">
+            <Film className="w-7 h-7 text-primary" />
           </div>
         </div>
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="w-4 h-4 animate-spin text-primary" />
-            <span className="text-sm font-bold text-gradient-primary">LogiTrainer Studio</span>
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-primary/60" />
+            <span className="text-sm font-display font-bold text-foreground">LogiTrainer Studio</span>
           </div>
-          <span className="text-[10px] text-muted-foreground/50">Loading your workspace...</span>
+          <span className="text-[10px] text-muted-foreground/40">Loading workspace...</span>
         </div>
       </div>
     );

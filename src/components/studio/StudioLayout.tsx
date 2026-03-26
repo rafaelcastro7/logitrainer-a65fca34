@@ -135,11 +135,11 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
           {/* Center - Command Palette Trigger (desktop only) */}
           <button
             onClick={() => setCommandOpen(true)}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/20 text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/50 hover:border-border/40 transition-all text-xs"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border/30 text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary/70 hover:border-border/50 transition-all text-xs"
           >
             <Search className="w-3 h-3" />
-            <span>Search commands...</span>
-            <kbd className="ml-4 px-1.5 py-0.5 rounded bg-muted/50 border border-border/30 text-[10px] font-mono">⌘K</kbd>
+            <span>Search...</span>
+            <kbd className="ml-4 px-1.5 py-0.5 rounded bg-secondary/80 border border-border/40 text-[10px] font-mono text-muted-foreground/50">⌘K</kbd>
           </button>
 
           {/* Actions */}
@@ -231,7 +231,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/10">
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full bg-primary/10 border border-primary/15">
                     <User className="w-3.5 h-3.5 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
