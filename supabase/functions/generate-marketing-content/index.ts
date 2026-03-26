@@ -58,13 +58,21 @@ Write entirely in ${lang}. Niche: ${niche}. Be specific, data-driven, and immedi
       }
       case "ads": {
         const { product, audience, benefit, platform, framework, variantsCount } = body;
-        systemPrompt = `You are an expert performance marketer and copywriter. Generate ${variantsCount} ad copy variants. Platform: ${platform}. Framework: ${framework}. Return valid JSON: { "variants": [{ "headline": "string (max 40 chars)", "primary_text": "string (ad body, 2-3 sentences)", "cta": "string (button text)", "hook": "string (attention grabber)", "framework": "${framework}" }] }. Each variant must use a different angle/hook. Make them compelling and conversion-focused.`;
+        systemPrompt = `You are an elite performance marketer who has managed $50M+ in ad spend. Generate ${variantsCount} ad copy variants. Platform: ${platform}. Framework: ${framework}.
+
+Return valid JSON: { "variants": [{ "headline": "string (max 40 chars, attention-grabbing)", "primary_text": "string (ad body: hook + story/proof + CTA, 4-6 sentences minimum, use line breaks for readability)", "cta": "string (button text)", "hook": "string (scroll-stopping first line)", "framework": "${framework}", "targeting_notes": "string (suggested audience targeting)", "creative_notes": "string (suggested visual/creative direction)" }] }.
+
+Each variant must use a completely different psychological angle (fear, aspiration, social proof, curiosity, urgency, authority). Include specific numbers, results, and proof points. Make hooks that STOP the scroll.`;
         userPrompt = `Product: ${product}\nAudience: ${audience}\nMain benefit: ${benefit}`;
         break;
       }
       case "presentation": {
         const { topic, presentationType, slidesCount } = body;
-        systemPrompt = `You are a presentation design expert. Create ${slidesCount} slides for a ${presentationType} presentation. Return valid JSON: { "slides": [{ "title": "string", "content": "string (2-4 bullet points or short paragraphs)", "notes": "string (speaker notes)", "layout": "string (title|content|quote|stats|cta)" }] }. Make it engaging and professional. Include an intro, body sections, and a closing CTA slide.`;
+        systemPrompt = `You are a presentation strategist who has created decks for TED talks and Fortune 500 pitches. Create ${slidesCount} slides for a ${presentationType} presentation.
+
+Return valid JSON: { "slides": [{ "title": "string (compelling, not generic)", "content": "string (detailed content: 4-6 bullet points with supporting data, examples, or talking points. Use markdown formatting: **bold**, - bullets, numbers)", "notes": "string (detailed speaker notes: what to say, transitions, audience engagement cues)", "layout": "string (title|content|quote|stats|cta|comparison|timeline)" }] }.
+
+Include data points, specific examples, and compelling visuals descriptions. Each slide should flow naturally to the next with clear transitions.`;
         userPrompt = `Presentation topic: ${topic}`;
         break;
       }
@@ -77,7 +85,11 @@ Write entirely in ${lang}. Niche: ${niche}. Be specific, data-driven, and immedi
       }
       case "email_sequence": {
         const { product, audience, sequenceType, emailsCount } = body;
-        systemPrompt = `You are an email marketing expert. Generate a ${sequenceType} email sequence with ${emailsCount} emails. Return valid JSON: { "emails": [{ "subject": "string (compelling subject line)", "preview": "string (preview text)", "body": "string (email body, 3-5 paragraphs)", "cta": "string (call to action)", "day": number (day to send), "notes": "string (strategy note)" }] }. Optimize subject lines for open rate. Each email should build on the previous one.`;
+        systemPrompt = `You are an email marketing expert who has generated $10M+ in revenue from email sequences. Generate a ${sequenceType} email sequence with ${emailsCount} emails.
+
+Return valid JSON: { "emails": [{ "subject": "string (A/B test worthy subject line, use curiosity gaps, numbers, or personalization)", "preview": "string (compelling preview text that complements subject)", "body": "string (complete email in markdown: hook, story/proof, value, CTA. 5-8 paragraphs minimum. Use **bold**, bullet points, P.S. lines. Include specific examples and data)", "cta": "string (specific call to action with urgency)", "day": number, "notes": "string (strategy: why this email, what psychological trigger, expected open/click rate)" }] }.
+
+Use proven frameworks: PAS (Problem-Agitate-Solve), AIDA, Storytelling. Each email must have a clear purpose in the sequence and build on the previous one. Include P.S. lines, curiosity loops, and open loops.`;
         userPrompt = `Product: ${product}\nAudience: ${audience}`;
         break;
       }
