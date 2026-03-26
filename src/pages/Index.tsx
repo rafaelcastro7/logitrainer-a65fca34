@@ -30,6 +30,9 @@ import ContentCalendar from '@/components/studio/ContentCalendar';
 import EmailSequenceBuilder from '@/components/studio/EmailSequenceBuilder';
 import ReferralPanel from '@/components/studio/ReferralPanel';
 import AIChatAssistant from '@/components/studio/AIChatAssistant';
+import FunnelBuilder from '@/components/studio/FunnelBuilder';
+import VSLScriptGenerator from '@/components/studio/VSLScriptGenerator';
+import OfferBuilder from '@/components/studio/OfferBuilder';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
@@ -496,6 +499,9 @@ export default function Index() {
             {activeTab === 'content-calendar' && <ContentCalendar />}
             {activeTab === 'email-sequences' && <EmailSequenceBuilder />}
             {activeTab === 'referrals' && <ReferralPanel user={user} />}
+            {activeTab === 'funnels' && <FunnelBuilder />}
+            {activeTab === 'vsl-scripts' && <VSLScriptGenerator />}
+            {activeTab === 'offers' && <OfferBuilder />}
           </>
         )}
         <AIChatAssistant />
