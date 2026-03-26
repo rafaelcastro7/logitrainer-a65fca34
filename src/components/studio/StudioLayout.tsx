@@ -99,7 +99,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     about: 'About', admin: 'Admin', export: 'Export',
     ebooks: 'Ebooks', landing: 'Landings', ads: 'Anuncios',
     presentations: 'Slides', 'content-calendar': 'Calendar', 'email-sequences': 'Emails',
-    referrals: 'Referidos',
+    referrals: 'Referidos', 'vsl-scripts': 'VSL Scripts', funnels: 'Funnels', offers: 'Ofertas',
   };
 
   const handleMobileTabChange = (tabId: string) => {
