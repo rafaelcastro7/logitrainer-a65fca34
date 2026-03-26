@@ -255,7 +255,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button size="sm" className="gap-1.5 text-[11px] h-7 px-3 glow-primary" onClick={onOpenAuth}>
+              <Button size="sm" className="gap-1.5 text-[11px] h-7 px-3 glow-primary font-semibold" onClick={onOpenAuth}>
                 <Sparkles className="w-3 h-3" /> <span className="hidden xs:inline">{t.authLogin}</span>
               </Button>
             )}
@@ -306,7 +306,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
 
       {/* Mobile Bottom Navigation */}
       {isMobile && (
-        <nav className="shrink-0 border-t border-border/20 bg-card/95 backdrop-blur-xl z-40 safe-area-bottom">
+        <nav className="shrink-0 border-t border-border/30 bg-background/90 backdrop-blur-xl z-40 safe-area-bottom">
           <div className="flex items-center justify-around h-14 px-1">
             {MOBILE_MAIN_TABS.map(tab => {
               const Icon = tab.icon;
