@@ -115,31 +115,31 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 border-b border-border/20 bg-card/40 backdrop-blur-2xl relative z-30">
+      <header className="shrink-0 border-b border-border/30 bg-background/80 backdrop-blur-xl relative z-30">
         <div className="flex items-center justify-between px-3 sm:px-5 h-11 sm:h-12">
           {/* Brand */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-primary/20 via-accent/15 to-primary/10 border border-primary/10 shadow-sm">
+            <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/10">
               <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
             </div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-gradient-primary">LogiTrainer</h1>
-              <span className="text-[10px] text-muted-foreground/60 font-medium hidden sm:inline">Studio</span>
+              <h1 className="text-xs sm:text-sm font-display font-bold tracking-tight text-foreground">LogiTrainer</h1>
+              <span className="text-[10px] text-primary/60 font-semibold hidden sm:inline">Studio</span>
             </div>
-            <div className="hidden sm:flex items-center gap-1 text-muted-foreground/40">
+            <div className="hidden sm:flex items-center gap-1 text-muted-foreground/30">
               <span className="text-[10px]">/</span>
-              <span className="text-[11px] font-medium text-foreground/70">{TAB_LABELS[activeTab] || activeTab}</span>
+              <span className="text-[11px] font-medium text-muted-foreground">{TAB_LABELS[activeTab] || activeTab}</span>
             </div>
           </div>
 
           {/* Center - Command Palette Trigger (desktop only) */}
           <button
             onClick={() => setCommandOpen(true)}
-            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/20 text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/50 hover:border-border/40 transition-all text-xs"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border/30 text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary/70 hover:border-border/50 transition-all text-xs"
           >
             <Search className="w-3 h-3" />
-            <span>Search commands...</span>
-            <kbd className="ml-4 px-1.5 py-0.5 rounded bg-muted/50 border border-border/30 text-[10px] font-mono">⌘K</kbd>
+            <span>Search...</span>
+            <kbd className="ml-4 px-1.5 py-0.5 rounded bg-secondary/80 border border-border/40 text-[10px] font-mono text-muted-foreground/50">⌘K</kbd>
           </button>
 
           {/* Actions */}
@@ -231,7 +231,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/10">
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full bg-primary/10 border border-primary/15">
                     <User className="w-3.5 h-3.5 text-primary" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -255,7 +255,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button size="sm" className="gap-1.5 text-[11px] h-7 px-3 glow-primary" onClick={onOpenAuth}>
+              <Button size="sm" className="gap-1.5 text-[11px] h-7 px-3 glow-primary font-semibold" onClick={onOpenAuth}>
                 <Sparkles className="w-3 h-3" /> <span className="hidden xs:inline">{t.authLogin}</span>
               </Button>
             )}
@@ -306,7 +306,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
 
       {/* Mobile Bottom Navigation */}
       {isMobile && (
-        <nav className="shrink-0 border-t border-border/20 bg-card/95 backdrop-blur-xl z-40 safe-area-bottom">
+        <nav className="shrink-0 border-t border-border/30 bg-background/90 backdrop-blur-xl z-40 safe-area-bottom">
           <div className="flex items-center justify-around h-14 px-1">
             {MOBILE_MAIN_TABS.map(tab => {
               const Icon = tab.icon;
