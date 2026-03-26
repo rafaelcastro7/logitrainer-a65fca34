@@ -115,20 +115,20 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 border-b border-border/20 bg-card/40 backdrop-blur-2xl relative z-30">
+      <header className="shrink-0 border-b border-border/30 bg-background/80 backdrop-blur-xl relative z-30">
         <div className="flex items-center justify-between px-3 sm:px-5 h-11 sm:h-12">
           {/* Brand */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-primary/20 via-accent/15 to-primary/10 border border-primary/10 shadow-sm">
+            <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/10">
               <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
             </div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-gradient-primary">LogiTrainer</h1>
-              <span className="text-[10px] text-muted-foreground/60 font-medium hidden sm:inline">Studio</span>
+              <h1 className="text-xs sm:text-sm font-display font-bold tracking-tight text-foreground">LogiTrainer</h1>
+              <span className="text-[10px] text-primary/60 font-semibold hidden sm:inline">Studio</span>
             </div>
-            <div className="hidden sm:flex items-center gap-1 text-muted-foreground/40">
+            <div className="hidden sm:flex items-center gap-1 text-muted-foreground/30">
               <span className="text-[10px]">/</span>
-              <span className="text-[11px] font-medium text-foreground/70">{TAB_LABELS[activeTab] || activeTab}</span>
+              <span className="text-[11px] font-medium text-muted-foreground">{TAB_LABELS[activeTab] || activeTab}</span>
             </div>
           </div>
 
