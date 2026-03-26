@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command, Shield, Search, Sparkles,
-  LayoutDashboard, Clapperboard, Play, Images, Download, BookOpen, Layout, Megaphone, Presentation, Calendar, Mail, Activity, Server, Info, Menu, X, MoreHorizontal, Gift, MessageCircle
+  LayoutDashboard, Clapperboard, Play, Images, Download, BookOpen, Layout, Megaphone, Presentation, Calendar, Mail, Activity, Server, Info, Menu, X, MoreHorizontal, Gift, MessageCircle, Target, Video, Gem
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
@@ -66,6 +66,9 @@ const ALL_TABS = [
   { id: 'ebooks', icon: BookOpen, label: 'Ebooks', group: 'Marketing' },
   { id: 'landing', icon: Layout, label: 'Landings', group: 'Marketing' },
   { id: 'ads', icon: Megaphone, label: 'Anuncios', group: 'Marketing' },
+  { id: 'vsl-scripts', icon: Video, label: 'VSL Scripts', group: 'Marketing' },
+  { id: 'funnels', icon: Target, label: 'Funnels', group: 'Marketing' },
+  { id: 'offers', icon: Gem, label: 'Ofertas', group: 'Marketing' },
   { id: 'presentations', icon: Presentation, label: 'Slides', group: 'Marketing' },
   { id: 'content-calendar', icon: Calendar, label: 'Calendar', group: 'Marketing' },
   { id: 'email-sequences', icon: Mail, label: 'Emails', group: 'Marketing' },
