@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Film, Wand2, ArrowRight, Zap, Image, Mic, Video, ChevronRight, Layers, Play, Star, Cpu, Globe, Shield } from 'lucide-react';
+import { Sparkles, Film, ArrowRight, Zap, Image, Mic, Video, ChevronRight, Layers, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { VIDEO_TEMPLATES, VideoTemplate } from '@/types/project';
 import { cn } from '@/lib/utils';
-import LogoCarousel from './LogoCarousel';
 
 interface WelcomeScreenProps {
   onStart: (topic: string) => void;
@@ -21,17 +20,10 @@ export default function WelcomeScreen({ onStart, isGenerating, onApplyTemplate }
   const { t } = useTranslation();
 
   const features = [
-    { icon: Wand2, title: t.featureScript, desc: t.featureScriptDesc, stat: '15+ Models', gradient: 'from-primary/20 to-accent/20' },
-    { icon: Image, title: t.featureImages, desc: t.featureImagesDesc, stat: '8K Quality', gradient: 'from-accent/20 to-primary/20' },
-    { icon: Mic, title: t.featureTTS, desc: t.featureTTSDesc, stat: '6 Voices', gradient: 'from-success/20 to-primary/20' },
-    { icon: Video, title: t.featureExport, desc: t.featureExportDesc, stat: '4K Export', gradient: 'from-warning/20 to-accent/20' },
-  ];
-
-  const trustMetrics = [
-    { value: '10K+', label: 'Videos Created', icon: Film },
-    { value: '99.9%', label: 'Uptime SLA', icon: Shield },
-    { value: '4 Lang', label: 'Supported', icon: Globe },
-    { value: '50K+', label: 'Creators', icon: Cpu },
+    { icon: Sparkles, title: t.featureScript, desc: t.featureScriptDesc, gradient: 'from-primary/8 to-accent/5' },
+    { icon: Image, title: t.featureImages, desc: t.featureImagesDesc, gradient: 'from-accent/8 to-primary/5' },
+    { icon: Mic, title: t.featureTTS, desc: t.featureTTSDesc, gradient: 'from-success/8 to-primary/5' },
+    { icon: Video, title: t.featureExport, desc: t.featureExportDesc, gradient: 'from-primary/8 to-success/5' },
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,77 +43,62 @@ export default function WelcomeScreen({ onStart, isGenerating, onApplyTemplate }
 
   return (
     <div className="flex flex-col items-center min-h-[calc(100vh-3.5rem)] relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/[0.04] rounded-full blur-[120px] animate-pulse-glow" />
-        <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-accent/[0.03] rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: '1.5s' }} />
-        <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-primary/[0.02] rounded-full blur-[80px] animate-pulse-glow" style={{ animationDelay: '3s' }} />
+      {/* Ambient light */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/[0.03] rounded-full blur-[150px]" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[400px] bg-accent/[0.02] rounded-full blur-[120px]" />
       </div>
 
-      {/* Hero Section */}
+      {/* Hero */}
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 max-w-4xl w-full text-center space-y-8 pt-20 px-6"
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 max-w-3xl w-full text-center space-y-10 pt-24 px-6"
       >
-        {/* Badge */}
+        {/* Mark */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/[0.08] border border-primary/15 text-primary text-xs font-medium backdrop-blur-sm"
-        >
-          <Zap className="w-3.5 h-3.5" />
-          <span>Powered by 15+ AI Models</span>
-          <span className="text-primary/40">•</span>
-          <span>Smart QoS Router</span>
-        </motion.div>
-
-        {/* Logo */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.1, duration: 0.5 }}
           className="flex items-center justify-center"
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-2xl scale-150 animate-pulse-glow" />
-            <div className="relative flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/15 via-card to-accent/10 border border-primary/15 shadow-2xl shadow-primary/10">
-              <Film className="w-10 h-10 text-primary" />
+            <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-2xl scale-[2] animate-pulse-glow" />
+            <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/15 flex items-center justify-center">
+              <Film className="w-7 h-7 text-primary" />
             </div>
           </div>
         </motion.div>
 
         {/* Title */}
         <div className="space-y-4">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]">
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.08]">
             <span className="text-gradient-primary">{t.welcomeTitle}</span>{' '}
             <span className="text-foreground">{t.welcomeSubtitle}</span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
             {t.welcomeDesc}
           </p>
         </div>
 
-        {/* Template Selector */}
+        {/* Template toggle */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
+          transition={{ delay: 0.25 }}
         >
           <button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-muted/30 border border-border/30 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:border-border/50 transition-all mb-4 backdrop-blur-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/60 border border-border/50 text-xs text-muted-foreground hover:text-foreground hover:border-primary/20 transition-all"
           >
-            <Layers className="w-4 h-4 text-primary" />
+            <Layers className="w-3.5 h-3.5 text-primary/70" />
             {selectedTemplate ? (
               <span>{selectedTemplate.icon} {selectedTemplate.name}</span>
             ) : (
               <span>{'chooseTemplate' in t ? (t as any).chooseTemplate : 'Start from a template'}</span>
             )}
-            <ChevronRight className={cn("w-3.5 h-3.5 transition-transform duration-200", showTemplates && "rotate-90")} />
+            <ChevronRight className={cn("w-3 h-3 transition-transform duration-200", showTemplates && "rotate-90")} />
           </button>
 
           <AnimatePresence>
@@ -130,26 +107,21 @@ export default function WelcomeScreen({ onStart, isGenerating, onApplyTemplate }
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
+                className="overflow-hidden mt-4"
               >
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 mb-4">
                   {VIDEO_TEMPLATES.map((template) => (
                     <button
                       key={template.id}
                       onClick={() => handleSelectTemplate(template)}
                       className={cn(
-                        "glass-panel rounded-xl p-4 text-left transition-all hover:border-primary/25 group relative overflow-hidden",
-                        selectedTemplate?.id === template.id && "ring-2 ring-primary/50 border-primary/30"
+                        "rounded-lg border border-border/40 bg-card/50 p-3.5 text-left transition-all hover:border-primary/25 group",
+                        selectedTemplate?.id === template.id && "ring-1 ring-primary/40 border-primary/30"
                       )}
                     >
-                      <div className={cn("absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity", template.color)} />
-                      <span className="text-2xl mb-2 block">{template.icon}</span>
-                      <p className="text-sm font-semibold">{template.name}</p>
-                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">{template.meta.aspectRatio || '16:9'}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">{template.meta.durationTarget}s</span>
-                      </div>
+                      <span className="text-xl mb-1.5 block">{template.icon}</span>
+                      <p className="text-xs font-semibold text-foreground">{template.name}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{template.description}</p>
                     </button>
                   ))}
                 </div>
@@ -161,18 +133,18 @@ export default function WelcomeScreen({ onStart, isGenerating, onApplyTemplate }
         {/* Input */}
         <motion.form
           onSubmit={handleSubmit}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="flex gap-3 max-w-2xl mx-auto"
+          transition={{ delay: 0.35 }}
+          className="flex gap-2.5 max-w-xl mx-auto"
         >
           <div className="flex-1 relative group">
-            <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/40 group-focus-within:text-primary transition-colors" />
+            <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
             <Input
               placeholder={t.welcomeInput}
               value={topic}
               onChange={e => setTopic(e.target.value)}
-              className="pl-12 h-14 bg-card/60 border-border/30 text-base backdrop-blur-xl rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+              className="pl-10 h-12 bg-card/60 border-border/40 text-sm rounded-xl focus:ring-1 focus:ring-primary/30 focus:border-primary/40 transition-all"
               autoFocus
             />
           </div>
@@ -180,36 +152,35 @@ export default function WelcomeScreen({ onStart, isGenerating, onApplyTemplate }
             type="submit"
             size="lg"
             disabled={!topic.trim() || isGenerating}
-            className="h-14 gap-2.5 px-8 rounded-xl text-base font-semibold glow-primary relative overflow-hidden group"
+            className="h-12 gap-2 px-6 rounded-xl text-sm font-semibold glow-primary"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary opacity-0 group-hover:opacity-20 transition-opacity animate-gradient" />
             {isGenerating ? (
               <>
-                <Zap className="w-5 h-5 animate-spin" />
-                {t.creating}
+                <Zap className="w-4 h-4 animate-spin" />
+                <span className="hidden sm:inline">{t.creating}</span>
               </>
             ) : (
               <>
-                <Play className="w-5 h-5" />
-                {t.createVideo}
+                <Play className="w-4 h-4" />
+                <span className="hidden sm:inline">{t.createVideo}</span>
               </>
             )}
           </Button>
         </motion.form>
 
-        {/* Quick Topics */}
+        {/* Quick topics */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.55 }}
-          className="flex flex-wrap items-center justify-center gap-2"
+          transition={{ delay: 0.5 }}
+          className="flex flex-wrap items-center justify-center gap-1.5"
         >
-          <span className="text-xs text-muted-foreground/60">{t.tryWith}</span>
-          {(selectedTemplate?.sampleTopics || [t.topicIndustrialRev, t.topicSolarSystem, t.topicAI, t.topicPhotosynthesis]).map(example => (
+          <span className="text-[11px] text-muted-foreground/50 mr-1">{t.tryWith}</span>
+          {(selectedTemplate?.sampleTopics || [t.topicIndustrialRev, t.topicSolarSystem, t.topicAI]).map(example => (
             <button
               key={example}
               onClick={() => setTopic(example)}
-              className="text-xs px-3 py-1.5 rounded-full bg-muted/20 text-muted-foreground/70 hover:text-foreground hover:bg-muted/40 border border-transparent hover:border-border/30 transition-all"
+              className="text-[11px] px-2.5 py-1 rounded-md bg-secondary/40 text-muted-foreground/60 hover:text-foreground hover:bg-secondary/70 border border-transparent hover:border-border/40 transition-all"
             >
               {example}
             </button>
@@ -217,69 +188,31 @@ export default function WelcomeScreen({ onStart, isGenerating, onApplyTemplate }
         </motion.div>
       </motion.div>
 
-      {/* Logo Carousel */}
+      {/* Features */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.65, duration: 0.8 }}
-        className="relative z-10 w-full mt-16"
-      >
-        <p className="text-center text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em] mb-3 font-medium">
-          Powered by Industry-Leading AI
-        </p>
-        <LogoCarousel />
-      </motion.div>
-
-      {/* Features Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.75, duration: 0.6 }}
-        className="relative z-10 max-w-4xl w-full px-6 mt-10 grid grid-cols-2 md:grid-cols-4 gap-3"
+        transition={{ delay: 0.6, duration: 0.5 }}
+        className="relative z-10 max-w-3xl w-full px-6 mt-20 mb-20 grid grid-cols-2 md:grid-cols-4 gap-2.5"
       >
         {features.map((f, i) => {
           const Icon = f.icon;
           return (
             <motion.div
               key={f.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 + i * 0.08 }}
-              className="glass-panel rounded-2xl p-5 text-center hover:border-primary/20 transition-all group relative overflow-hidden noise-overlay"
+              transition={{ delay: 0.65 + i * 0.06 }}
+              className="rounded-xl border border-border/30 bg-card/40 p-4 text-center group hover:border-primary/15 transition-all duration-300"
             >
-              <div className={cn("absolute inset-0 bg-gradient-to-b opacity-0 group-hover:opacity-100 transition-opacity duration-500", f.gradient)} />
-              <div className="relative z-10">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <Icon className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-sm font-bold">{f.title}</p>
-                <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">{f.desc}</p>
-                <p className="text-[10px] text-primary/60 font-semibold mt-2">{f.stat}</p>
+              <div className={cn("w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center mx-auto mb-2.5", f.gradient)}>
+                <Icon className="w-4 h-4 text-primary/80" />
               </div>
+              <p className="text-xs font-semibold text-foreground">{f.title}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{f.desc}</p>
             </motion.div>
           );
         })}
-      </motion.div>
-
-      {/* Trust Metrics */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.95, duration: 0.5 }}
-        className="relative z-10 max-w-3xl w-full px-6 mt-12 mb-20"
-      >
-        <div className="flex items-center justify-center gap-8 md:gap-14 py-6 border-t border-b border-border/10">
-          {trustMetrics.map((metric) => {
-            const Icon = metric.icon;
-            return (
-              <div key={metric.label} className="text-center group">
-                <Icon className="w-4 h-4 mx-auto mb-1.5 text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
-                <p className="text-lg md:text-xl font-bold text-gradient-primary">{metric.value}</p>
-                <p className="text-[10px] text-muted-foreground/50">{metric.label}</p>
-              </div>
-            );
-          })}
-        </div>
       </motion.div>
     </div>
   );
