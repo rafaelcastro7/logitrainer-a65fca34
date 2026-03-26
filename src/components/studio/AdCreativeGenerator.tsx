@@ -149,7 +149,9 @@ export default function AdCreativeGenerator() {
           </div>
         </div>
 
-        <Button onClick={handleGenerate} disabled={isGenerating} className="w-full glow-primary gap-2" size="lg">
+          <ModelSelector value={model} onChange={setModel} />
+
+          <Button onClick={handleGenerate} disabled={isGenerating} className="w-full glow-primary gap-2" size="lg">
           {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
           {isGenerating ? 'Generando variantes A/B...' : 'Generar 4 Variantes A/B'}
         </Button>
