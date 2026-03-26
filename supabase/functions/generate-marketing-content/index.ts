@@ -56,6 +56,18 @@ serve(async (req) => {
         userPrompt = `Product: ${product}\nAudience: ${audience}`;
         break;
       }
+      case "lead_magnet": {
+        const { magnetType, niche, audience, problem } = body;
+        systemPrompt = `You are an expert lead magnet strategist and copywriter. Create a complete ${magnetType} lead magnet. Return valid JSON: { "title": "string", "hook": "string (compelling headline)", "description": "string (2-3 sentences)", "sections": [{ "title": "string", "content": "string (detailed content)" }], "cta": "string (call to action)", "landingCopy": "string (landing page copy, 3-4 paragraphs)" }. Make it highly valuable, actionable, and irresistible. The lead magnet must solve a real problem and provide quick wins.`;
+        userPrompt = `Niche: ${niche}\nAudience: ${audience || 'general'}\nProblem: ${problem || 'not specified'}\nType: ${magnetType}`;
+        break;
+      }
+      case "webinar": {
+        const { webinarType, topic, product, price, audience: webinarAudience } = body;
+        systemPrompt = `You are a webinar strategy expert who has studied Russell Brunson's Perfect Webinar, Sam Ovens' masterclass format, and top converting webinars. Create a complete ${webinarType} script with slides. Return valid JSON: { "slides": [{ "title": "string", "talking_points": ["string"], "script": "string (what to say word for word, 2-3 paragraphs)", "notes": "string (presenter notes)" }], "summary": "string" }. For perfect_webinar: include The One Thing, 3 Secrets, Stack & Close. For challenge: 5 daily sessions building to offer. Create 8-15 slides. Make it conversion-focused.`;
+        userPrompt = `Topic: ${topic}\nProduct: ${product || 'not specified'}\nPrice: ${price || 'not specified'}\nAudience: ${webinarAudience || 'general'}`;
+        break;
+      }
       case "chat": {
         const { prompt, context } = body;
         systemPrompt = `You are an expert AI marketing assistant for LogiTrainer Studio, a digital marketing platform. You help users with: marketing strategies, content creation, copywriting, SEO, social media, email marketing, ad campaigns, sales funnels, and growth hacking. Be concise, actionable, and practical. Respond in the same language as the user's message.`;
