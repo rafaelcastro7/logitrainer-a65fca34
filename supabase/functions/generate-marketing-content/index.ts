@@ -68,6 +68,19 @@ serve(async (req) => {
         userPrompt = `Topic: ${topic}\nProduct: ${product || 'not specified'}\nPrice: ${price || 'not specified'}\nAudience: ${webinarAudience || 'general'}`;
         break;
       }
+      case "research": {
+        const { researchType, query: researchQuery, niche: researchNiche } = body;
+        const typePrompts: Record<string, string> = {
+          competitor: 'Analyze competitors in this space. Identify their strengths, weaknesses, pricing, positioning, and content strategies.',
+          trend: 'Identify current and emerging trends in this market. Include data points, growth indicators, and future predictions.',
+          audience: 'Create a detailed audience profile. Include demographics, psychographics, pain points, desires, buying behavior, and where they hang out online.',
+          keywords: 'Research relevant keywords and SEO opportunities. Include search volume estimates, competition levels, long-tail variations, and content gap opportunities.',
+          strategy: 'Create a comprehensive marketing strategy. Include positioning, channels, content plan, growth tactics, and 90-day action plan.',
+        };
+        systemPrompt = `You are a senior market research analyst and digital marketing strategist. ${typePrompts[researchType] || typePrompts.strategy} Return valid JSON: { "summary": "string (executive summary, 3-5 paragraphs)", "findings": [{ "title": "string", "detail": "string", "impact": "string (high/medium/low)" }], "recommendations": ["string (actionable recommendation)"], "actionPlan": "string (detailed step-by-step action plan)" }. Be specific, data-driven, and actionable. Write in Spanish.`;
+        userPrompt = `Research query: ${researchQuery}\nNiche: ${researchNiche || 'not specified'}`;
+        break;
+      }
       case "chat": {
         const { prompt, context } = body;
         systemPrompt = `You are an expert AI marketing assistant for LogiTrainer Studio, a digital marketing platform. You help users with: marketing strategies, content creation, copywriting, SEO, social media, email marketing, ad campaigns, sales funnels, and growth hacking. Be concise, actionable, and practical. Respond in the same language as the user's message.`;

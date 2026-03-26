@@ -35,6 +35,7 @@ import VSLScriptGenerator from '@/components/studio/VSLScriptGenerator';
 import OfferBuilder from '@/components/studio/OfferBuilder';
 import LeadMagnetGenerator from '@/components/studio/LeadMagnetGenerator';
 import WebinarSimulator from '@/components/studio/WebinarSimulator';
+import ResearchAIPanel from '@/components/studio/ResearchAIPanel';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
@@ -506,6 +507,7 @@ export default function Index() {
             {activeTab === 'offers' && <OfferBuilder />}
             {activeTab === 'lead-magnets' && <LeadMagnetGenerator />}
             {activeTab === 'webinar' && <WebinarSimulator />}
+            {activeTab === 'research' && <ResearchAIPanel />}
             {activeTab === 'ai-chat' && <AIChatAssistant />}
           </>
         )}

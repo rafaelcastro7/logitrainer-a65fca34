@@ -74,6 +74,7 @@ const ALL_TABS = [
   { id: 'email-sequences', icon: Mail, label: 'Emails', group: 'Marketing' },
   { id: 'lead-magnets', icon: Magnet, label: 'Lead Magnets', group: 'Marketing' },
   { id: 'webinar', icon: MonitorPlay, label: 'Webinar', group: 'Marketing' },
+  { id: 'research', icon: Globe, label: 'Research', group: 'System' },
   { id: 'ai-chat', icon: MessageCircle, label: 'AI Chat', group: 'System' },
   { id: 'analytics', icon: Activity, label: 'Analytics', group: 'System' },
   { id: 'referrals', icon: Gift, label: 'Referidos', group: 'Growth' },
@@ -103,7 +104,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     ebooks: 'Ebooks', landing: 'Landings', ads: 'Anuncios',
     presentations: 'Slides', 'content-calendar': 'Calendar', 'email-sequences': 'Emails',
     referrals: 'Referidos', 'vsl-scripts': 'VSL Scripts', funnels: 'Funnels', offers: 'Ofertas',
-    'lead-magnets': 'Lead Magnets', 'ai-chat': 'AI Chat', webinar: 'Webinar',
+    'lead-magnets': 'Lead Magnets', 'ai-chat': 'AI Chat', webinar: 'Webinar', research: 'Research',
   };
 
   const handleMobileTabChange = (tabId: string) => {
