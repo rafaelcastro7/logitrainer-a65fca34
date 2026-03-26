@@ -337,7 +337,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
                   <h3 className="text-sm font-bold text-foreground">Todos los módulos</h3>
                 </div>
                 <div className="overflow-auto p-4 space-y-4">
-                  {['Video', 'Marketing', 'System'].map(group => {
+                  {['Video', 'Marketing', 'Growth', 'System'].map(group => {
                     const groupTabs = ALL_TABS.filter(t => t.group === group);
                     if (group === 'System' && !isAdmin) {
                       // filter admin tab
