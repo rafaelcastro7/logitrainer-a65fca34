@@ -20,9 +20,34 @@ serve(async (req) => {
 
     switch (type) {
       case "ebook": {
-        const { topic, niche, template, chaptersCount, language } = body;
-        systemPrompt = `You are a professional ebook writer and digital marketing expert. Generate a complete ebook with ${chaptersCount} chapters. Return valid JSON with this structure: { "title": "string", "chapters": [{ "title": "string", "content": "string (2-3 paragraphs per chapter)" }] }. Write in ${language === 'es' ? 'Spanish' : language === 'pt' ? 'Portuguese' : 'English'}. Niche: ${niche}. Template style: ${template}. Make it actionable, professional, and valuable. Each chapter should be 200-400 words.`;
-        userPrompt = `Create an ebook about: ${topic}`;
+        const { topic, niche, template, chaptersCount, language, detailLevel } = body;
+        const langMap: Record<string, string> = { es: 'Spanish', en: 'English', pt: 'Portuguese' };
+        const lang = langMap[language] || 'Spanish';
+        
+        const templateInstructions: Record<string, string> = {
+          guia: 'Write as a practical step-by-step guide. Each chapter must include: numbered steps, real-world examples, pro tips in callout boxes, and a practical exercise at the end.',
+          curso: 'Structure as an educational course. Each chapter is a lesson with: learning objectives, detailed explanations, examples, case studies, key takeaways, and homework/exercises.',
+          checklist: 'Format as actionable checklists. Each chapter includes: numbered action items with detailed explanations, templates to copy-paste, and quick-win tips.',
+          storytelling: 'Write with compelling narrative. Each chapter tells a story that teaches a lesson, includes dialogue, real or realistic case studies, and actionable insights.',
+          tecnico: 'Write as a TECHNICAL GUIDE. Each chapter MUST include: detailed code examples in markdown code blocks (```language), step-by-step implementation instructions, configuration snippets, API usage examples, troubleshooting tips, and best practices. Code must be real, functional, and copy-pasteable.',
+          playbook: 'Write as a marketing PLAYBOOK. Include: proven frameworks with fill-in templates, real metrics and benchmarks, swipe files (email templates, ad copy, headlines), ROI calculators, and campaign blueprints.',
+          workbook: 'Write as an interactive WORKBOOK. Each chapter includes: reflection questions, fill-in-the-blank exercises, self-assessment quizzes, planning templates, and action plan worksheets.',
+        };
+
+        const detail = detailLevel === 'extensive' ? '800-1200' : detailLevel === 'detailed' ? '500-800' : '300-500';
+        
+        systemPrompt = `You are a world-class author and subject matter expert. Generate a comprehensive, professional ebook with ${chaptersCount} chapters. 
+
+CRITICAL RULES:
+- Each chapter MUST be ${detail} words minimum — NOT a summary, a FULL chapter
+- Use **markdown formatting**: ## for sections, **bold** for key terms, \`code\` for inline code, \`\`\`language for code blocks, > for callouts, - for bullet lists, 1. for numbered lists
+- Include REAL examples, not generic placeholder text
+- ${templateInstructions[template] || templateInstructions.guia}
+
+Return valid JSON: { "title": "string", "subtitle": "string", "chapters": [{ "title": "string", "content": "string (FULL chapter content in markdown, ${detail} words minimum)", "keyTakeaways": ["string (3-5 key takeaways)"], "exercises": ["string (1-3 practical exercises)"] }] }
+
+Write entirely in ${lang}. Niche: ${niche}. Be specific, data-driven, and immediately actionable. Never use filler content.`;
+        userPrompt = `Create a comprehensive ebook about: ${topic}`;
         break;
       }
       case "landing": {
@@ -33,13 +58,21 @@ serve(async (req) => {
       }
       case "ads": {
         const { product, audience, benefit, platform, framework, variantsCount } = body;
-        systemPrompt = `You are an expert performance marketer and copywriter. Generate ${variantsCount} ad copy variants. Platform: ${platform}. Framework: ${framework}. Return valid JSON: { "variants": [{ "headline": "string (max 40 chars)", "primary_text": "string (ad body, 2-3 sentences)", "cta": "string (button text)", "hook": "string (attention grabber)", "framework": "${framework}" }] }. Each variant must use a different angle/hook. Make them compelling and conversion-focused.`;
+        systemPrompt = `You are an elite performance marketer who has managed $50M+ in ad spend. Generate ${variantsCount} ad copy variants. Platform: ${platform}. Framework: ${framework}.
+
+Return valid JSON: { "variants": [{ "headline": "string (max 40 chars, attention-grabbing)", "primary_text": "string (ad body: hook + story/proof + CTA, 4-6 sentences minimum, use line breaks for readability)", "cta": "string (button text)", "hook": "string (scroll-stopping first line)", "framework": "${framework}", "targeting_notes": "string (suggested audience targeting)", "creative_notes": "string (suggested visual/creative direction)" }] }.
+
+Each variant must use a completely different psychological angle (fear, aspiration, social proof, curiosity, urgency, authority). Include specific numbers, results, and proof points. Make hooks that STOP the scroll.`;
         userPrompt = `Product: ${product}\nAudience: ${audience}\nMain benefit: ${benefit}`;
         break;
       }
       case "presentation": {
         const { topic, presentationType, slidesCount } = body;
-        systemPrompt = `You are a presentation design expert. Create ${slidesCount} slides for a ${presentationType} presentation. Return valid JSON: { "slides": [{ "title": "string", "content": "string (2-4 bullet points or short paragraphs)", "notes": "string (speaker notes)", "layout": "string (title|content|quote|stats|cta)" }] }. Make it engaging and professional. Include an intro, body sections, and a closing CTA slide.`;
+        systemPrompt = `You are a presentation strategist who has created decks for TED talks and Fortune 500 pitches. Create ${slidesCount} slides for a ${presentationType} presentation.
+
+Return valid JSON: { "slides": [{ "title": "string (compelling, not generic)", "content": "string (detailed content: 4-6 bullet points with supporting data, examples, or talking points. Use markdown formatting: **bold**, - bullets, numbers)", "notes": "string (detailed speaker notes: what to say, transitions, audience engagement cues)", "layout": "string (title|content|quote|stats|cta|comparison|timeline)" }] }.
+
+Include data points, specific examples, and compelling visuals descriptions. Each slide should flow naturally to the next with clear transitions.`;
         userPrompt = `Presentation topic: ${topic}`;
         break;
       }
@@ -52,7 +85,11 @@ serve(async (req) => {
       }
       case "email_sequence": {
         const { product, audience, sequenceType, emailsCount } = body;
-        systemPrompt = `You are an email marketing expert. Generate a ${sequenceType} email sequence with ${emailsCount} emails. Return valid JSON: { "emails": [{ "subject": "string (compelling subject line)", "preview": "string (preview text)", "body": "string (email body, 3-5 paragraphs)", "cta": "string (call to action)", "day": number (day to send), "notes": "string (strategy note)" }] }. Optimize subject lines for open rate. Each email should build on the previous one.`;
+        systemPrompt = `You are an email marketing expert who has generated $10M+ in revenue from email sequences. Generate a ${sequenceType} email sequence with ${emailsCount} emails.
+
+Return valid JSON: { "emails": [{ "subject": "string (A/B test worthy subject line, use curiosity gaps, numbers, or personalization)", "preview": "string (compelling preview text that complements subject)", "body": "string (complete email in markdown: hook, story/proof, value, CTA. 5-8 paragraphs minimum. Use **bold**, bullet points, P.S. lines. Include specific examples and data)", "cta": "string (specific call to action with urgency)", "day": number, "notes": "string (strategy: why this email, what psychological trigger, expected open/click rate)" }] }.
+
+Use proven frameworks: PAS (Problem-Agitate-Solve), AIDA, Storytelling. Each email must have a clear purpose in the sequence and build on the previous one. Include P.S. lines, curiosity loops, and open loops.`;
         userPrompt = `Product: ${product}\nAudience: ${audience}`;
         break;
       }
