@@ -5,15 +5,146 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Smart AI caller with automatic fallback ──
+async function callAI(
+  systemPrompt: string,
+  userPrompt: string,
+  requestedModel?: string
+): Promise<{ content: string; provider: string; model: string }> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+  const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+
+  // Build ordered fallback chain
+  const attempts: { provider: string; call: () => Promise<string> }[] = [];
+
+  // 1) Lovable AI — primary
+  if (LOVABLE_API_KEY) {
+    const primaryModel = requestedModel || "google/gemini-3-flash-preview";
+    attempts.push({
+      provider: `lovable:${primaryModel}`,
+      call: () => lovableCall(LOVABLE_API_KEY, primaryModel, systemPrompt, userPrompt),
+    });
+
+    // 1b) Lovable AI cheaper model as second try
+    const cheapModel = "google/gemini-2.5-flash-lite";
+    if (primaryModel !== cheapModel) {
+      attempts.push({
+        provider: `lovable:${cheapModel}`,
+        call: () => lovableCall(LOVABLE_API_KEY, cheapModel, systemPrompt, userPrompt),
+      });
+    }
+  }
+
+  // 2) Google AI Studio — fallback
+  if (GOOGLE_API_KEY) {
+    attempts.push({
+      provider: "google-ai-studio",
+      call: () => googleCall(GOOGLE_API_KEY, systemPrompt, userPrompt),
+    });
+  }
+
+  // 3) OpenAI — fallback
+  if (OPENAI_API_KEY) {
+    attempts.push({
+      provider: "openai",
+      call: () => openaiCall(OPENAI_API_KEY, systemPrompt, userPrompt),
+    });
+  }
+
+  if (attempts.length === 0) {
+    throw new Error("No AI provider configured. Set LOVABLE_API_KEY, GOOGLE_API_KEY, or OPENAI_API_KEY.");
+  }
+
+  let lastError: Error | null = null;
+
+  for (const attempt of attempts) {
+    try {
+      console.log(`Trying AI provider: ${attempt.provider}`);
+      const content = await attempt.call();
+      console.log(`Success with: ${attempt.provider}`);
+      return { content, provider: attempt.provider, model: attempt.provider };
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      console.warn(`Provider ${attempt.provider} failed: ${lastError.message}`);
+      // If it's a non-retryable error (bad request, etc.), still try next provider
+      continue;
+    }
+  }
+
+  throw lastError || new Error("All AI providers failed");
+}
+
+// ── Provider implementations ──
+
+async function lovableCall(apiKey: string, model: string, system: string, user: string): Promise<string> {
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+  });
+
+  if (!response.ok) {
+    const status = response.status;
+    const body = await response.text();
+    throw new Error(`lovable-${status}: ${body}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content?.trim() || "";
+}
+
+async function googleCall(apiKey: string, system: string, user: string): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+      generationConfig: { temperature: 0.8, maxOutputTokens: 8192 },
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`google-${response.status}: ${body}`);
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+}
+
+async function openaiCall(apiKey: string, system: string, user: string): Promise<string> {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`openai-${response.status}: ${body}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content?.trim() || "";
+}
+
+// ── Main handler ──
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const body = await req.json();
     const { type, model: requestedModel } = body;
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     let systemPrompt = "";
     let userPrompt = "";
@@ -95,7 +226,7 @@ Use proven frameworks: PAS (Problem-Agitate-Solve), AIDA, Storytelling. Each ema
       }
       case "lead_magnet": {
         const { magnetType, niche, audience, problem } = body;
-        systemPrompt = `You are an expert lead magnet strategist and copywriter. Create a complete ${magnetType} lead magnet. Return valid JSON: { "title": "string", "hook": "string (compelling headline)", "description": "string (2-3 sentences)", "sections": [{ "title": "string", "content": "string (detailed content)" }], "cta": "string (call to action)", "landingCopy": "string (landing page copy, 3-4 paragraphs)" }. Make it highly valuable, actionable, and irresistible. The lead magnet must solve a real problem and provide quick wins.`;
+        systemPrompt = `You are an expert lead magnet strategist and copywriter. Create a complete ${magnetType} lead magnet. Return valid JSON: { "title": "string", "hook": "string (compelling headline)", "description": "string (2-3 sentences)", "sections": [{ "title": "string", "content": "string (detailed content)" }], "cta": "string (call to action)", "landingCopy": "string (landing page copy, 3-4 paragraphs)" }. Make it highly valuable, actionable, and irresistible.`;
         userPrompt = `Niche: ${niche}\nAudience: ${audience || 'general'}\nProblem: ${problem || 'not specified'}\nType: ${magnetType}`;
         break;
       }
@@ -132,42 +263,14 @@ Use proven frameworks: PAS (Problem-Agitate-Solve), AIDA, Storytelling. Each ema
 
     const isChat = type === "chat";
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: requestedModel || "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+    // Use smart fallback caller
+    const result = await callAI(systemPrompt, userPrompt, requestedModel);
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "Credits exhausted. Please add funds." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI error: ${status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content?.trim() || "";
+    const content = result.content;
 
     // For chat, return plain text
     if (isChat) {
-      return new Response(JSON.stringify({ content }), {
+      return new Response(JSON.stringify({ content, _provider: result.provider }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -188,6 +291,8 @@ Use proven frameworks: PAS (Problem-Agitate-Solve), AIDA, Storytelling. Each ema
         throw new Error("Failed to parse AI response as JSON");
       }
     }
+
+    parsed._provider = result.provider;
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
