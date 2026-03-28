@@ -45,35 +45,26 @@ export default function AdCreativeGenerator() {
   const [platform, setPlatform] = useState('facebook');
   const [framework, setFramework] = useState('aida');
   const [variants, setVariants] = useState<AdVariant[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [model, setModel] = useState('google/gemini-3-flash-preview');
+  const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
 
   const handleGenerate = async () => {
     if (!product.trim()) { toast.error('Ingresa el producto/servicio'); return; }
-    setIsGenerating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-marketing-content', {
-        body: {
-          type: 'ads',
-          product,
-          audience,
-          benefit,
-          platform,
-          framework,
-          variantsCount: 4,
-          model,
-        },
-      });
-
-      if (error) throw error;
-      setVariants(data.variants || []);
-      toast.success(`🎯 ${data.variants.length} variantes de anuncio generadas`);
+      await generate(
+        { type: 'ads', product, audience, benefit, platform, framework, variantsCount: 4, model },
+        {
+          onComplete: (data) => {
+            setVariants(data.variants || []);
+            toast.success(`🎯 ${(data.variants || []).length} variantes de anuncio generadas`);
+          },
+          onError: (msg) => toast.error(msg),
+        }
+      );
     } catch (err) {
       console.error('Ad generation error:', err);
       toast.error(err instanceof Error ? err.message : 'Error generando anuncios');
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -153,9 +144,25 @@ export default function AdCreativeGenerator() {
 
           <ModelSelector value={model} onChange={setModel} />
 
+          {isGenerating && (
+            <div className="space-y-2">
+              <Progress value={progress} className="h-2" />
+              <p className="text-[10px] text-muted-foreground text-center">{Math.round(progress)}% · Generando variantes A/B en streaming...</p>
+              {streamText && (
+                <div className="max-h-24 overflow-y-auto rounded-lg bg-muted/30 p-2 text-[10px] text-muted-foreground font-mono whitespace-pre-wrap">
+                  {streamText.slice(-300)}
+                  <span className="inline-block w-1 h-2.5 bg-primary/60 animate-pulse rounded-sm ml-0.5" />
+                </div>
+              )}
+              <Button variant="destructive" size="sm" className="w-full gap-1.5" onClick={stop}>
+                <Square className="w-3 h-3" /> Detener
+              </Button>
+            </div>
+          )}
+
           <Button onClick={handleGenerate} disabled={isGenerating} className="w-full glow-primary gap-2" size="lg">
           {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-          {isGenerating ? 'Generando variantes A/B...' : 'Generar 4 Variantes A/B'}
+          {isGenerating ? 'Generando...' : 'Generar 4 Variantes A/B'}
         </Button>
       </div>
 
