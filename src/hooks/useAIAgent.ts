@@ -72,8 +72,11 @@ export function useAIAgent() {
       });
 
       if (!resp.ok) {
+        const status = resp.status;
         const err = await resp.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(err.error || `Error ${resp.status}`);
+        const friendlyMsg = getUserFriendlyError(err.error || '', status);
+        toast.error(friendlyMsg, { duration: 6000 });
+        throw new Error(friendlyMsg);
       }
 
       if (!resp.body) throw new Error('No response body');
@@ -131,13 +134,17 @@ export function useAIAgent() {
     } catch (e: any) {
       if (e.name === 'AbortError') return;
       console.error('AI Agent error:', e);
+      const friendlyMsg = getUserFriendlyError(e.message || 'Error connecting to AI agent');
+      toast.error(friendlyMsg, { duration: 6000 });
       setMessages(prev => [
         ...prev.filter(m => !m.isStreaming),
         {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: `⚠️ ${e.message || 'Error connecting to AI agent'}`,
+          content: friendlyMsg,
           timestamp: new Date(),
+        },
+      ]);
         },
       ]);
     } finally {
