@@ -68,6 +68,7 @@ export default function EbookGenerator() {
   const [model, setModel] = useState('google/gemini-2.5-pro');
   const [expandedChapter, setExpandedChapter] = useState<number | null>(0);
   const [editingChapter, setEditingChapter] = useState<number | null>(null);
+  const { generate, stop, isGenerating: isStreaming, streamText, progress } = useStreamingGeneration();
 
   const handleGenerate = async () => {
     if (!topic.trim()) { toast.error('Ingresa un tema para el ebook'); return; }
@@ -76,22 +77,28 @@ export default function EbookGenerator() {
     setChapters([]);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-marketing-content', {
-        body: { type: 'ebook', topic, niche, template, chaptersCount, language, model, detailLevel },
-      });
-      if (error) throw error;
-
-      setEbookTitle(data.title || topic);
-      setEbookSubtitle(data.subtitle || '');
-      setChapters(data.chapters.map((ch: any) => ({
-        title: ch.title,
-        content: ch.content,
-        keyTakeaways: ch.keyTakeaways || [],
-        exercises: ch.exercises || [],
-      })));
-      setExpandedChapter(0);
-      setCurrentStep('review');
-      toast.success(`📚 "${data.title}" generado — ${data.chapters.length} capítulos`);
+      const result = await generate(
+        { type: 'ebook', topic, niche, template, chaptersCount, language, model, detailLevel },
+        {
+          onComplete: (data) => {
+            setEbookTitle(data.title || topic);
+            setEbookSubtitle(data.subtitle || '');
+            setChapters((data.chapters || []).map((ch: any) => ({
+              title: ch.title,
+              content: ch.content,
+              keyTakeaways: ch.keyTakeaways || [],
+              exercises: ch.exercises || [],
+            })));
+            setExpandedChapter(0);
+            setCurrentStep('review');
+            toast.success(`📚 "${data.title}" generado — ${data.chapters?.length || 0} capítulos`);
+          },
+          onError: (msg) => {
+            toast.error(msg);
+            setCurrentStep('config');
+          },
+        }
+      );
     } catch (err) {
       console.error('Ebook generation error:', err);
       toast.error(err instanceof Error ? err.message : 'Error generando ebook');
@@ -274,9 +281,21 @@ export default function EbookGenerator() {
         <Card className="p-10 text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
           <div>
-            <p className="text-sm font-semibold">Escribiendo tu ebook...</p>
+            <p className="text-sm font-semibold">Escribiendo tu ebook en tiempo real...</p>
             <p className="text-xs text-muted-foreground mt-1">Generando {chaptersCount} capítulos con contenido {detailLevel === 'extensive' ? 'extenso' : detailLevel === 'detailed' ? 'detallado' : 'estándar'}</p>
-            <p className="text-[10px] text-muted-foreground mt-2">Esto puede tomar 30-60 segundos dependiendo del nivel de detalle</p>
+            <div className="mt-3 max-w-xs mx-auto">
+              <Progress value={progress} className="h-2" />
+              <p className="text-[10px] text-muted-foreground mt-1">{Math.round(progress)}% completado · {streamText.length.toLocaleString()} caracteres</p>
+            </div>
+            {streamText && (
+              <div className="mt-4 text-left max-h-40 overflow-y-auto rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground font-mono whitespace-pre-wrap">
+                {streamText.slice(-500)}
+                <span className="inline-block w-1.5 h-3 bg-primary/60 animate-pulse rounded-sm ml-0.5" />
+              </div>
+            )}
+            <Button variant="destructive" size="sm" className="mt-3 gap-1.5" onClick={stop}>
+              <Square className="w-3 h-3" /> Detener
+            </Button>
           </div>
         </Card>
       )}
