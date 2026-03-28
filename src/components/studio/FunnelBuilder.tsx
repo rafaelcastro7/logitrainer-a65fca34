@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowDown, Plus, Trash2, Wand2, Loader2, Copy, Download, DollarSign, Users, Target, Zap } from 'lucide-react';
+import { ArrowDown, Plus, Trash2, Wand2, Loader2, Copy, Download, DollarSign, Users, Target, Zap, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
 
 interface FunnelStep {
   id: string;
@@ -20,14 +21,13 @@ interface FunnelStep {
   price: string;
   conversionGoal: string;
   copyHook: string;
+  retargetingCopy?: string;
+  expectedConversion?: string;
 }
 
 const FUNNEL_TEMPLATES = [
   {
-    id: 'value_ladder',
-    name: 'Value Ladder (Brunson)',
-    desc: 'Lead Magnet → Tripwire → Core → Backend',
-    icon: '📈',
+    id: 'value_ladder', name: 'Value Ladder (Brunson)', desc: 'Lead Magnet → Tripwire → Core → Backend', icon: '📈',
     steps: [
       { type: 'lead_magnet' as const, name: 'Lead Magnet', price: 'Gratis', conversionGoal: 'Captura email' },
       { type: 'tripwire' as const, name: 'Oferta Tripwire', price: '$7-$47', conversionGoal: 'Primera compra' },
@@ -36,10 +36,7 @@ const FUNNEL_TEMPLATES = [
     ],
   },
   {
-    id: 'webinar',
-    name: 'Webinar Funnel (Brunson)',
-    desc: 'Registro → Webinar → Oferta → Upsell',
-    icon: '🎓',
+    id: 'webinar', name: 'Webinar Funnel (Brunson)', desc: 'Registro → Webinar → Oferta → Upsell', icon: '🎓',
     steps: [
       { type: 'lead_magnet' as const, name: 'Página de Registro', price: 'Gratis', conversionGoal: 'Registro webinar' },
       { type: 'core_offer' as const, name: 'Webinar + Oferta', price: '$497-$1,997', conversionGoal: 'Venta principal' },
@@ -47,10 +44,7 @@ const FUNNEL_TEMPLATES = [
     ],
   },
   {
-    id: 'challenge',
-    name: 'Challenge Funnel',
-    desc: 'Reto gratuito → Oferta → Upsell',
-    icon: '🏆',
+    id: 'challenge', name: 'Challenge Funnel', desc: 'Reto gratuito → Oferta → Upsell', icon: '🏆',
     steps: [
       { type: 'lead_magnet' as const, name: 'Challenge 5 días', price: 'Gratis', conversionGoal: 'Participación' },
       { type: 'tripwire' as const, name: 'Kit Premium', price: '$27', conversionGoal: 'Upgrade' },
@@ -58,10 +52,7 @@ const FUNNEL_TEMPLATES = [
     ],
   },
   {
-    id: 'cash_machine',
-    name: '4-Day Cash Machine (Kern)',
-    desc: 'Urgencia + Escasez en 4 días',
-    icon: '💰',
+    id: 'cash_machine', name: '4-Day Cash Machine (Kern)', desc: 'Urgencia + Escasez en 4 días', icon: '💰',
     steps: [
       { type: 'lead_magnet' as const, name: 'Día 1: Historia + Valor', price: 'Email', conversionGoal: 'Engagement' },
       { type: 'tripwire' as const, name: 'Día 2: Prueba Social', price: 'Email', conversionGoal: 'Anticipación' },
@@ -91,14 +82,14 @@ export default function FunnelBuilder() {
   const [niche, setNiche] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [steps, setSteps] = useState<FunnelStep[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [model, setModel] = useState('google/gemini-3-flash-preview');
+  const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
 
   const applyTemplate = (templateId: string) => {
     const tpl = FUNNEL_TEMPLATES.find(t => t.id === templateId);
     if (!tpl) return;
     setSelectedTemplate(templateId);
-    setSteps(tpl.steps.map((s, i) => ({
+    setSteps(tpl.steps.map((s) => ({
       id: crypto.randomUUID(),
       type: s.type,
       name: s.name,
@@ -112,49 +103,29 @@ export default function FunnelBuilder() {
   const handleGenerateCopy = async () => {
     if (!niche.trim()) { toast.error('Ingresa tu nicho primero'); return; }
     if (steps.length === 0) { toast.error('Selecciona una plantilla de funnel'); return; }
-    setIsGenerating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-marketing-content', {
-        body: {
-          type: 'chat',
-          model,
-          prompt: `Genera copy de marketing para cada paso de mi funnel. Nicho: "${niche}". 
-Pasos del funnel:
-${steps.map((s, i) => `${i + 1}. ${s.name} (${s.type}) - Precio: ${s.price} - Meta: ${s.conversionGoal}`).join('\n')}
-
-Para CADA paso genera:
-- Hook (una frase gancho)
-- Descripción de la oferta (2-3 líneas)
-- CTA sugerido
-
-Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "cta": "..." }] }`,
-        },
-      });
-
-      if (error) throw error;
-
-      try {
-        const content = data?.content || '';
-        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/\{[\s\S]*\}/);
-        const parsed = JSON.parse(jsonMatch?.[1] || jsonMatch?.[0] || content);
-        
-        if (parsed.steps) {
-          setSteps(prev => prev.map((step, i) => ({
-            ...step,
-            copyHook: parsed.steps[i]?.hook || step.copyHook,
-            description: parsed.steps[i]?.description || step.description,
-            conversionGoal: parsed.steps[i]?.cta || step.conversionGoal,
-          })));
-          toast.success('✨ Copy generado para todos los pasos del funnel');
+      await generate(
+        { type: 'funnel', niche, steps: steps.map(s => ({ name: s.name, type: s.type, price: s.price, conversionGoal: s.conversionGoal })), model },
+        {
+          onComplete: (data) => {
+            if (data.steps) {
+              setSteps(prev => prev.map((step, i) => ({
+                ...step,
+                copyHook: data.steps[i]?.hook || step.copyHook,
+                description: data.steps[i]?.description || step.description,
+                conversionGoal: data.steps[i]?.cta || step.conversionGoal,
+                retargetingCopy: data.steps[i]?.retargetingCopy || '',
+                expectedConversion: data.steps[i]?.expectedConversion || '',
+              })));
+              toast.success('✨ Copy profesional generado para todos los pasos');
+            }
+          },
+          onError: (msg) => toast.error(msg),
         }
-      } catch {
-        toast.info('Copy generado como texto libre');
-      }
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error generando copy');
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -162,25 +133,18 @@ Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "ct
     setSteps(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
   };
 
-  const removeStep = (id: string) => {
-    setSteps(prev => prev.filter(s => s.id !== id));
-  };
+  const removeStep = (id: string) => setSteps(prev => prev.filter(s => s.id !== id));
 
   const addStep = () => {
     setSteps(prev => [...prev, {
-      id: crypto.randomUUID(),
-      type: 'custom',
-      name: 'Nuevo Paso',
-      description: '',
-      price: '',
-      conversionGoal: '',
-      copyHook: '',
+      id: crypto.randomUUID(), type: 'custom', name: 'Nuevo Paso',
+      description: '', price: '', conversionGoal: '', copyHook: '',
     }]);
   };
 
   const exportFunnel = () => {
-    const md = `# Funnel: ${niche}\n\n${steps.map((s, i) => 
-      `## Paso ${i + 1}: ${s.name}\n- **Tipo:** ${s.type}\n- **Precio:** ${s.price}\n- **Hook:** ${s.copyHook}\n- **Descripción:** ${s.description}\n- **Meta:** ${s.conversionGoal}`
+    const md = `# Funnel: ${niche}\n\n${steps.map((s, i) =>
+      `## Paso ${i + 1}: ${s.name}\n- **Tipo:** ${s.type}\n- **Precio:** ${s.price}\n- **Hook:** ${s.copyHook}\n- **Descripción:** ${s.description}\n- **CTA:** ${s.conversionGoal}${s.expectedConversion ? `\n- **Conversión esperada:** ${s.expectedConversion}` : ''}${s.retargetingCopy ? `\n- **Retargeting:** ${s.retargetingCopy}` : ''}`
     ).join('\n\n---\n\n')}`;
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -202,7 +166,6 @@ Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "ct
         </div>
       </div>
 
-      {/* Niche + Model */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Tu Nicho / Producto</label>
@@ -211,17 +174,12 @@ Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "ct
         <ModelSelector value={model} onChange={setModel} />
       </div>
 
-      {/* Templates */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Plantilla de Funnel</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {FUNNEL_TEMPLATES.map(t => (
-            <Card
-              key={t.id}
-              className={cn(
-                "p-3 cursor-pointer transition-all border",
-                selectedTemplate === t.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border/30 hover:border-border/60"
-              )}
+            <Card key={t.id}
+              className={cn("p-3 cursor-pointer transition-all border", selectedTemplate === t.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border/30 hover:border-border/60")}
               onClick={() => applyTemplate(t.id)}
             >
               <span className="text-xl">{t.icon}</span>
@@ -232,18 +190,13 @@ Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "ct
         </div>
       </div>
 
-      {/* Visual Funnel */}
       {steps.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h3 className="text-sm font-semibold">Tu Funnel ({steps.length} pasos)</h3>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 text-xs">
-                <Plus className="w-3 h-3" /> Paso
-              </Button>
-              <Button variant="outline" size="sm" onClick={exportFunnel} className="gap-1.5 text-xs">
-                <Download className="w-3 h-3" /> Exportar
-              </Button>
+              <Button variant="outline" size="sm" onClick={addStep} className="gap-1.5 text-xs"><Plus className="w-3 h-3" /> Paso</Button>
+              <Button variant="outline" size="sm" onClick={exportFunnel} className="gap-1.5 text-xs"><Download className="w-3 h-3" /> Exportar</Button>
               <Button size="sm" onClick={handleGenerateCopy} disabled={isGenerating} className="gap-1.5 text-xs glow-primary">
                 {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                 Generar Copy IA
@@ -251,14 +204,25 @@ Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "ct
             </div>
           </div>
 
+          {isGenerating && (
+            <div className="space-y-2">
+              <Progress value={progress} className="h-2" />
+              <p className="text-[10px] text-muted-foreground text-center">{Math.round(progress)}% · Generando copy para funnel...</p>
+              {streamText && (
+                <div className="max-h-24 overflow-y-auto rounded-lg bg-muted/30 p-2 text-[10px] text-muted-foreground font-mono whitespace-pre-wrap">
+                  {streamText.slice(-300)}
+                  <span className="inline-block w-1 h-2.5 bg-primary/60 animate-pulse rounded-sm ml-0.5" />
+                </div>
+              )}
+              <Button variant="destructive" size="sm" className="w-full gap-1.5" onClick={stop}>
+                <Square className="w-3 h-3" /> Detener
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-1">
             {steps.map((step, i) => (
-              <motion.div
-                key={step.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-              >
+              <motion.div key={step.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <Card className={cn("p-4 border bg-gradient-to-r transition-all", STEP_COLORS[step.type] || STEP_COLORS.custom)}>
                   <div className="flex items-start gap-3">
                     <div className="flex flex-col items-center gap-1 pt-1">
@@ -270,12 +234,12 @@ Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "ct
 
                     <div className="flex-1 space-y-2 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Input
-                          value={step.name}
-                          onChange={(e) => updateStep(step.id, { name: e.target.value })}
-                          className="h-7 text-sm font-semibold bg-background/60 border-border/30 max-w-[200px]"
-                        />
+                        <Input value={step.name} onChange={(e) => updateStep(step.id, { name: e.target.value })}
+                          className="h-7 text-sm font-semibold bg-background/60 border-border/30 max-w-[200px]" />
                         <Badge variant="secondary" className="text-[10px]">{step.price}</Badge>
+                        {step.expectedConversion && (
+                          <Badge className="text-[9px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">{step.expectedConversion}</Badge>
+                        )}
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive ml-auto" onClick={() => removeStep(step.id)}>
                           <Trash2 className="w-3 h-3" />
                         </Button>
@@ -285,26 +249,27 @@ Responde en formato JSON: { "steps": [{ "hook": "...", "description": "...", "ct
                         <p className="text-xs font-medium text-foreground">🪝 {step.copyHook}</p>
                       )}
 
-                      <Input
-                        value={step.description}
-                        onChange={(e) => updateStep(step.id, { description: e.target.value })}
-                        placeholder="Descripción de la oferta..."
-                        className="h-7 text-xs bg-background/40 border-border/20"
-                      />
+                      {step.description ? (
+                        <div className="prose prose-sm dark:prose-invert max-w-none text-xs prose-p:text-muted-foreground">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{step.description}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <Input value={step.description} onChange={(e) => updateStep(step.id, { description: e.target.value })}
+                          placeholder="Descripción de la oferta..." className="h-7 text-xs bg-background/40 border-border/20" />
+                      )}
+
+                      {step.retargetingCopy && (
+                        <div className="p-2 rounded bg-background/40 border border-border/20">
+                          <p className="text-[9px] text-muted-foreground uppercase mb-0.5">🔄 Retargeting</p>
+                          <p className="text-[11px] text-muted-foreground">{step.retargetingCopy}</p>
+                        </div>
+                      )}
 
                       <div className="flex gap-2">
-                        <Input
-                          value={step.price}
-                          onChange={(e) => updateStep(step.id, { price: e.target.value })}
-                          placeholder="Precio"
-                          className="h-7 text-xs bg-background/40 border-border/20 w-28"
-                        />
-                        <Input
-                          value={step.conversionGoal}
-                          onChange={(e) => updateStep(step.id, { conversionGoal: e.target.value })}
-                          placeholder="Meta de conversión / CTA"
-                          className="h-7 text-xs bg-background/40 border-border/20 flex-1"
-                        />
+                        <Input value={step.price} onChange={(e) => updateStep(step.id, { price: e.target.value })}
+                          placeholder="Precio" className="h-7 text-xs bg-background/40 border-border/20 w-28" />
+                        <Input value={step.conversionGoal} onChange={(e) => updateStep(step.id, { conversionGoal: e.target.value })}
+                          placeholder="Meta de conversión / CTA" className="h-7 text-xs bg-background/40 border-border/20 flex-1" />
                       </div>
                     </div>
                   </div>
