@@ -220,6 +220,8 @@ function buildSystemPromptFromType(type: string, body: any): string {
     calendar: buildCalendarSystemPrompt(body),
     lead_magnet: buildLeadMagnetSystemPrompt(body),
     research: buildResearchSystemPrompt(body),
+    vsl_script: buildVSLSystemPrompt(body),
+    funnel: buildFunnelSystemPrompt(body),
   };
   return prompts[type] || 'You are an expert marketing content generator. Return valid JSON.';
 }
@@ -233,10 +235,16 @@ function buildPromptFromBody(body: any): string {
   if (body.targetAudience) parts.push(`Audience: ${body.targetAudience}`);
   if (body.niche) parts.push(`Niche: ${body.niche}`);
   if (body.benefit) parts.push(`Main benefit: ${body.benefit}`);
+  if (body.mainBenefit) parts.push(`Main benefit: ${body.mainBenefit}`);
   if (body.productDesc) parts.push(`Description: ${body.productDesc}`);
   if (body.platform) parts.push(`Platform: ${body.platform}`);
   if (body.query) parts.push(`Query: ${body.query}`);
   if (body.problem) parts.push(`Problem: ${body.problem}`);
+  if (body.price) parts.push(`Price: ${body.price}`);
+  if (body.magnetType) parts.push(`Lead Magnet Type: ${body.magnetType}`);
+  if (body.scriptType) parts.push(`Script Type: ${body.scriptType}`);
+  if (body.sequenceType) parts.push(`Sequence Type: ${body.sequenceType}`);
+  if (body.presentationType) parts.push(`Presentation Type: ${body.presentationType}`);
   return parts.join('\n') || 'Generate professional marketing content';
 }
 
