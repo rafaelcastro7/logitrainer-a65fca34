@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 
 interface StreamingGenerationOptions {
   onStreamChunk?: (fullText: string) => void;
@@ -6,7 +7,36 @@ interface StreamingGenerationOptions {
   onError?: (error: string) => void;
 }
 
-const EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-marketing-content`;
+// User-friendly error messages by code
+const ERROR_MESSAGES: Record<string, string> = {
+  NO_PROVIDER: '⚙️ El servicio de IA no está configurado. Contacta al administrador.',
+  ALL_PROVIDERS_FAILED: '🔄 Todos los servicios de IA están temporalmente ocupados. Intenta en unos segundos.',
+  PROVIDER_ERROR_400: '❌ Solicitud inválida. Intenta reformular tu petición.',
+  PROVIDER_ERROR_401: '🔐 Error de autenticación con el servicio de IA.',
+  INTERNAL_ERROR: '⚠️ Error inesperado. Por favor intenta de nuevo.',
+};
+
+function getUserFriendlyError(error: string, status?: number): string {
+  // Check for known error codes
+  for (const [code, msg] of Object.entries(ERROR_MESSAGES)) {
+    if (error.includes(code)) return msg;
+  }
+  // Check by HTTP status
+  if (status === 402) return '💳 Créditos de IA agotados. El sistema está intentando proveedores alternativos...';
+  if (status === 429) return '⏳ Demasiadas solicitudes. Espera unos segundos e intenta de nuevo.';
+  if (status === 503) return '🔧 Servicios de IA temporalmente no disponibles. Intenta en unos minutos.';
+  // Fallback
+  if (error.includes('Credits exhausted') || error.includes('add funds')) {
+    return '💳 Créditos agotados. Por favor agrega fondos en Settings > Workspace > Usage.';
+  }
+  if (error.includes('Rate limit') || error.includes('rate limit')) {
+    return '⏳ Límite de velocidad alcanzado. Intenta en unos segundos.';
+  }
+  if (error.includes('fetch') || error.includes('network') || error.includes('Failed to fetch')) {
+    return '🌐 Error de conexión. Verifica tu internet e intenta de nuevo.';
+  }
+  return `⚠️ ${error}`;
+}
 
 export function useStreamingGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -50,8 +80,11 @@ export function useStreamingGeneration() {
       });
 
       if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: 'Generation failed' }));
-        throw new Error(err.error || `Error ${resp.status}`);
+        const status = resp.status;
+        const err = await resp.json().catch(() => ({ error: `Server error (${status})` }));
+        const friendlyMsg = getUserFriendlyError(err.error || '', status);
+        toast.error(friendlyMsg, { duration: 6000 });
+        throw new Error(friendlyMsg);
       }
 
       if (!resp.body) throw new Error('No response body');
@@ -128,8 +161,11 @@ export function useStreamingGeneration() {
         return { rawContent: fullContent };
       }
     } catch (e: any) {
-      if (e.name === 'AbortError') return null;
-      const msg = e.message || 'Generation failed';
+      if (e.name === 'AbortError') {
+        toast.info('⏹️ Generación detenida');
+        return null;
+      }
+      const msg = getUserFriendlyError(e.message || 'Generation failed');
       options?.onError?.(msg);
       throw e;
     } finally {

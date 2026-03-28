@@ -1,4 +1,21 @@
 import { useState, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
+
+function getUserFriendlyError(error: string, status?: number): string {
+  if (status === 402 || error.includes('Credits exhausted') || error.includes('add funds')) {
+    return '💳 Créditos de IA agotados. El sistema usa proveedores alternativos automáticamente. Si persiste, agrega fondos.';
+  }
+  if (status === 429 || error.includes('Rate limit')) {
+    return '⏳ Demasiadas solicitudes. Espera unos segundos e intenta de nuevo.';
+  }
+  if (status === 503 || error.includes('unavailable')) {
+    return '🔧 Servicios de IA temporalmente no disponibles. Intenta en unos minutos.';
+  }
+  if (error.includes('fetch') || error.includes('network') || error.includes('Failed to fetch')) {
+    return '🌐 Error de conexión. Verifica tu internet e intenta de nuevo.';
+  }
+  return `⚠️ ${error}`;
+}
 
 export interface AgentMessage {
   id: string;
@@ -72,8 +89,11 @@ export function useAIAgent() {
       });
 
       if (!resp.ok) {
+        const status = resp.status;
         const err = await resp.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(err.error || `Error ${resp.status}`);
+        const friendlyMsg = getUserFriendlyError(err.error || '', status);
+        toast.error(friendlyMsg, { duration: 6000 });
+        throw new Error(friendlyMsg);
       }
 
       if (!resp.body) throw new Error('No response body');
@@ -131,12 +151,14 @@ export function useAIAgent() {
     } catch (e: any) {
       if (e.name === 'AbortError') return;
       console.error('AI Agent error:', e);
+      const friendlyMsg = getUserFriendlyError(e.message || 'Error connecting to AI agent');
+      toast.error(friendlyMsg, { duration: 6000 });
       setMessages(prev => [
         ...prev.filter(m => !m.isStreaming),
         {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: `⚠️ ${e.message || 'Error connecting to AI agent'}`,
+          content: friendlyMsg,
           timestamp: new Date(),
         },
       ]);
