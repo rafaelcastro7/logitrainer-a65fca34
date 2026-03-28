@@ -145,8 +145,6 @@ export function useAIAgent() {
           timestamp: new Date(),
         },
       ]);
-        },
-      ]);
     } finally {
       setIsLoading(false);
       abortRef.current = null;
