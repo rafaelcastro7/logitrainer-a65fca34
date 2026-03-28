@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Mail, Sparkles, Copy, Download, Loader2, Wand2, ChevronRight, Eye } from 'lucide-react';
+import { Mail, Sparkles, Copy, Download, Loader2, Wand2, ChevronRight, Eye, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
 
 const SEQUENCE_TYPES = [
   { id: 'welcome', name: 'Welcome Series', desc: '5 emails de bienvenida y nurturing', icon: '👋', emails: 5 },
@@ -35,34 +37,28 @@ export default function EmailSequenceBuilder() {
   const [sequenceType, setSequenceType] = useState('welcome');
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [selectedEmail, setSelectedEmail] = useState(0);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [previewHTML, setPreviewHTML] = useState(false);
+  const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
 
   const handleGenerate = async () => {
     if (!product.trim()) { toast.error('Ingresa tu producto/servicio'); return; }
-    setIsGenerating(true);
 
     try {
       const seqConfig = SEQUENCE_TYPES.find(s => s.id === sequenceType);
-      const { data, error } = await supabase.functions.invoke('generate-marketing-content', {
-        body: {
-          type: 'email_sequence',
-          product,
-          audience,
-          sequenceType,
-          emailsCount: seqConfig?.emails || 5,
-        },
-      });
-
-      if (error) throw error;
-      setEmails(data.emails || []);
-      setSelectedEmail(0);
-      toast.success(`📧 Secuencia de ${data.emails.length} emails generada`);
+      await generate(
+        { type: 'email_sequence', product, audience, sequenceType, emailsCount: seqConfig?.emails || 5 },
+        {
+          onComplete: (data) => {
+            setEmails(data.emails || []);
+            setSelectedEmail(0);
+            toast.success(`📧 Secuencia de ${(data.emails || []).length} emails generada`);
+          },
+          onError: (msg) => toast.error(msg),
+        }
+      );
     } catch (err) {
       console.error('Email sequence error:', err);
       toast.error(err instanceof Error ? err.message : 'Error generando secuencia');
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -132,9 +128,25 @@ export default function EmailSequenceBuilder() {
             </div>
           </div>
 
+          {isGenerating && (
+            <div className="space-y-2">
+              <Progress value={progress} className="h-2" />
+              <p className="text-[10px] text-muted-foreground text-center">{Math.round(progress)}% · Generando secuencia de emails en streaming...</p>
+              {streamText && (
+                <div className="max-h-24 overflow-y-auto rounded-lg bg-muted/30 p-2 text-[10px] text-muted-foreground font-mono whitespace-pre-wrap">
+                  {streamText.slice(-300)}
+                  <span className="inline-block w-1 h-2.5 bg-primary/60 animate-pulse rounded-sm ml-0.5" />
+                </div>
+              )}
+              <Button variant="destructive" size="sm" className="w-full gap-1.5" onClick={stop}>
+                <Square className="w-3 h-3" /> Detener
+              </Button>
+            </div>
+          )}
+
           <Button onClick={handleGenerate} disabled={isGenerating} className="w-full glow-primary gap-2" size="lg">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-            {isGenerating ? 'Generando secuencia...' : 'Generar Secuencia de Emails'}
+            {isGenerating ? 'Generando...' : 'Generar Secuencia de Emails'}
           </Button>
         </div>
       ) : (
