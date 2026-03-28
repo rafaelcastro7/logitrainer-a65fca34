@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Sparkles, Download, FileText, Loader2, ChevronRight, Wand2, Copy, Eye, EyeOff, Code, Lightbulb, CheckCircle2, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, Sparkles, Download, FileText, Loader2, ChevronRight, Wand2, Copy, Eye, EyeOff, Code, Lightbulb, CheckCircle2, ChevronDown, ChevronUp, Image as ImageIcon, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,12 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
 
 const NICHES = [
   { id: 'fitness', label: '💪 Fitness & Salud' },

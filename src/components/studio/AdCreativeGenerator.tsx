@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Megaphone, Sparkles, Copy, Download, Loader2, Wand2, RefreshCw } from 'lucide-react';
+import { Megaphone, Sparkles, Copy, Download, Loader2, Wand2, RefreshCw, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
+import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
 
 const PLATFORMS = [
   { id: 'facebook', label: 'Facebook Ads', icon: '📘', sizes: '1200x628' },

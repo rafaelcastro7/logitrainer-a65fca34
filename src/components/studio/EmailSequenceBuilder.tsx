@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Mail, Sparkles, Copy, Download, Loader2, Wand2, ChevronRight, Eye } from 'lucide-react';
+import { Mail, Sparkles, Copy, Download, Loader2, Wand2, ChevronRight, Eye, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
 
 const SEQUENCE_TYPES = [
   { id: 'welcome', name: 'Welcome Series', desc: '5 emails de bienvenida y nurturing', icon: '👋', emails: 5 },
