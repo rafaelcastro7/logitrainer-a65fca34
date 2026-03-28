@@ -198,14 +198,16 @@ function extractJSON(text: string): any {
 
 function getEstimatedSize(type: string, body: any): number {
   switch (type) {
-    case 'ebook': return (body.chaptersCount || 8) * 3000;
-    case 'ads': return (body.variantsCount || 4) * 800;
-    case 'email_sequence': return (body.emailsCount || 5) * 1500;
-    case 'presentation': return (body.slidesCount || 10) * 600;
-    case 'landing': return 8000;
-    case 'calendar': return (body.weeks || 2) * 7 * 300;
-    case 'lead_magnet': return 4000;
-    case 'research': return 5000;
+    case 'ebook': return (body.chaptersCount || 8) * 5000;
+    case 'ads': return (body.variantsCount || 4) * 1500;
+    case 'email_sequence': return (body.emailsCount || 5) * 2500;
+    case 'presentation': return (body.slidesCount || 10) * 1200;
+    case 'landing': return 15000;
+    case 'calendar': return (body.weeks || 2) * 7 * 800;
+    case 'lead_magnet': return 8000;
+    case 'research': return 10000;
+    case 'vsl_script': return 8000;
+    case 'funnel': return 5000;
     default: return 5000;
   }
 }

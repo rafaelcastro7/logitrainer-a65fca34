@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Video, Wand2, Loader2, Copy, Download, ChevronRight } from 'lucide-react';
+import { Video, Wand2, Loader2, Copy, Download, ChevronRight, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
 
 const SCRIPT_TYPES = [
-  { id: 'vsl', name: 'VSL (Video Sales Letter)', desc: 'Script de venta en video 5-15 min', icon: '🎬', duration: '5-15 min' },
-  { id: 'webinar', name: 'Perfect Webinar (Brunson)', desc: 'Script de 60 min: 3 secretos + oferta', icon: '🎓', duration: '60-90 min' },
+  { id: 'vsl', name: 'VSL (Video Sales Letter)', desc: 'Script de venta en video 10-15 min', icon: '🎬', duration: '10-15 min' },
+  { id: 'webinar', name: 'Perfect Webinar (Brunson)', desc: 'Script de 60-90 min: 3 secretos + oferta', icon: '🎓', duration: '60-90 min' },
   { id: 'mini_vsl', name: 'Mini VSL', desc: 'Video corto de venta 2-5 min', icon: '⚡', duration: '2-5 min' },
   { id: 'story_sell', name: 'Epiphany Bridge (Brunson)', desc: 'Historia personal → revelación → oferta', icon: '🌉', duration: '10-20 min' },
 ];
@@ -32,82 +34,31 @@ export default function VSLScriptGenerator() {
   const [price, setPrice] = useState('');
   const [scriptType, setScriptType] = useState('vsl');
   const [sections, setSections] = useState<ScriptSection[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [model, setModel] = useState('google/gemini-2.5-pro');
+  const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
 
   const handleGenerate = async () => {
     if (!product.trim()) { toast.error('Ingresa tu producto/servicio'); return; }
-    setIsGenerating(true);
-
-    const typeConfig = SCRIPT_TYPES.find(t => t.id === scriptType);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-marketing-content', {
-        body: {
-          type: 'chat',
-          model,
-          prompt: `Eres un experto en copywriting de video ventas al nivel de Russell Brunson y Frank Kern.
-
-Genera un script completo de tipo "${typeConfig?.name}" para:
-- Producto: ${product}
-- Audiencia: ${audience}
-- Beneficio principal: ${mainBenefit}
-- Precio: ${price}
-
-${scriptType === 'webinar' ? `
-Usa la estructura "Perfect Webinar Script" de Russell Brunson:
-1. INTRO (15 min): Hook poderoso, tu historia, la gran promesa
-2. SECRETO 1 (15 min): Rompe creencia sobre el VEHÍCULO
-3. SECRETO 2 (15 min): Rompe creencia sobre CAPACIDAD INTERNA
-4. SECRETO 3 (15 min): Rompe creencia sobre OBSTÁCULOS EXTERNOS
-5. THE STACK (10 min): Apila valor, revela precio, bonus, garantía
-6. CIERRE (5 min): Urgencia, escasez, CTA final
-` : scriptType === 'story_sell' ? `
-Usa el "Epiphany Bridge Script" de Russell Brunson:
-1. BACKSTORY: Tu situación antes (misma que la audiencia)
-2. EL MURO: Lo que intentaste y no funcionó
-3. LA EPIFANÍA: El momento de revelación
-4. EL PLAN: Los pasos que seguiste
-5. LA TRANSFORMACIÓN: Resultados obtenidos
-6. LA OFERTA: Cómo pueden lograr lo mismo
-` : `
-Usa esta estructura para VSL:
-1. HOOK (30s): Pregunta provocadora o dato impactante
-2. PROBLEMA (2 min): Agita el dolor de la audiencia
-3. HISTORIA (3 min): Tu historia personal o de un cliente
-4. SOLUCIÓN (3 min): Presenta tu producto como la solución
-5. PRUEBA SOCIAL (2 min): Testimonios y resultados
-6. OFERTA (2 min): Presenta la oferta completa con bonos
-7. CIERRE (1 min): Urgencia, garantía, CTA
-`}
-
-Responde en JSON: { "sections": [{ "name": "string", "content": "string (el script palabra por palabra)", "duration": "string", "type": "hook|story|content|offer|close" }] }`,
-        },
-      });
-
-      if (error) throw error;
-
-      const content = data?.content || '';
-      let parsed;
-      try {
-        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content.match(/\{[\s\S]*\}/)?.[0]];
-        parsed = JSON.parse(jsonMatch[1] || content);
-      } catch {
-        const objMatch = content.match(/\{[\s\S]*\}/);
-        parsed = objMatch ? JSON.parse(objMatch[0]) : null;
-      }
-
-      if (parsed?.sections) {
-        setSections(parsed.sections);
-        toast.success(`🎬 Script ${typeConfig?.name} generado con ${parsed.sections.length} secciones`);
-      } else {
-        setSections([{ name: 'Script Completo', content, duration: typeConfig?.duration || '', type: 'content' }]);
-        toast.success('📝 Script generado');
-      }
+      await generate(
+        { type: 'vsl_script', scriptType, product, audience, mainBenefit, price, model },
+        {
+          onComplete: (data) => {
+            const typeConfig = SCRIPT_TYPES.find(t => t.id === scriptType);
+            if (data.sections) {
+              setSections(data.sections);
+              toast.success(`🎬 Script ${typeConfig?.name} generado con ${data.sections.length} secciones`);
+            } else if (data.rawContent) {
+              setSections([{ name: 'Script Completo', content: data.rawContent, duration: typeConfig?.duration || '', type: 'content' }]);
+              toast.success('📝 Script generado');
+            }
+          },
+          onError: (msg) => toast.error(msg),
+        }
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error generando script');
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -134,6 +85,8 @@ Responde en JSON: { "sections": [{ "name": "string", "content": "string (el scri
     offer: 'border-l-amber-500',
     close: 'border-l-emerald-500',
   };
+
+  const totalWords = sections.reduce((s, sec) => s + (sec.content?.split(/\s+/).length || 0), 0);
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
@@ -194,6 +147,22 @@ Responde en JSON: { "sections": [{ "name": "string", "content": "string (el scri
 
           <ModelSelector value={model} onChange={setModel} />
 
+          {isGenerating && (
+            <div className="space-y-2">
+              <Progress value={progress} className="h-2" />
+              <p className="text-[10px] text-muted-foreground text-center">{Math.round(progress)}% · Escribiendo script de venta...</p>
+              {streamText && (
+                <div className="max-h-32 overflow-y-auto rounded-lg bg-muted/30 p-2 text-[10px] text-muted-foreground font-mono whitespace-pre-wrap">
+                  {streamText.slice(-500)}
+                  <span className="inline-block w-1 h-2.5 bg-primary/60 animate-pulse rounded-sm ml-0.5" />
+                </div>
+              )}
+              <Button variant="destructive" size="sm" className="w-full gap-1.5" onClick={stop}>
+                <Square className="w-3 h-3" /> Detener
+              </Button>
+            </div>
+          )}
+
           <Button onClick={handleGenerate} disabled={isGenerating} className="w-full glow-primary gap-2" size="lg">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
             {isGenerating ? 'Escribiendo script...' : 'Generar Script de Venta'}
@@ -204,7 +173,7 @@ Responde en JSON: { "sections": [{ "name": "string", "content": "string (el scri
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-semibold">{SCRIPT_TYPES.find(t => t.id === scriptType)?.name}</h3>
-              <p className="text-xs text-muted-foreground">{sections.length} secciones</p>
+              <p className="text-xs text-muted-foreground">{sections.length} secciones · ~{totalWords.toLocaleString()} palabras</p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setSections([])} className="text-xs">← Nuevo</Button>
@@ -222,12 +191,17 @@ Responde en JSON: { "sections": [{ "name": "string", "content": "string (el scri
                 transition={{ delay: i * 0.05 }}
               >
                 <Card className={cn("p-4 border-l-4 border-border/30", sectionColors[section.type] || 'border-l-primary')}>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-3">
                     <Badge variant="secondary" className="text-[10px]">{section.type.toUpperCase()}</Badge>
                     <h4 className="text-sm font-semibold text-foreground">{section.name}</h4>
                     <span className="text-[10px] text-muted-foreground ml-auto">{section.duration}</span>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { navigator.clipboard.writeText(section.content); toast.success('Sección copiada'); }}>
+                      <Copy className="w-3 h-3" />
+                    </Button>
                   </div>
-                  <p className="text-xs text-foreground/80 whitespace-pre-line leading-relaxed">{section.content}</p>
+                  <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-foreground/80 prose-p:leading-relaxed prose-strong:text-foreground prose-code:text-primary text-xs">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{section.content}</ReactMarkdown>
+                  </div>
                 </Card>
               </motion.div>
             ))}
