@@ -71,6 +71,7 @@ export default function EbookGenerator() {
   const [expandedChapter, setExpandedChapter] = useState<number | null>(0);
   const [editingChapter, setEditingChapter] = useState<number | null>(null);
   const { generate, stop, isGenerating: isStreaming, streamText, progress } = useStreamingGeneration();
+  const contentStore = useGeneratedContent('ebook');
 
   const handleGenerate = async () => {
     if (!topic.trim()) { toast.error('Ingresa un tema para el ebook'); return; }
