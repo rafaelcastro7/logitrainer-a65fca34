@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.ai-agent]
 verify_jwt = false
+
+[functions.agent-orchestrator]
+verify_jwt = false

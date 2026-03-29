@@ -5,6 +5,10 @@ interface StreamingGenerationOptions {
   onStreamChunk?: (fullText: string) => void;
   onComplete?: (parsed: any) => void;
   onError?: (error: string) => void;
+  useOrchestrator?: boolean; // Use multi-agent orchestration
+  orchestratorMode?: 'orchestrated' | 'pipeline' | 'simple';
+  pipeline?: string[];
+  agent?: string;
 }
 
 // User-friendly error messages by code
@@ -56,12 +60,30 @@ export function useStreamingGeneration() {
     abortRef.current = controller;
 
     try {
-      // Use streaming via ai-agent for real-time feedback
-      const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-agent`;
+      // Choose endpoint based on orchestrator flag
+      const useOrchestrator = options?.useOrchestrator || false;
+      const streamUrl = useOrchestrator
+        ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-orchestrator`
+        : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-agent`;
       
       // Build the prompt from body params for streaming
       const userPrompt = buildPromptFromBody(body);
       const systemPrompt = buildSystemPromptFromType(body.type, body);
+
+      const requestBody: any = {
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        stream: true,
+      };
+
+      // Add orchestrator-specific params
+      if (useOrchestrator) {
+        requestBody.mode = options?.orchestratorMode || 'orchestrated';
+        if (options?.pipeline) requestBody.pipeline = options.pipeline;
+        if (options?.agent) requestBody.agent = options.agent;
+      }
 
       const resp = await fetch(streamUrl, {
         method: 'POST',
@@ -69,13 +91,7 @@ export function useStreamingGeneration() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          stream: true,
-        }),
+        body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
 
