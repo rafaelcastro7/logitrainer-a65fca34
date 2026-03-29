@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
+import ContentHistoryPanel from './ContentHistoryPanel';
 
 // Agent definitions for UI display
 const AGENT_DEFS = [
