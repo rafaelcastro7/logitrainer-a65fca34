@@ -49,6 +49,7 @@ export default function AdCreativeGenerator() {
   const [variants, setVariants] = useState<AdVariant[]>([]);
   const [model, setModel] = useState('google/gemini-3-flash-preview');
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
+  const contentStore = useGeneratedContent('ads');
 
   const handleGenerate = async () => {
     if (!product.trim()) { toast.error('Ingresa el producto/servicio'); return; }
@@ -60,6 +61,15 @@ export default function AdCreativeGenerator() {
           onComplete: (data) => {
             setVariants(data.variants || []);
             toast.success(`🎯 ${(data.variants || []).length} variantes de anuncio generadas`);
+            const content = (data.variants || []).map((v: AdVariant, i: number) =>
+              `### Variante ${i + 1}\n**Hook:** ${v.hook}\n**Headline:** ${v.headline}\n**Copy:** ${v.primary_text}\n**CTA:** ${v.cta}\n**Framework:** ${v.framework}`
+            ).join('\n\n---\n\n');
+            contentStore.saveContent({
+              title: `Anuncios: ${product}`,
+              prompt: `${product} | ${audience} | ${platform}`,
+              content,
+              metadata: { platform, framework, model, audience, benefit },
+            });
           },
           onError: (msg) => toast.error(msg),
         }
@@ -209,6 +219,19 @@ export default function AdCreativeGenerator() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* History */}
+      {contentStore.items.length > 0 && (
+        <ContentHistoryPanel
+          items={contentStore.items}
+          loading={contentStore.loading}
+          selectedItem={contentStore.selectedItem}
+          onSelect={(item) => { contentStore.setSelectedItem(item); toast.info(`Cargado: ${item.title}`); }}
+          onDelete={contentStore.deleteItem}
+          onToggleFavorite={contentStore.toggleFavorite}
+          moduleLabel="Anuncios"
+        />
       )}
     </div>
   );
