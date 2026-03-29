@@ -53,7 +53,7 @@ export default function ContentCalendar() {
             setPosts(data.posts || []);
             toast.success(`📅 ${(data.posts || []).length} publicaciones generadas para ${weeks} semana(s)`);
             const content = (data.posts || []).map((p: ContentPost) =>
-              `**${p.day} — ${p.type}** (${p.platform})\n${p.title}\n${p.caption}\n#${(p.hashtags || []).join(' #')}`
+              `**${p.day} — ${p.type}** (${p.platform})\n${p.title}\n${p.content}\n#${(p.hashtags || []).join(' #')}`
             ).join('\n\n---\n\n');
             contentStore.saveContent({ title: `Calendario: ${niche} (${weeks} sem)`, prompt: niche, content, metadata: { weeks, model } });
           },
