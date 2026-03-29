@@ -498,6 +498,19 @@ export default function AgentOrchestratorPanel() {
             </Card>
           )}
         </div>
+
+        {/* History sidebar */}
+        <div className="hidden xl:block w-72 shrink-0 space-y-4">
+          <ContentHistoryPanel
+            items={contentStore.items}
+            loading={contentStore.loading}
+            selectedItem={contentStore.selectedItem}
+            onSelect={(item) => { contentStore.setSelectedItem(item); toast.info(`Cargado: ${item.title}`); }}
+            onDelete={contentStore.deleteItem}
+            onToggleFavorite={contentStore.toggleFavorite}
+            moduleLabel="AI Crew"
+          />
+        </div>
       </div>
     </div>
   );
