@@ -63,6 +63,7 @@ export default function AgentOrchestratorPanel() {
   const [agentStatus, setAgentStatus] = useState<Record<string, 'idle' | 'active' | 'done' | 'error'>>({});
   const abortRef = useRef<AbortController | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const contentStore = useGeneratedContent('ai-crew');
 
   const togglePipelineAgent = (agentId: string) => {
     setSelectedPipeline(prev =>
