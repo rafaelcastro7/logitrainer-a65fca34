@@ -188,8 +188,27 @@ export default function EbookGenerator() {
 
   const wordCount = chapters.reduce((s, c) => s + (c.content?.split(/\s+/).length || 0), 0);
 
+  const loadFromHistory = (item: any) => {
+    contentStore.setSelectedItem(item);
+    setEbookTitle(item.title);
+    setEbookSubtitle(item.metadata?.subtitle || '');
+    // Parse content back into chapters
+    const parts = item.content.split(/\n---\n/);
+    const parsed = parts.map((p: string) => {
+      const titleMatch = p.match(/^## Capítulo \d+: (.+)$/m);
+      return { title: titleMatch?.[1] || 'Capítulo', content: p.replace(/^## .+\n\n/, ''), keyTakeaways: [], exercises: [] };
+    });
+    setChapters(parsed);
+    setCurrentStep('review');
+    setExpandedChapter(0);
+    toast.info(`📖 Cargado: ${item.title}`);
+  };
+
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="flex gap-6">
+        {/* Main content */}
+        <div className="flex-1 space-y-6">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center">
           <BookOpen className="w-5 h-5 text-primary" />
