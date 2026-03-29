@@ -515,6 +515,7 @@ export default function AgentOrchestratorPanel() {
           />
         </div>
       </div>
+      </div>
     </div>
   );
 }
