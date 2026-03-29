@@ -11,6 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
 import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
+import ContentHistoryPanel from './ContentHistoryPanel';
 
 const PLATFORMS = [
   { id: 'facebook', label: 'Facebook Ads', icon: '📘', sizes: '1200x628' },
