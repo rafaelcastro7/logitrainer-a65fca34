@@ -454,6 +454,21 @@ export default function EbookGenerator() {
           </Button>
         </div>
       )}
+        </div>
+
+        {/* History sidebar */}
+        <div className="hidden lg:block w-72 shrink-0">
+          <ContentHistoryPanel
+            items={contentStore.items}
+            loading={contentStore.loading}
+            selectedItem={contentStore.selectedItem}
+            onSelect={loadFromHistory}
+            onDelete={contentStore.deleteItem}
+            onToggleFavorite={contentStore.toggleFavorite}
+            moduleLabel="Ebooks"
+          />
+        </div>
+      </div>
     </div>
   );
 }
