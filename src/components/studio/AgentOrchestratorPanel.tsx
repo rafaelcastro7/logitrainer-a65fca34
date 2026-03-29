@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
+import ContentHistoryPanel from './ContentHistoryPanel';
 
 // Agent definitions for UI display
 const AGENT_DEFS = [
@@ -61,6 +63,7 @@ export default function AgentOrchestratorPanel() {
   const [agentStatus, setAgentStatus] = useState<Record<string, 'idle' | 'active' | 'done' | 'error'>>({});
   const abortRef = useRef<AbortController | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const contentStore = useGeneratedContent('ai-crew');
 
   const togglePipelineAgent = (agentId: string) => {
     setSelectedPipeline(prev =>
@@ -191,6 +194,13 @@ export default function AgentOrchestratorPanel() {
       ));
 
       toast.success('✅ Tarea completada por los agentes');
+      // Auto-save
+      contentStore.saveContent({
+        title: prompt.trim().slice(0, 80),
+        prompt: prompt.trim(),
+        content: fullOutput,
+        metadata: { mode, agent: mode === 'simple' ? selectedAgent : undefined, pipeline: mode === 'pipeline' ? selectedPipeline : undefined },
+      });
     } catch (e: any) {
       if (e.name === 'AbortError') {
         setTasks(prev => prev.map(t =>
@@ -230,7 +240,9 @@ export default function AgentOrchestratorPanel() {
   }, [activeTaskData?.output, isRunning]);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="flex gap-6">
+      <div className="flex-1 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -488,6 +500,21 @@ export default function AgentOrchestratorPanel() {
             </Card>
           )}
         </div>
+        </div>
+
+        {/* History sidebar */}
+        <div className="hidden xl:block w-72 shrink-0 space-y-4">
+          <ContentHistoryPanel
+            items={contentStore.items}
+            loading={contentStore.loading}
+            selectedItem={contentStore.selectedItem}
+            onSelect={(item) => { contentStore.setSelectedItem(item); toast.info(`Cargado: ${item.title}`); }}
+            onDelete={contentStore.deleteItem}
+            onToggleFavorite={contentStore.toggleFavorite}
+            moduleLabel="AI Crew"
+          />
+        </div>
+      </div>
       </div>
     </div>
   );

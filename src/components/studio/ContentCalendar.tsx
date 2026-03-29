@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
 import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 const CONTENT_TYPES = [
   { id: 'carousel', label: 'Carrusel', icon: '📸', platform: 'Instagram' },
@@ -39,6 +40,7 @@ export default function ContentCalendar() {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [model, setModel] = useState('google/gemini-3-flash-preview');
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
+  const contentStore = useGeneratedContent('calendar');
 
   const handleGenerate = async () => {
     if (!niche.trim()) { toast.error('Ingresa tu nicho'); return; }
@@ -50,6 +52,10 @@ export default function ContentCalendar() {
           onComplete: (data) => {
             setPosts(data.posts || []);
             toast.success(`📅 ${(data.posts || []).length} publicaciones generadas para ${weeks} semana(s)`);
+            const content = (data.posts || []).map((p: ContentPost) =>
+              `**${p.day} — ${p.type}** (${p.platform})\n${p.title}\n${p.content}\n#${(p.hashtags || []).join(' #')}`
+            ).join('\n\n---\n\n');
+            contentStore.saveContent({ title: `Calendario: ${niche} (${weeks} sem)`, prompt: niche, content, metadata: { weeks, model } });
           },
           onError: (msg) => toast.error(msg),
         }

@@ -12,6 +12,7 @@ import ModelSelector from './ModelSelector';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 interface FunnelStep {
   id: string;
@@ -100,6 +101,8 @@ export default function FunnelBuilder() {
     })));
   };
 
+  const contentStore = useGeneratedContent('funnel');
+
   const handleGenerateCopy = async () => {
     if (!niche.trim()) { toast.error('Ingresa tu nicho primero'); return; }
     if (steps.length === 0) { toast.error('Selecciona una plantilla de funnel'); return; }
@@ -119,6 +122,10 @@ export default function FunnelBuilder() {
                 expectedConversion: data.steps[i]?.expectedConversion || '',
               })));
               toast.success('✨ Copy profesional generado para todos los pasos');
+              const content = data.steps.map((s: any, i: number) =>
+                `### Paso ${i + 1}: ${s.name || steps[i]?.name}\n${s.description}\n**Hook:** ${s.hook}\n**CTA:** ${s.cta}`
+              ).join('\n\n---\n\n');
+              contentStore.saveContent({ title: `Funnel: ${niche}`, prompt: niche, content, metadata: { model, stepsCount: steps.length } });
             }
           },
           onError: (msg) => toast.error(msg),

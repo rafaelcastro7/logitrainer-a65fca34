@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
+import ContentHistoryPanel from './ContentHistoryPanel';
 
 const SEQUENCE_TYPES = [
   { id: 'welcome', name: 'Welcome Series', desc: '5 emails de bienvenida y nurturing', icon: '👋', emails: 5 },
@@ -39,6 +41,7 @@ export default function EmailSequenceBuilder() {
   const [selectedEmail, setSelectedEmail] = useState(0);
   const [previewHTML, setPreviewHTML] = useState(false);
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
+  const contentStore = useGeneratedContent('emails');
 
   const handleGenerate = async () => {
     if (!product.trim()) { toast.error('Ingresa tu producto/servicio'); return; }
@@ -52,6 +55,15 @@ export default function EmailSequenceBuilder() {
             setEmails(data.emails || []);
             setSelectedEmail(0);
             toast.success(`📧 Secuencia de ${(data.emails || []).length} emails generada`);
+            const content = (data.emails || []).map((e: EmailItem, i: number) =>
+              `### Email ${i + 1} (Día ${e.day})\n**Subject:** ${e.subject}\n**Preview:** ${e.preview}\n\n${e.body}\n\n**CTA:** ${e.cta}\n**Notas:** ${e.notes}`
+            ).join('\n\n---\n\n');
+            contentStore.saveContent({
+              title: `${seqConfig?.name || sequenceType}: ${product}`,
+              prompt: `${product} | ${audience} | ${sequenceType}`,
+              content,
+              metadata: { sequenceType, audience, emailsCount: seqConfig?.emails },
+            });
           },
           onError: (msg) => toast.error(msg),
         }
@@ -217,6 +229,19 @@ export default function EmailSequenceBuilder() {
             )}
           </div>
         </div>
+      )}
+
+      {/* History */}
+      {contentStore.items.length > 0 && (
+        <ContentHistoryPanel
+          items={contentStore.items}
+          loading={contentStore.loading}
+          selectedItem={contentStore.selectedItem}
+          onSelect={(item) => { contentStore.setSelectedItem(item); toast.info(`Cargado: ${item.title}`); }}
+          onDelete={contentStore.deleteItem}
+          onToggleFavorite={contentStore.toggleFavorite}
+          moduleLabel="Emails"
+        />
       )}
     </div>
   );
