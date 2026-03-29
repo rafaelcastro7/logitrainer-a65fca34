@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
 import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 const CONTENT_TYPES = [
   { id: 'carousel', label: 'Carrusel', icon: '📸', platform: 'Instagram' },

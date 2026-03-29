@@ -12,6 +12,7 @@ import ModelSelector from './ModelSelector';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 interface FunnelStep {
   id: string;
