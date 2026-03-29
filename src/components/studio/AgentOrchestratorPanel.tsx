@@ -500,6 +500,7 @@ export default function AgentOrchestratorPanel() {
             </Card>
           )}
         </div>
+        </div>
 
         {/* History sidebar */}
         <div className="hidden xl:block w-72 shrink-0 space-y-4">
