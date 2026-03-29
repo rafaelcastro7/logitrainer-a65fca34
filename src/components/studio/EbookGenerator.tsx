@@ -86,15 +86,24 @@ export default function EbookGenerator() {
           onComplete: (data) => {
             setEbookTitle(data.title || topic);
             setEbookSubtitle(data.subtitle || '');
-            setChapters((data.chapters || []).map((ch: any) => ({
+            const parsedChapters = (data.chapters || []).map((ch: any) => ({
               title: ch.title,
               content: ch.content,
               keyTakeaways: ch.keyTakeaways || [],
               exercises: ch.exercises || [],
-            })));
+            }));
+            setChapters(parsedChapters);
             setExpandedChapter(0);
             setCurrentStep('review');
             toast.success(`📚 "${data.title}" generado — ${data.chapters?.length || 0} capítulos`);
+            // Auto-save to DB
+            const fullMd = parsedChapters.map((ch: Chapter, i: number) => `## Capítulo ${i + 1}: ${ch.title}\n\n${ch.content}`).join('\n\n---\n\n');
+            contentStore.saveContent({
+              title: data.title || topic,
+              prompt: topic,
+              content: fullMd,
+              metadata: { niche, template, model, chaptersCount, detailLevel, subtitle: data.subtitle },
+            });
           },
           onError: (msg) => {
             toast.error(msg);
