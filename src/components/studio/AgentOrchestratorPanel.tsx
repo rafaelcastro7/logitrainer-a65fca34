@@ -194,6 +194,13 @@ export default function AgentOrchestratorPanel() {
       ));
 
       toast.success('✅ Tarea completada por los agentes');
+      // Auto-save
+      contentStore.saveContent({
+        title: prompt.trim().slice(0, 80),
+        prompt: prompt.trim(),
+        content: fullOutput,
+        metadata: { mode, agent: mode === 'simple' ? selectedAgent : undefined, pipeline: mode === 'pipeline' ? selectedPipeline : undefined },
+      });
     } catch (e: any) {
       if (e.name === 'AbortError') {
         setTasks(prev => prev.map(t =>
