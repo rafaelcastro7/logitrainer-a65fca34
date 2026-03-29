@@ -240,7 +240,8 @@ export default function AgentOrchestratorPanel() {
   }, [activeTaskData?.output, isRunning]);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="flex gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
