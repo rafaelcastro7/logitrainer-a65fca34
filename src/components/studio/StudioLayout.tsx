@@ -78,6 +78,7 @@ const ALL_TABS = [
   { id: 'ai-chat', icon: MessageCircle, label: 'AI Chat', group: 'System' },
   { id: 'analytics', icon: Activity, label: 'Analytics', group: 'System' },
   { id: 'referrals', icon: Gift, label: 'Referidos', group: 'Growth' },
+  { id: 'agents', icon: Sparkles, label: 'AI Crew', group: 'System' },
   { id: 'apis', icon: Server, label: 'APIs', group: 'System' },
   { id: 'about', icon: Info, label: 'About', group: 'System' },
 ];
@@ -105,6 +106,7 @@ export default function StudioLayout({ activeTab, onTabChange, children, scenes,
     presentations: 'Slides', 'content-calendar': 'Calendar', 'email-sequences': 'Emails',
     referrals: 'Referidos', 'vsl-scripts': 'VSL Scripts', funnels: 'Funnels', offers: 'Ofertas',
     'lead-magnets': 'Lead Magnets', 'ai-chat': 'AI Chat', webinar: 'Webinar', research: 'Research',
+    agents: 'AI Crew',
   };
 
   const handleMobileTabChange = (tabId: string) => {
