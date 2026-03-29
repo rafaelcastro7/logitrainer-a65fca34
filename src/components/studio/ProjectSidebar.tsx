@@ -179,6 +179,7 @@ export default function ProjectSidebar({
   ];
 
   const systemTabs = [
+    { id: 'agents', label: 'AI Crew', icon: Sparkles },
     { id: 'analytics', label: 'Analytics', icon: Activity },
     { id: 'apis', label: t.apis, icon: Server },
     { id: 'about', label: t.about, icon: Info },
