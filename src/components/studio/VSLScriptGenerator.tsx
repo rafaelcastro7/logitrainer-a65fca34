@@ -37,6 +37,7 @@ export default function VSLScriptGenerator() {
   const [sections, setSections] = useState<ScriptSection[]>([]);
   const [model, setModel] = useState('google/gemini-2.5-pro');
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
+  const contentStore = useGeneratedContent('vsl');
 
   const handleGenerate = async () => {
     if (!product.trim()) { toast.error('Ingresa tu producto/servicio'); return; }
@@ -47,13 +48,23 @@ export default function VSLScriptGenerator() {
         {
           onComplete: (data) => {
             const typeConfig = SCRIPT_TYPES.find(t => t.id === scriptType);
+            let parsedSections: ScriptSection[] = [];
             if (data.sections) {
-              setSections(data.sections);
+              parsedSections = data.sections;
+              setSections(parsedSections);
               toast.success(`🎬 Script ${typeConfig?.name} generado con ${data.sections.length} secciones`);
             } else if (data.rawContent) {
-              setSections([{ name: 'Script Completo', content: data.rawContent, duration: typeConfig?.duration || '', type: 'content' }]);
+              parsedSections = [{ name: 'Script Completo', content: data.rawContent, duration: typeConfig?.duration || '', type: 'content' }];
+              setSections(parsedSections);
               toast.success('📝 Script generado');
             }
+            const content = parsedSections.map((s, i) => `### ${s.name}\n${s.content}`).join('\n\n---\n\n');
+            contentStore.saveContent({
+              title: `VSL (${typeConfig?.name}): ${product}`,
+              prompt: `${product} | ${audience}`,
+              content,
+              metadata: { scriptType, model, price },
+            });
           },
           onError: (msg) => toast.error(msg),
         }

@@ -35,6 +35,7 @@ export default function PresentationGenerator() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [model, setModel] = useState('google/gemini-3-flash-preview');
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
+  const contentStore = useGeneratedContent('presentation');
 
   const handleGenerate = async () => {
     if (!topic.trim()) { toast.error('Ingresa el tema de la presentación'); return; }
@@ -47,6 +48,10 @@ export default function PresentationGenerator() {
             setSlides(data.slides || []);
             setCurrentSlide(0);
             toast.success(`🎤 Presentación generada con ${(data.slides || []).length} slides`);
+            const content = (data.slides || []).map((s: Slide, i: number) =>
+              `### Slide ${i + 1}: ${s.title}\n${s.content}\n*Notas:* ${s.notes}`
+            ).join('\n\n---\n\n');
+            contentStore.saveContent({ title: `Slides: ${topic}`, prompt: topic, content, metadata: { type, model } });
           },
           onError: (msg) => toast.error(msg),
         }

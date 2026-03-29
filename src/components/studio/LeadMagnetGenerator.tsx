@@ -37,6 +37,7 @@ export default function LeadMagnetGenerator() {
   const [model, setModel] = useState('google/gemini-3-flash-preview');
   const [result, setResult] = useState<any>(null);
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
+  const contentStore = useGeneratedContent('lead-magnet');
 
   const handleGenerate = async () => {
     if (!niche.trim()) return toast.error('Define tu nicho');
@@ -48,6 +49,12 @@ export default function LeadMagnetGenerator() {
           onComplete: (data) => {
             setResult(data);
             toast.success('🧲 Lead magnet profesional generado');
+            contentStore.saveContent({
+              title: `Lead Magnet (${magnetType}): ${niche}`,
+              prompt: `${niche} | ${audience} | ${problem}`,
+              content: data.rawContent || JSON.stringify(data),
+              metadata: { magnetType, model },
+            });
           },
           onError: (msg) => toast.error(msg),
         }
