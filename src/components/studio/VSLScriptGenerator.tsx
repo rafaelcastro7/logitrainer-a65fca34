@@ -12,6 +12,7 @@ import ModelSelector from './ModelSelector';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useStreamingGeneration } from '@/hooks/useStreamingGeneration';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 const SCRIPT_TYPES = [
   { id: 'vsl', name: 'VSL (Video Sales Letter)', desc: 'Script de venta en video 10-15 min', icon: '🎬', duration: '10-15 min' },
