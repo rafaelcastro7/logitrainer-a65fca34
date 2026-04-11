@@ -145,6 +145,18 @@ export default function EmailSequenceBuilder() {
             </div>
           </div>
 
+          {/* Multi-Agent Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-xl border border-border/30 bg-card">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-purple-500" />
+              <div>
+                <p className="text-xs font-medium">Modo Multi-Agente</p>
+                <p className="text-[10px] text-muted-foreground">Estratega → Redactor → Editor coordinados</p>
+              </div>
+            </div>
+            <Switch checked={useMultiAgent} onCheckedChange={setUseMultiAgent} />
+          </div>
+
           {isGenerating && (
             <div className="space-y-2">
               <Progress value={progress} className="h-2" />
