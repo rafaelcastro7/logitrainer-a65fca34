@@ -80,6 +80,7 @@ const ALL_TABS = [
   { id: 'analytics', icon: Activity, label: 'Analytics', group: 'System' },
   { id: 'referrals', icon: Gift, label: 'Referidos', group: 'Growth' },
   { id: 'agents', icon: Sparkles, label: 'AI Crew', group: 'System' },
+  { id: 'agent-analytics', icon: Activity, label: 'Agent Analytics', group: 'System' },
   { id: 'apis', icon: Server, label: 'APIs', group: 'System' },
   { id: 'about', icon: Info, label: 'About', group: 'System' },
 ];
