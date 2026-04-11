@@ -512,6 +512,7 @@ export default function Index() {
             {activeTab === 'research' && <ResearchAIPanel />}
             {activeTab === 'ai-chat' && <AIChatAssistant />}
             {activeTab === 'agents' && <AgentOrchestratorPanel />}
+            {activeTab === 'my-content' && <MyContentView />}
           </>
         )}
         {activeTab !== 'ai-chat' && <AIChatAssistant />}
