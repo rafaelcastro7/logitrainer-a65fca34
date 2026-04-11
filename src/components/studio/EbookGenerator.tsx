@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Sparkles, Download, FileText, Loader2, ChevronRight, Wand2, Copy, Eye, EyeOff, Code, Lightbulb, CheckCircle2, ChevronDown, ChevronUp, Image as ImageIcon, Square } from 'lucide-react';
+import { BookOpen, Sparkles, Download, FileText, Loader2, ChevronRight, Wand2, Copy, Eye, EyeOff, Code, Lightbulb, CheckCircle2, ChevronDown, ChevronUp, Image as ImageIcon, Square, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -68,6 +68,7 @@ export default function EbookGenerator() {
   const [ebookSubtitle, setEbookSubtitle] = useState('');
   const [currentStep, setCurrentStep] = useState<'config' | 'generating' | 'review'>('config');
   const [model, setModel] = useState('google/gemini-2.5-pro');
+  const [useMultiAgent, setUseMultiAgent] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<number | null>(0);
   const [editingChapter, setEditingChapter] = useState<number | null>(null);
   const { generate, stop, isGenerating: isStreaming, streamText, progress } = useStreamingGeneration();
@@ -83,6 +84,9 @@ export default function EbookGenerator() {
       const result = await generate(
         { type: 'ebook', topic, niche, template, chaptersCount, language, model, detailLevel },
         {
+          useOrchestrator: useMultiAgent,
+          orchestratorMode: 'pipeline',
+          pipeline: ['researcher', 'writer', 'editor'],
           onComplete: (data) => {
             setEbookTitle(data.title || topic);
             setEbookSubtitle(data.subtitle || '');
@@ -302,8 +306,20 @@ export default function EbookGenerator() {
 
           <ModelSelector value={model} onChange={setModel} />
 
+          {/* Multi-Agent Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-xl border border-border/30 bg-card">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-purple-500" />
+              <div>
+                <p className="text-xs font-medium">Modo Multi-Agente</p>
+                <p className="text-[10px] text-muted-foreground">Investigador → Redactor → Editor coordinados</p>
+              </div>
+            </div>
+            <Switch checked={useMultiAgent} onCheckedChange={setUseMultiAgent} />
+          </div>
+
           <Button onClick={handleGenerate} className="w-full glow-primary gap-2" size="lg">
-            <Wand2 className="w-4 h-4" /> Generar Ebook Profesional
+            <Wand2 className="w-4 h-4" /> {useMultiAgent ? '🤖 Generar con AI Crew' : 'Generar Ebook Profesional'}
           </Button>
         </div>
       )}
