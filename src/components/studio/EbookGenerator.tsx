@@ -72,7 +72,9 @@ export default function EbookGenerator() {
   const [useMultiAgent, setUseMultiAgent] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<number | null>(0);
   const [editingChapter, setEditingChapter] = useState<number | null>(null);
+  const [regeneratingChapter, setRegeneratingChapter] = useState<number | null>(null);
   const { generate, stop, isGenerating: isStreaming, streamText, progress } = useStreamingGeneration();
+  const { generate: generateSingle } = useStreamingGeneration();
   const contentStore = useGeneratedContent('ebook');
 
   const handleGenerate = async () => {
@@ -128,6 +130,39 @@ export default function EbookGenerator() {
   const handleCopyChapter = (ch: Chapter, i: number) => {
     navigator.clipboard.writeText(`## Capítulo ${i + 1}: ${ch.title}\n\n${ch.content}`);
     toast.success('Capítulo copiado');
+  };
+
+  const handleRegenerateChapter = async (index: number) => {
+    const ch = chapters[index];
+    if (!ch) return;
+    setRegeneratingChapter(index);
+    try {
+      await generateSingle(
+        {
+          type: 'ebook',
+          topic: `Reescribe y mejora este capítulo: "${ch.title}" del ebook "${ebookTitle}". Tema general: ${topic}. Nicho: ${niche}.`,
+          niche, template, chaptersCount: 1, language, model, detailLevel,
+        },
+        {
+          onComplete: (data) => {
+            const newCh = data.chapters?.[0];
+            if (newCh) {
+              setChapters(prev => prev.map((c, i) => i === index ? {
+                title: newCh.title || c.title,
+                content: newCh.content || c.content,
+                keyTakeaways: newCh.keyTakeaways || c.keyTakeaways,
+                exercises: newCh.exercises || c.exercises,
+              } : c));
+              toast.success(`✅ Capítulo ${index + 1} regenerado`);
+            }
+          },
+        }
+      );
+    } catch (err) {
+      toast.error('Error al regenerar capítulo');
+    } finally {
+      setRegeneratingChapter(null);
+    }
   };
 
   const handleExportMarkdown = () => {
