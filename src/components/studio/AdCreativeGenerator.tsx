@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Megaphone, Sparkles, Copy, Download, Loader2, Wand2, RefreshCw, Square } from 'lucide-react';
+import { Megaphone, Sparkles, Copy, Download, Loader2, Wand2, RefreshCw, Square, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -48,6 +49,7 @@ export default function AdCreativeGenerator() {
   const [framework, setFramework] = useState('aida');
   const [variants, setVariants] = useState<AdVariant[]>([]);
   const [model, setModel] = useState('google/gemini-3-flash-preview');
+  const [useMultiAgent, setUseMultiAgent] = useState(false);
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
   const contentStore = useGeneratedContent('ads');
 
@@ -58,6 +60,9 @@ export default function AdCreativeGenerator() {
       await generate(
         { type: 'ads', product, audience, benefit, platform, framework, variantsCount: 4, model },
         {
+          useOrchestrator: useMultiAgent,
+          orchestratorMode: 'pipeline',
+          pipeline: ['strategist', 'writer', 'editor'],
           onComplete: (data) => {
             setVariants(data.variants || []);
             toast.success(`🎯 ${(data.variants || []).length} variantes de anuncio generadas`);
