@@ -37,6 +37,7 @@ import LeadMagnetGenerator from '@/components/studio/LeadMagnetGenerator';
 import WebinarSimulator from '@/components/studio/WebinarSimulator';
 import ResearchAIPanel from '@/components/studio/ResearchAIPanel';
 import AgentOrchestratorPanel from '@/components/studio/AgentOrchestratorPanel';
+import MyContentView from '@/components/studio/MyContentView';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
