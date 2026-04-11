@@ -445,6 +445,15 @@ export default function EbookGenerator() {
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); handleCopyChapter(ch, i); }}>
                         <Copy className="w-3 h-3" />
                       </Button>
+                      <Button
+                        variant="ghost" size="sm"
+                        className="h-6 px-1.5 text-[10px] gap-1"
+                        disabled={regeneratingChapter !== null}
+                        onClick={(e) => { e.stopPropagation(); handleRegenerateChapter(i); }}
+                      >
+                        {regeneratingChapter === i ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        {regeneratingChapter === i ? '' : 'Regenerar'}
+                      </Button>
                       {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                     </div>
                   </button>
