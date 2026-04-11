@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Film, Globe, Save, FolderOpen, User, LogOut, Undo2, Redo2, FilePlus2, Command, Shield, Search, Sparkles,
-  LayoutDashboard, Clapperboard, Play, Images, Download, BookOpen, Layout, Megaphone, Presentation, Calendar, Mail, Activity, Server, Info, Menu, X, MoreHorizontal, Gift, MessageCircle, Target, Video, Gem, MonitorPlay, Magnet
+  LayoutDashboard, Clapperboard, Play, Images, Download, BookOpen, Layout, Megaphone, Presentation, Calendar, Mail, Activity, Server, Info, Menu, X, MoreHorizontal, Gift, MessageCircle, Target, Video, Gem, MonitorPlay, Magnet, Archive
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Scene } from '@/types/project';
@@ -74,11 +74,13 @@ const ALL_TABS = [
   { id: 'email-sequences', icon: Mail, label: 'Emails', group: 'Marketing' },
   { id: 'lead-magnets', icon: Magnet, label: 'Lead Magnets', group: 'Marketing' },
   { id: 'webinar', icon: MonitorPlay, label: 'Webinar', group: 'Marketing' },
+  { id: 'my-content', icon: Archive, label: 'Mi Contenido', group: 'Marketing' },
   { id: 'research', icon: Globe, label: 'Research', group: 'System' },
   { id: 'ai-chat', icon: MessageCircle, label: 'AI Chat', group: 'System' },
   { id: 'analytics', icon: Activity, label: 'Analytics', group: 'System' },
   { id: 'referrals', icon: Gift, label: 'Referidos', group: 'Growth' },
   { id: 'agents', icon: Sparkles, label: 'AI Crew', group: 'System' },
+  { id: 'agent-analytics', icon: Activity, label: 'Agent Analytics', group: 'System' },
   { id: 'apis', icon: Server, label: 'APIs', group: 'System' },
   { id: 'about', icon: Info, label: 'About', group: 'System' },
 ];

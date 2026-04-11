@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { BookOpen, Sparkles, Download, FileText, Loader2, ChevronRight, Wand2, Copy, Eye, EyeOff, Code, Lightbulb, CheckCircle2, ChevronDown, ChevronUp, Image as ImageIcon, Square } from 'lucide-react';
+import { BookOpen, Sparkles, Download, FileText, Loader2, ChevronRight, Wand2, Copy, Eye, EyeOff, Code, Lightbulb, CheckCircle2, ChevronDown, ChevronUp, Image as ImageIcon, Square, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
@@ -68,9 +69,12 @@ export default function EbookGenerator() {
   const [ebookSubtitle, setEbookSubtitle] = useState('');
   const [currentStep, setCurrentStep] = useState<'config' | 'generating' | 'review'>('config');
   const [model, setModel] = useState('google/gemini-2.5-pro');
+  const [useMultiAgent, setUseMultiAgent] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<number | null>(0);
   const [editingChapter, setEditingChapter] = useState<number | null>(null);
+  const [regeneratingChapter, setRegeneratingChapter] = useState<number | null>(null);
   const { generate, stop, isGenerating: isStreaming, streamText, progress } = useStreamingGeneration();
+  const { generate: generateSingle } = useStreamingGeneration();
   const contentStore = useGeneratedContent('ebook');
 
   const handleGenerate = async () => {
@@ -83,6 +87,9 @@ export default function EbookGenerator() {
       const result = await generate(
         { type: 'ebook', topic, niche, template, chaptersCount, language, model, detailLevel },
         {
+          useOrchestrator: useMultiAgent,
+          orchestratorMode: 'pipeline',
+          pipeline: ['researcher', 'writer', 'editor'],
           onComplete: (data) => {
             setEbookTitle(data.title || topic);
             setEbookSubtitle(data.subtitle || '');
@@ -123,6 +130,39 @@ export default function EbookGenerator() {
   const handleCopyChapter = (ch: Chapter, i: number) => {
     navigator.clipboard.writeText(`## Capítulo ${i + 1}: ${ch.title}\n\n${ch.content}`);
     toast.success('Capítulo copiado');
+  };
+
+  const handleRegenerateChapter = async (index: number) => {
+    const ch = chapters[index];
+    if (!ch) return;
+    setRegeneratingChapter(index);
+    try {
+      await generateSingle(
+        {
+          type: 'ebook',
+          topic: `Reescribe y mejora este capítulo: "${ch.title}" del ebook "${ebookTitle}". Tema general: ${topic}. Nicho: ${niche}.`,
+          niche, template, chaptersCount: 1, language, model, detailLevel,
+        },
+        {
+          onComplete: (data) => {
+            const newCh = data.chapters?.[0];
+            if (newCh) {
+              setChapters(prev => prev.map((c, i) => i === index ? {
+                title: newCh.title || c.title,
+                content: newCh.content || c.content,
+                keyTakeaways: newCh.keyTakeaways || c.keyTakeaways,
+                exercises: newCh.exercises || c.exercises,
+              } : c));
+              toast.success(`✅ Capítulo ${index + 1} regenerado`);
+            }
+          },
+        }
+      );
+    } catch (err) {
+      toast.error('Error al regenerar capítulo');
+    } finally {
+      setRegeneratingChapter(null);
+    }
   };
 
   const handleExportMarkdown = () => {
@@ -302,8 +342,20 @@ export default function EbookGenerator() {
 
           <ModelSelector value={model} onChange={setModel} />
 
+          {/* Multi-Agent Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-xl border border-border/30 bg-card">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-purple-500" />
+              <div>
+                <p className="text-xs font-medium">Modo Multi-Agente</p>
+                <p className="text-[10px] text-muted-foreground">Investigador → Redactor → Editor coordinados</p>
+              </div>
+            </div>
+            <Switch checked={useMultiAgent} onCheckedChange={setUseMultiAgent} />
+          </div>
+
           <Button onClick={handleGenerate} className="w-full glow-primary gap-2" size="lg">
-            <Wand2 className="w-4 h-4" /> Generar Ebook Profesional
+            <Wand2 className="w-4 h-4" /> {useMultiAgent ? '🤖 Generar con AI Crew' : 'Generar Ebook Profesional'}
           </Button>
         </div>
       )}
@@ -392,6 +444,15 @@ export default function EbookGenerator() {
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); handleCopyChapter(ch, i); }}>
                         <Copy className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="sm"
+                        className="h-6 px-1.5 text-[10px] gap-1"
+                        disabled={regeneratingChapter !== null}
+                        onClick={(e) => { e.stopPropagation(); handleRegenerateChapter(i); }}
+                      >
+                        {regeneratingChapter === i ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        {regeneratingChapter === i ? '' : 'Regenerar'}
                       </Button>
                       {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
                     </div>

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Mail, Sparkles, Copy, Download, Loader2, Wand2, ChevronRight, Eye, Square } from 'lucide-react';
+import { Mail, Sparkles, Copy, Download, Loader2, Wand2, ChevronRight, Eye, Square, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ export default function EmailSequenceBuilder() {
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [selectedEmail, setSelectedEmail] = useState(0);
   const [previewHTML, setPreviewHTML] = useState(false);
+  const [useMultiAgent, setUseMultiAgent] = useState(false);
   const { generate, stop, isGenerating, streamText, progress } = useStreamingGeneration();
   const contentStore = useGeneratedContent('emails');
 
@@ -51,6 +53,9 @@ export default function EmailSequenceBuilder() {
       await generate(
         { type: 'email_sequence', product, audience, sequenceType, emailsCount: seqConfig?.emails || 5 },
         {
+          useOrchestrator: useMultiAgent,
+          orchestratorMode: 'pipeline',
+          pipeline: ['strategist', 'writer', 'editor'],
           onComplete: (data) => {
             setEmails(data.emails || []);
             setSelectedEmail(0);
@@ -138,6 +143,18 @@ export default function EmailSequenceBuilder() {
               <label className="text-sm font-medium">Audiencia</label>
               <Input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Ej: Freelancers y coaches" />
             </div>
+          </div>
+
+          {/* Multi-Agent Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-xl border border-border/30 bg-card">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-purple-500" />
+              <div>
+                <p className="text-xs font-medium">Modo Multi-Agente</p>
+                <p className="text-[10px] text-muted-foreground">Estratega → Redactor → Editor coordinados</p>
+              </div>
+            </div>
+            <Switch checked={useMultiAgent} onCheckedChange={setUseMultiAgent} />
           </div>
 
           {isGenerating && (

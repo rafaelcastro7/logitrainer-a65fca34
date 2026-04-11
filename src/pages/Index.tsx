@@ -37,6 +37,8 @@ import LeadMagnetGenerator from '@/components/studio/LeadMagnetGenerator';
 import WebinarSimulator from '@/components/studio/WebinarSimulator';
 import ResearchAIPanel from '@/components/studio/ResearchAIPanel';
 import AgentOrchestratorPanel from '@/components/studio/AgentOrchestratorPanel';
+import MyContentView from '@/components/studio/MyContentView';
+import AgentAnalyticsPanel from '@/components/studio/AgentAnalyticsPanel';
 import { Scene, Project, DEFAULT_PROJECT, VideoTemplate } from '@/types/project';
 import { generateScript, generateImage, generateTTS, trackUsage, getUserApiKeys } from '@/services/apiService';
 import { type Priority } from '@/services/smartRouter';
@@ -511,6 +513,8 @@ export default function Index() {
             {activeTab === 'research' && <ResearchAIPanel />}
             {activeTab === 'ai-chat' && <AIChatAssistant />}
             {activeTab === 'agents' && <AgentOrchestratorPanel />}
+            {activeTab === 'my-content' && <MyContentView />}
+            {activeTab === 'agent-analytics' && <AgentAnalyticsPanel />}
           </>
         )}
         {activeTab !== 'ai-chat' && <AIChatAssistant />}
