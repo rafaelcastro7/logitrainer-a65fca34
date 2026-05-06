@@ -265,14 +265,14 @@ export default function SceneCard({
               <div className="space-y-1.5">
                 <Label className="text-xs flex items-center gap-1"><Mic className="w-3 h-3" /> Voz de escena</Label>
                 <Select
-                  value={scene.voiceName || ''}
-                  onValueChange={v => onUpdate(scene.id, { voiceName: v || undefined })}
+                  value={scene.voiceName || '__project__'}
+                  onValueChange={v => onUpdate(scene.id, { voiceName: v === '__project__' ? undefined : v })}
                 >
                   <SelectTrigger className="bg-muted/50 border-border/50 h-8 text-xs">
                     <SelectValue placeholder="Usar voz del proyecto" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Voz del proyecto</SelectItem>
+                    <SelectItem value="__project__">Voz del proyecto</SelectItem>
                     {VOICES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
                   </SelectContent>
                 </Select>
