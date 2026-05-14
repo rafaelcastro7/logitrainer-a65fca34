@@ -56,6 +56,13 @@ export default function WebinarSimulator() {
       setResult(data);
       setActiveSlide(0);
       toast.success('Script de webinar generado');
+      const md = typeof data === 'string' ? data : (data?.script || JSON.stringify(data, null, 2));
+      webinarStore.saveContent({
+        title: topic.slice(0, 80),
+        prompt: topic,
+        content: md,
+        metadata: { webinarType, product, price, audience, model },
+      });
     } catch (e: any) {
       toast.error(e.message || 'Error generando webinar');
     } finally {
