@@ -122,8 +122,10 @@ export function useGeneratedContent(module: string) {
     selectedItem,
     setSelectedItem,
     saveContent,
+    updateContent,
     deleteItem,
     toggleFavorite,
     refetch: fetchItems,
   };
 }
+
