@@ -27,6 +27,7 @@ export default function LandingPageBuilder() {
   const [generatedHTML, setGeneratedHTML] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const landingStore = useGeneratedContent('landing');
 
   const handleGenerate = async () => {
     if (!productName.trim()) { toast.error('Ingresa el nombre del producto'); return; }
