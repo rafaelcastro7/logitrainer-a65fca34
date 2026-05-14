@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FolderOpen, Search, Star, Trash2, Download, Filter, Calendar, BookOpen, Megaphone, Mail, Presentation, Target, Video, Magnet, Bot, Archive, FileText, Pencil, Save, X, Sparkles, Copy } from 'lucide-react';
+import { FolderOpen, Search, Star, Trash2, Download, Filter, Calendar, BookOpen, Megaphone, Mail, Presentation, Target, Video, Magnet, Bot, Archive, FileText, Pencil, Save, X, Sparkles, Copy, Layout, Gem, MonitorPlay } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
