@@ -34,6 +34,7 @@ export default function WebinarSimulator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const webinarStore = useGeneratedContent('webinar');
 
   const handleGenerate = async () => {
     if (!topic.trim()) return toast.error('Define el tema del webinar');
