@@ -86,6 +86,24 @@ export function useGeneratedContent(module: string) {
     }
   }, [selectedItem]);
 
+  const updateContent = useCallback(async (id: string, updates: { title?: string; content?: string; metadata?: Record<string, any> }) => {
+    const { data, error } = await supabase
+      .from('generated_content')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      toast.error('Error al actualizar: ' + error.message);
+      return null;
+    }
+    const item: GeneratedContentItem = { ...data, metadata: (data.metadata as Record<string, any>) ?? {} };
+    setItems(prev => prev.map(i => i.id === id ? item : i));
+    if (selectedItem?.id === id) setSelectedItem(item);
+    toast.success('Cambios guardados ✅');
+    return item;
+  }, [selectedItem]);
+
   const toggleFavorite = useCallback(async (id: string) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
