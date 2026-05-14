@@ -323,26 +323,57 @@ export default function MyContentView() {
           <div className="hidden lg:block w-[450px] shrink-0">
             <Card className="sticky top-4 max-h-[calc(100vh-200px)] flex flex-col">
               <div className="p-4 border-b border-border/30">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{selectedItem.title}</h3>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => {
-                      navigator.clipboard.writeText(selectedItem.content);
-                      toast.success('Copiado');
-                    }}>
-                      <FileText className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setSelectedItem(null)}>
-                      ✕
-                    </Button>
+                <div className="flex items-center justify-between gap-2">
+                  {editing ? (
+                    <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="h-7 text-sm font-semibold" />
+                  ) : (
+                    <h3 className="text-sm font-semibold text-foreground truncate flex-1">{selectedItem.title}</h3>
+                  )}
+                  <div className="flex gap-1 shrink-0">
+                    {editing ? (
+                      <>
+                        <Button variant="default" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={saveEdit}>
+                          <Save className="w-3 h-3" /> Guardar
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditing(false)}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Editar" onClick={() => startEdit(selectedItem)}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Duplicar para reutilizar" onClick={() => reuseAsNew(selectedItem)}>
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Copiar al portapapeles" onClick={() => {
+                          navigator.clipboard.writeText(selectedItem.content);
+                          toast.success('Copiado');
+                        }}>
+                          <FileText className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setSelectedItem(null)}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1">{selectedItem.prompt}</p>
               </div>
               <ScrollArea className="flex-1 p-4">
-                <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedItem.content}</ReactMarkdown>
-                </div>
+                {editing ? (
+                  <Textarea
+                    value={editContent}
+                    onChange={e => setEditContent(e.target.value)}
+                    className="min-h-[400px] text-xs font-mono leading-relaxed"
+                  />
+                ) : (
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedItem.content}</ReactMarkdown>
+                  </div>
+                )}
               </ScrollArea>
             </Card>
           </div>
