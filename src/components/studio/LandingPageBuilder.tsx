@@ -48,6 +48,12 @@ export default function LandingPageBuilder() {
       setGeneratedHTML(data.html);
       setPreviewMode(true);
       toast.success('🎯 Landing page generada');
+      landingStore.saveContent({
+        title: productName,
+        prompt: productDesc || productName,
+        content: data.html,
+        metadata: { template, targetAudience, format: 'html' },
+      });
     } catch (err) {
       console.error('Landing generation error:', err);
       toast.error(err instanceof Error ? err.message : 'Error generando landing');
