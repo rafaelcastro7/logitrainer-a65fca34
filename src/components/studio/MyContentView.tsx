@@ -46,6 +46,62 @@ export default function MyContentView() {
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'title'>('date');
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [seeding, setSeeding] = useState(false);
+
+  const handleSeedSamples = async () => {
+    setSeeding(true);
+    const n = await seedSampleContent();
+    if (n > 0) await fetchAll();
+    setSeeding(false);
+  };
+
+  const startEdit = (item: ContentItem) => {
+    setSelectedItem(item);
+    setEditTitle(item.title);
+    setEditContent(item.content);
+    setEditing(true);
+  };
+
+  const saveEdit = async () => {
+    if (!selectedItem) return;
+    const { data, error } = await supabase
+      .from('generated_content')
+      .update({ title: editTitle, content: editContent, updated_at: new Date().toISOString() })
+      .eq('id', selectedItem.id)
+      .select()
+      .single();
+    if (error) { toast.error('Error: ' + error.message); return; }
+    const updated = { ...data, metadata: (data.metadata as Record<string, any>) ?? {} } as ContentItem;
+    setItems(prev => prev.map(i => i.id === updated.id ? updated : i));
+    setSelectedItem(updated);
+    setEditing(false);
+    toast.success('Cambios guardados ✅');
+  };
+
+  const reuseAsNew = async (item: ContentItem) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('generated_content')
+      .insert({
+        user_id: user.id,
+        module: item.module,
+        title: `${item.title} (copia)`,
+        prompt: item.prompt,
+        content: item.content,
+        metadata: { ...item.metadata, reusedFrom: item.id },
+      })
+      .select()
+      .single();
+    if (error) { toast.error('Error: ' + error.message); return; }
+    const newItem = { ...data, metadata: (data.metadata as Record<string, any>) ?? {} } as ContentItem;
+    setItems(prev => [newItem, ...prev]);
+    setSelectedItem(newItem);
+    toast.success('📋 Duplicado para reutilizar');
+  };
 
   const fetchAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
