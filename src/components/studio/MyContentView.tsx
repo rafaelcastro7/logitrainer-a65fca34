@@ -205,6 +205,9 @@ export default function MyContentView() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleSeedSamples} disabled={seeding} className="gap-1.5">
+            <Sparkles className="w-3.5 h-3.5" /> {seeding ? 'Cargando...' : 'Cargar muestras'}
+          </Button>
           <Button variant="outline" size="sm" onClick={exportZip} disabled={filtered.length === 0} className="gap-1.5">
             <Download className="w-3.5 h-3.5" /> Exportar ({filtered.length})
           </Button>
