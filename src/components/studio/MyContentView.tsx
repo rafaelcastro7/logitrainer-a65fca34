@@ -36,6 +36,9 @@ const MODULE_INFO: Record<string, { label: string; icon: any; color: string }> =
   funnel: { label: 'Funnel', icon: Target, color: 'text-orange-500' },
   calendar: { label: 'Calendario', icon: Calendar, color: 'text-teal-500' },
   agents: { label: 'AI Crew', icon: Bot, color: 'text-indigo-500' },
+  landing: { label: 'Landing', icon: Layout, color: 'text-cyan-500' },
+  offer: { label: 'Oferta', icon: Gem, color: 'text-fuchsia-500' },
+  webinar: { label: 'Webinar', icon: MonitorPlay, color: 'text-rose-500' },
 };
 
 export default function MyContentView() {
