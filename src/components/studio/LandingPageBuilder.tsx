@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 const LANDING_TEMPLATES = [
   { id: 'vsl', name: 'VSL / Webinar', desc: 'Video de venta con countdown y CTA', icon: '🎬' },
