@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ModelSelector from './ModelSelector';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 type WebinarType = 'perfect_webinar' | 'challenge' | 'masterclass' | 'demo';
 
@@ -33,6 +34,7 @@ export default function WebinarSimulator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const webinarStore = useGeneratedContent('webinar');
 
   const handleGenerate = async () => {
     if (!topic.trim()) return toast.error('Define el tema del webinar');
@@ -54,6 +56,13 @@ export default function WebinarSimulator() {
       setResult(data);
       setActiveSlide(0);
       toast.success('Script de webinar generado');
+      const md = typeof data === 'string' ? data : (data?.script || JSON.stringify(data, null, 2));
+      webinarStore.saveContent({
+        title: topic.slice(0, 80),
+        prompt: topic,
+        content: md,
+        metadata: { webinarType, product, price, audience, model },
+      });
     } catch (e: any) {
       toast.error(e.message || 'Error generando webinar');
     } finally {

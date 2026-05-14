@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FolderOpen, Search, Star, Trash2, Download, Filter, Calendar, BookOpen, Megaphone, Mail, Presentation, Target, Video, Magnet, Bot, Archive, FileText } from 'lucide-react';
+import { FolderOpen, Search, Star, Trash2, Download, Filter, Calendar, BookOpen, Megaphone, Mail, Presentation, Target, Video, Magnet, Bot, Archive, FileText, Pencil, Save, X, Sparkles, Copy, Layout, Gem, MonitorPlay } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { seedSampleContent } from '@/lib/sampleContent';
 
 interface ContentItem {
   id: string;
@@ -34,6 +36,9 @@ const MODULE_INFO: Record<string, { label: string; icon: any; color: string }> =
   funnel: { label: 'Funnel', icon: Target, color: 'text-orange-500' },
   calendar: { label: 'Calendario', icon: Calendar, color: 'text-teal-500' },
   agents: { label: 'AI Crew', icon: Bot, color: 'text-indigo-500' },
+  landing: { label: 'Landing', icon: Layout, color: 'text-cyan-500' },
+  offer: { label: 'Oferta', icon: Gem, color: 'text-fuchsia-500' },
+  webinar: { label: 'Webinar', icon: MonitorPlay, color: 'text-rose-500' },
 };
 
 export default function MyContentView() {
@@ -44,6 +49,62 @@ export default function MyContentView() {
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'title'>('date');
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [seeding, setSeeding] = useState(false);
+
+  const handleSeedSamples = async () => {
+    setSeeding(true);
+    const n = await seedSampleContent();
+    if (n > 0) await fetchAll();
+    setSeeding(false);
+  };
+
+  const startEdit = (item: ContentItem) => {
+    setSelectedItem(item);
+    setEditTitle(item.title);
+    setEditContent(item.content);
+    setEditing(true);
+  };
+
+  const saveEdit = async () => {
+    if (!selectedItem) return;
+    const { data, error } = await supabase
+      .from('generated_content')
+      .update({ title: editTitle, content: editContent, updated_at: new Date().toISOString() })
+      .eq('id', selectedItem.id)
+      .select()
+      .single();
+    if (error) { toast.error('Error: ' + error.message); return; }
+    const updated = { ...data, metadata: (data.metadata as Record<string, any>) ?? {} } as ContentItem;
+    setItems(prev => prev.map(i => i.id === updated.id ? updated : i));
+    setSelectedItem(updated);
+    setEditing(false);
+    toast.success('Cambios guardados ✅');
+  };
+
+  const reuseAsNew = async (item: ContentItem) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('generated_content')
+      .insert({
+        user_id: user.id,
+        module: item.module,
+        title: `${item.title} (copia)`,
+        prompt: item.prompt,
+        content: item.content,
+        metadata: { ...item.metadata, reusedFrom: item.id },
+      })
+      .select()
+      .single();
+    if (error) { toast.error('Error: ' + error.message); return; }
+    const newItem = { ...data, metadata: (data.metadata as Record<string, any>) ?? {} } as ContentItem;
+    setItems(prev => [newItem, ...prev]);
+    setSelectedItem(newItem);
+    toast.success('📋 Duplicado para reutilizar');
+  };
 
   const fetchAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -147,6 +208,9 @@ export default function MyContentView() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleSeedSamples} disabled={seeding} className="gap-1.5">
+            <Sparkles className="w-3.5 h-3.5" /> {seeding ? 'Cargando...' : 'Cargar muestras'}
+          </Button>
           <Button variant="outline" size="sm" onClick={exportZip} disabled={filtered.length === 0} className="gap-1.5">
             <Download className="w-3.5 h-3.5" /> Exportar ({filtered.length})
           </Button>
@@ -262,26 +326,57 @@ export default function MyContentView() {
           <div className="hidden lg:block w-[450px] shrink-0">
             <Card className="sticky top-4 max-h-[calc(100vh-200px)] flex flex-col">
               <div className="p-4 border-b border-border/30">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{selectedItem.title}</h3>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => {
-                      navigator.clipboard.writeText(selectedItem.content);
-                      toast.success('Copiado');
-                    }}>
-                      <FileText className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setSelectedItem(null)}>
-                      ✕
-                    </Button>
+                <div className="flex items-center justify-between gap-2">
+                  {editing ? (
+                    <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="h-7 text-sm font-semibold" />
+                  ) : (
+                    <h3 className="text-sm font-semibold text-foreground truncate flex-1">{selectedItem.title}</h3>
+                  )}
+                  <div className="flex gap-1 shrink-0">
+                    {editing ? (
+                      <>
+                        <Button variant="default" size="sm" className="h-7 px-2 gap-1 text-xs" onClick={saveEdit}>
+                          <Save className="w-3 h-3" /> Guardar
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditing(false)}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Editar" onClick={() => startEdit(selectedItem)}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Duplicar para reutilizar" onClick={() => reuseAsNew(selectedItem)}>
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Copiar al portapapeles" onClick={() => {
+                          navigator.clipboard.writeText(selectedItem.content);
+                          toast.success('Copiado');
+                        }}>
+                          <FileText className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setSelectedItem(null)}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1">{selectedItem.prompt}</p>
               </div>
               <ScrollArea className="flex-1 p-4">
-                <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedItem.content}</ReactMarkdown>
-                </div>
+                {editing ? (
+                  <Textarea
+                    value={editContent}
+                    onChange={e => setEditContent(e.target.value)}
+                    className="min-h-[400px] text-xs font-mono leading-relaxed"
+                  />
+                ) : (
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedItem.content}</ReactMarkdown>
+                  </div>
+                )}
               </ScrollArea>
             </Card>
           </div>

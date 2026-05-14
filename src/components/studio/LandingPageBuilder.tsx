@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 const LANDING_TEMPLATES = [
   { id: 'vsl', name: 'VSL / Webinar', desc: 'Video de venta con countdown y CTA', icon: '🎬' },
@@ -26,6 +27,7 @@ export default function LandingPageBuilder() {
   const [generatedHTML, setGeneratedHTML] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const landingStore = useGeneratedContent('landing');
 
   const handleGenerate = async () => {
     if (!productName.trim()) { toast.error('Ingresa el nombre del producto'); return; }
@@ -46,6 +48,12 @@ export default function LandingPageBuilder() {
       setGeneratedHTML(data.html);
       setPreviewMode(true);
       toast.success('🎯 Landing page generada');
+      landingStore.saveContent({
+        title: productName,
+        prompt: productDesc || productName,
+        content: data.html,
+        metadata: { template, targetAudience, format: 'html' },
+      });
     } catch (err) {
       console.error('Landing generation error:', err);
       toast.error(err instanceof Error ? err.message : 'Error generando landing');
