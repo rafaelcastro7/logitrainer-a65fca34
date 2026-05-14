@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FolderOpen, Search, Star, Trash2, Download, Filter, Calendar, BookOpen, Megaphone, Mail, Presentation, Target, Video, Magnet, Bot, Archive, FileText } from 'lucide-react';
+import { FolderOpen, Search, Star, Trash2, Download, Filter, Calendar, BookOpen, Megaphone, Mail, Presentation, Target, Video, Magnet, Bot, Archive, FileText, Pencil, Save, X, Sparkles, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { seedSampleContent } from '@/lib/sampleContent';
 
 interface ContentItem {
   id: string;
