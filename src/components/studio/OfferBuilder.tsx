@@ -74,14 +74,23 @@ Responde en JSON: { "offerName": "...", "headline": "...", "components": [{ "typ
         const parsed = JSON.parse(jsonMatch[1] || content);
         
         if (parsed.components) {
-          setComponents(parsed.components.map((c: any) => ({
+          const comps = parsed.components.map((c: any) => ({
             id: crypto.randomUUID(),
             type: c.type || 'bonus',
             name: c.name || '',
             value: c.value || '',
             description: c.description || '',
-          })));
-          toast.success(`💎 Oferta "${parsed.offerName || 'Grand Slam'}" generada`);
+          }));
+          setComponents(comps);
+          const offerName = parsed.offerName || 'Grand Slam';
+          toast.success(`💎 Oferta "${offerName}" generada`);
+          const md = `# ${offerName}\n\n**Headline:** ${parsed.headline || ''}\n\n${comps.map((c: any) => `## ${c.name} (${c.type})\nValor: ${c.value}\n\n${c.description}`).join('\n\n')}\n\n**Valor total:** ${parsed.totalValue || ''}\n**Precio:** ${parsed.price || currentPrice}`;
+          offerStore.saveContent({
+            title: offerName,
+            prompt: dreamOutcome,
+            content: md,
+            metadata: { audience, currentPrice, model, headline: parsed.headline },
+          });
         }
       } catch {
         toast.info('Oferta generada como texto');
