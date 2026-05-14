@@ -33,6 +33,7 @@ export default function OfferBuilder() {
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [model, setModel] = useState('google/gemini-2.5-pro');
+  const offerStore = useGeneratedContent('offer');
 
   const handleGenerate = async () => {
     if (!dreamOutcome.trim()) { toast.error('Describe el resultado soñado del cliente'); return; }
