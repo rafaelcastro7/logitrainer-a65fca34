@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import ModelSelector from './ModelSelector';
+import { useGeneratedContent } from '@/hooks/useGeneratedContent';
 
 interface OfferComponent {
   id: string;
