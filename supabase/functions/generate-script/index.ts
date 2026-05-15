@@ -148,9 +148,7 @@ Return this exact JSON structure:
       throw new Error("Failed to parse AI response as JSON");
     }
 
-    const data = { usage: {} as any };
-
-    const usage = data.usage || {};
+    const usage: any = {};
 
     return new Response(JSON.stringify({
       scenes: parsed.scenes || [],
