@@ -75,52 +75,86 @@ Return this exact JSON structure:
   ]
 }`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+    async function callAI(extraInstruction = ""): Promise<string> {
+      const sys = systemPrompt + (extraInstruction ? `\n\n${extraInstruction}` : "");
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: sys },
+            { role: "user", content: userPrompt },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (!r.ok) {
+        if (r.status === 429) throw new Error("RATE_LIMIT");
+        if (r.status === 402) throw new Error("CREDITS");
+        const t = await r.text();
+        console.error("AI gateway error:", r.status, t);
+        throw new Error(`AI gateway error: ${r.status}`);
+      }
+      const j = await r.json();
+      return j.choices?.[0]?.message?.content || "";
+    }
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) {
+    function tryParseJSON(content: string): any | null {
+      const tryIt = (s: string) => { try { return JSON.parse(s); } catch { return null; } };
+      const candidates: string[] = [];
+      const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (fenced) candidates.push(fenced[1].trim());
+      candidates.push(content.trim());
+      const a = content.indexOf("{"), b = content.lastIndexOf("}");
+      if (a !== -1 && b > a) candidates.push(content.slice(a, b + 1));
+      // Repair: value missing OPENING quote but has closing `",` at end of its line
+      // e.g. `"script": Con el tiempo, ... agradecerá!",`
+      let repaired = content.replace(
+        /("(?:script|image_prompt|name)"\s*:\s*)([^"\n\r\[\{][^"\n\r]*")(\s*[,}])/g,
+        (_m, key, val, end) => {
+          const inner = val.slice(0, -1).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+          return `${key}"${inner}"${end}`;
+        },
+      );
+      candidates.push(repaired);
+      const a2 = repaired.indexOf("{"), b2 = repaired.lastIndexOf("}");
+      if (a2 !== -1 && b2 > a2) candidates.push(repaired.slice(a2, b2 + 1));
+      for (const c of candidates) { const p = tryIt(c); if (p) return p; }
+      return null;
+    }
+
+    let content = "";
+    let parsed: any = null;
+    try {
+      content = await callAI();
+      parsed = tryParseJSON(content);
+      if (!parsed) {
+        console.warn("First parse failed, retrying with stricter prompt");
+        content = await callAI("CRITICAL: Respond with VALID JSON ONLY. Every string value MUST be wrapped in double quotes. No trailing commas. No commentary.");
+        parsed = tryParseJSON(content);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg === "RATE_LIMIT") {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait a moment and try again." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (status === 402) {
+      if (msg === "CREDITS") {
         return new Response(JSON.stringify({ error: "Credits exhausted. Please add credits in Settings → Workspace → Usage." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const text = await response.text();
-      console.error("AI gateway error:", status, text);
-      throw new Error(`AI gateway error: ${status}`);
+      throw err;
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
-
-    // Parse JSON from response (handle markdown code blocks)
-    let parsed;
-    try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      parsed = JSON.parse(jsonMatch[1].trim());
-    } catch {
-      console.error("Failed to parse AI response:", content);
+    if (!parsed) {
+      console.error("Failed to parse AI response after retry:", content);
       throw new Error("Failed to parse AI response as JSON");
     }
 
-    const usage = data.usage || {};
+    const usage: any = {};
 
     return new Response(JSON.stringify({
       scenes: parsed.scenes || [],
