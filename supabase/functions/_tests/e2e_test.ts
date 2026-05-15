@@ -172,15 +172,15 @@ Deno.test("E2E: full pipeline (script → enhance → image → tts)", async () 
   assertEquals(enhanceRes.status, 200);
   assert(enhanceRes.data.enhanced.length > 0);
 
-  // Step 3: generate the image from the scene's image_prompt
   const imageRes = await callFn("generate-image", { prompt: scene.image_prompt });
+  if (skipIfThrottled(imageRes, "pipeline:image")) return;
   assertEquals(imageRes.status, 200);
 
-  // Step 4: synthesize the enhanced narration
   const ttsRes = await callFn("generate-tts", {
     text: enhanceRes.data.enhanced.slice(0, 200),
     voice: "alloy",
     language: "es",
   });
+  if (skipIfThrottled(ttsRes, "pipeline:tts")) return;
   assertEquals(ttsRes.status, 200);
 });
