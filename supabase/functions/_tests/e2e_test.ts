@@ -12,7 +12,7 @@ if (!SUPABASE_URL || !ANON_KEY) {
 
 const FN_BASE = `${SUPABASE_URL}/functions/v1`;
 
-async function callFn(name: string, body: unknown): Promise<{ status: number; data: any }> {
+async function callFnRaw(name: string, body: unknown): Promise<{ status: number; data: any }> {
   const res = await fetch(`${FN_BASE}/${name}`, {
     method: "POST",
     headers: {
@@ -26,6 +26,26 @@ async function callFn(name: string, body: unknown): Promise<{ status: number; da
   let data: any;
   try { data = JSON.parse(text); } catch { data = text; }
   return { status: res.status, data };
+}
+
+// Retry with exponential backoff on 429/402 (Lovable AI quota throttling).
+async function callFn(name: string, body: unknown): Promise<{ status: number; data: any }> {
+  const delays = [0, 2000, 5000, 10000];
+  let last: { status: number; data: any } = { status: 0, data: null };
+  for (const d of delays) {
+    if (d) await new Promise((r) => setTimeout(r, d));
+    last = await callFnRaw(name, body);
+    if (last.status !== 429 && last.status !== 402) return last;
+  }
+  return last;
+}
+
+function skipIfThrottled(res: { status: number; data: any }, name: string): boolean {
+  if (res.status === 429 || res.status === 402) {
+    console.warn(`⚠️  Skipping ${name}: gateway throttled (status ${res.status})`);
+    return true;
+  }
+  return false;
 }
 
 // ── 1. generate-script ──────────────────────────────────────────────
