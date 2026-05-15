@@ -87,6 +87,7 @@ Return this exact JSON structure:
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
+        response_format: { type: "json_object" },
       }),
     });
 
@@ -110,12 +111,23 @@ Return this exact JSON structure:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from response (handle markdown code blocks)
-    let parsed;
-    try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      parsed = JSON.parse(jsonMatch[1].trim());
-    } catch {
+    // Parse JSON robustly: strip markdown fences, then locate the first {...} block.
+    let parsed: any = null;
+    const tryParse = (s: string) => { try { return JSON.parse(s); } catch { return null; } };
+    const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const candidates: string[] = [];
+    if (fenced) candidates.push(fenced[1].trim());
+    candidates.push(content.trim());
+    const firstBrace = content.indexOf("{");
+    const lastBrace = content.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      candidates.push(content.slice(firstBrace, lastBrace + 1));
+    }
+    for (const c of candidates) {
+      parsed = tryParse(c);
+      if (parsed) break;
+    }
+    if (!parsed) {
       console.error("Failed to parse AI response:", content);
       throw new Error("Failed to parse AI response as JSON");
     }
