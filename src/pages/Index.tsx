@@ -146,6 +146,13 @@ export default function Index() {
     toast.info(t.toastGenerating, { duration: 3000 });
 
     try {
+      // Get best route for script generation
+      const { getBestRoute } = await import('@/services/smartRouter');
+      const route = getBestRoute('script', routerPriority, connectedProviders);
+      
+      const localKey = (await getUserApiKeys())['local-ollama'];
+      const localEndpoint = localKey?.api_key || 'http://localhost:11434';
+
       const result = await generateScript({
         topic,
         language: project.meta.language,
@@ -153,10 +160,13 @@ export default function Index() {
         scenesCount: Math.floor(project.meta.durationTarget / project.meta.secondsPerScene),
         visualStyle: project.meta.visualStyle,
         modelTier: project.meta.modelTier,
+        provider: route?.providerId,
+        model: route?.modelId,
+        localEndpoint: route?.providerId === 'local-ollama' ? localEndpoint : undefined,
       });
 
       trackUsage({
-        provider: 'lovable-ai',
+        provider: route?.providerId || 'lovable-ai',
         model: result.usage.model,
         type: 'script',
         tokens: result.usage.total_tokens || result.usage.prompt_tokens + result.usage.completion_tokens,

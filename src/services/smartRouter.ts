@@ -59,7 +59,12 @@ const MODEL_DB: ModelMeta[] = [
   { providerId: 'perplexity', modelId: 'sonar-pro', capabilities: ['research'], cost: 5, speed: 6, quality: 9 },
   { providerId: 'perplexity', modelId: 'sonar', capabilities: ['research'], cost: 2, speed: 9, quality: 7 },
   // fal.ai
-  { providerId: 'fal', modelId: 'fal-ai/flux-pro/v1.1', capabilities: ['image'], cost: 4, speed: 6, quality: 9 },
+  { providerId: 'fal', modelId: 'fal-ai/minimax/video-01', capabilities: ['image'], cost: 4, speed: 6, quality: 9 },
+  // Local Ollama
+  { providerId: 'local-ollama', modelId: 'llama3', capabilities: ['script'], cost: 0, speed: 8, quality: 7 },
+  { providerId: 'local-ollama', modelId: 'mistral', capabilities: ['script'], cost: 0, speed: 8, quality: 7 },
+  { providerId: 'local-ollama', modelId: 'phi3', capabilities: ['script'], cost: 0, speed: 9, quality: 6 },
+  { providerId: 'local-ollama', modelId: 'custom', capabilities: ['script'], cost: 0, speed: 8, quality: 7 },
 ];
 
 const PRIORITY_WEIGHTS: Record<Priority, { cost: number; speed: number; quality: number }> = {

@@ -85,7 +85,20 @@ export async function generateScript(params: {
   scenesCount: number;
   visualStyle: string;
   modelTier: 'prototyping' | 'production';
+  provider?: string;
+  model?: string;
+  localEndpoint?: string;
 }): Promise<{ scenes: GeneratedScene[]; usage: ApiUsage }> {
+  if (params.provider === 'local-ollama' && params.localEndpoint) {
+    return generateScriptLocal({
+      topic: params.topic,
+      language: params.language,
+      scenesCount: params.scenesCount,
+      model: params.model || 'llama3',
+      endpoint: params.localEndpoint,
+    });
+  }
+
   const { data, error } = await supabase.functions.invoke('generate-script', {
     body: params,
   });
@@ -110,6 +123,59 @@ export async function generateImage(params: {
   if (error) throw new Error(error.message || 'Image generation failed');
   if (data?.error) throw new Error(data.error);
   return data;
+}
+
+export async function generateScriptLocal(params: {
+  topic: string;
+  language: string;
+  scenesCount: number;
+  model: string;
+  endpoint: string;
+}): Promise<{ scenes: GeneratedScene[]; usage: ApiUsage }> {
+  console.log('🤖 Generating script locally with:', params.model, 'at', params.endpoint);
+  
+  const response = await fetch(`${params.endpoint}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: params.model,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a video script generator. Output ONLY a valid JSON object with the following structure:
+          {
+            "scenes": [
+              { "name": "Scene Name", "script": "Narration text", "image_prompt": "Description for AI image generator", "duration": 8 }
+            ],
+            "usage": { "model": "${params.model}", "prompt_tokens": 0, "completion_tokens": 0 }
+          }
+          Generate ${params.scenesCount} scenes about the topic in ${params.language}.`
+        },
+        { role: 'user', content: params.topic }
+      ],
+      stream: false,
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Ollama error: ${response.statusText}`);
+  const data = await response.json();
+  const content = data.message?.content || '{}';
+  
+  try {
+    const parsed = JSON.parse(content.replace(/```json|```/g, ''));
+    return {
+      scenes: parsed.scenes || [],
+      usage: {
+        model: params.model,
+        prompt_tokens: data.prompt_eval_count || 0,
+        completion_tokens: data.eval_count || 0,
+        total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0),
+      }
+    };
+  } catch (e) {
+    console.error('Failed to parse local LLM response:', content);
+    throw new Error('Local LLM returned invalid format. Ensure it follows JSON instructions.');
+  }
 }
 
 // ==================== TTS Generation ====================
@@ -283,6 +349,24 @@ export const API_PROVIDERS: ApiProvider[] = [
     models: [
       { id: 'fal-ai/flux-pro/v1.1', name: 'Flux Pro v1.1', tier: 'production', speed: '🔥 Imágenes HD' },
       { id: 'fal-ai/minimax/video-01', name: 'MiniMax Video', tier: 'production', speed: '🎬 Video IA' },
+    ],
+  },
+  {
+    id: 'local-ollama',
+    name: 'Local Ollama',
+    description: 'Ejecuta modelos como Llama 3, Mistral o Phi-3 en tu propio hardware.',
+    capabilities: ['script_generation', 'text_analysis'],
+    status: 'available',
+    requiresKey: false,
+    icon: 'Cpu',
+    keyPlaceholder: 'http://localhost:11434',
+    docsUrl: 'https://ollama.com',
+    keyInstructions: 'Instala Ollama y asegúrate de que el servidor esté corriendo (OLLAMA_ORIGINS="*" ollama serve)',
+    models: [
+      { id: 'llama3', name: 'Llama 3 (Local)', tier: 'prototyping', speed: '💻 Hardware local' },
+      { id: 'mistral', name: 'Mistral (Local)', tier: 'prototyping', speed: '💻 Hardware local' },
+      { id: 'phi3', name: 'Phi-3 (Local)', tier: 'prototyping', speed: '💻 Hardware local' },
+      { id: 'custom', name: 'Custom Model', tier: 'prototyping', speed: '💻 Hardware local' },
     ],
   },
   {
