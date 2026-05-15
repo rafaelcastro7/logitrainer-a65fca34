@@ -108,16 +108,14 @@ Return this exact JSON structure:
       candidates.push(content.trim());
       const a = content.indexOf("{"), b = content.lastIndexOf("}");
       if (a !== -1 && b > a) candidates.push(content.slice(a, b + 1));
-      // Repair pass A: value missing OPENING quote but has closing quote on same line
-      // e.g. `"script": Some text...",`  →  `"script": "Some text...",`
+      // Repair: value missing OPENING quote but has closing `",` at end of its line
+      // e.g. `"script": Con el tiempo, ... agradecerá!",`
       let repaired = content.replace(
-        /("(?:script|image_prompt|name)"\s*:\s*)([^"\n\r\[\{][^\n\r]*?")(\s*[,}])/g,
-        (_m, key, val, end) => `${key}"${val.slice(0, -1).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"${end}`,
-      );
-      // Repair pass B: value missing BOTH quotes (unquoted single-line value)
-      repaired = repaired.replace(
-        /("(?:script|image_prompt|name)"\s*:\s*)([^"\n\r\[\{][^,\}\n\r]*?)(\s*[,}])/g,
-        (_m, key, val, end) => `${key}"${val.trim().replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"${end}`,
+        /("(?:script|image_prompt|name)"\s*:\s*)([^"\n\r\[\{][^"\n\r]*")(\s*[,}])/g,
+        (_m, key, val, end) => {
+          const inner = val.slice(0, -1).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+          return `${key}"${inner}"${end}`;
+        },
       );
       candidates.push(repaired);
       const a2 = repaired.indexOf("{"), b2 = repaired.lastIndexOf("}");
