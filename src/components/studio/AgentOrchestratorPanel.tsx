@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Bot, Brain, Search, PenTool, CheckCircle2, Palette, BarChart3, Play, Square, Trash2, Settings2, ChevronDown, ChevronUp, Sparkles, Loader2, Clock, Zap, Eye } from 'lucide-react';
+import { Bot, Brain, Search, PenTool, CheckCircle2, Palette, BarChart3, Play, Square, Trash2, Settings2, ChevronDown, ChevronUp, Sparkles, Loader2, Clock, Zap, Eye, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -50,7 +50,15 @@ interface OrchestratorTask {
   logs: AgentLog[];
 }
 
-export default function AgentOrchestratorPanel() {
+const VIDEO_INTENT = /\b(v[ií]deos?|reels?|shorts?|tiktok|youtube|guion|gui[oó]n|storyboard|escenas?)\b/i;
+
+export function buildVideoTopic(request: string, plan: string): string {
+  const trimmedPlan = plan.length > 6000 ? plan.slice(0, 6000) + '…' : plan;
+  return `Crea el video siguiendo fielmente este plan del equipo de agentes.\nPedido original: ${request}\n\nPLAN:\n${trimmedPlan}`;
+}
+
+export default function AgentOrchestratorPanel({ onSendToVideo }: { onSendToVideo?: (topic: string) => void } = {}) {
+  const sendToVideo = (request: string, plan: string) => onSendToVideo?.(buildVideoTopic(request, plan));
   const [prompt, setPrompt] = useState('');
   const [mode, setMode] = useState<'orchestrated' | 'pipeline' | 'simple'>('orchestrated');
   const [selectedAgent, setSelectedAgent] = useState('writer');
@@ -201,6 +209,11 @@ export default function AgentOrchestratorPanel() {
         content: fullOutput,
         metadata: { mode, agent: mode === 'simple' ? selectedAgent : undefined, pipeline: mode === 'pipeline' ? selectedPipeline : undefined },
       });
+      // Hand off video plans to Video Studio automatically
+      if (onSendToVideo && VIDEO_INTENT.test(prompt) && fullOutput.trim()) {
+        toast.info('🎬 Enviando el plan a Video Studio…');
+        sendToVideo(prompt.trim(), fullOutput);
+      }
     } catch (e: any) {
       if (e.name === 'AbortError') {
         setTasks(prev => prev.map(t =>
@@ -455,6 +468,15 @@ export default function AgentOrchestratorPanel() {
                   )}
                 </div>
               </div>
+
+              {activeTaskData.status === 'completed' && onSendToVideo && (
+                <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-primary/5">
+                  <span className="text-xs text-muted-foreground">¿Convertir este plan en un video?</span>
+                  <Button size="sm" className="gap-1.5" onClick={() => sendToVideo(activeTaskData.prompt, activeTaskData.output)}>
+                    <Film className="w-3.5 h-3.5" /> Crear video en Video Studio
+                  </Button>
+                </div>
+              )}
 
               {isRunning && (
                 <div className="px-3 py-1.5">

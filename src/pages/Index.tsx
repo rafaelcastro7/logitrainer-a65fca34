@@ -522,7 +522,7 @@ export default function Index() {
             {activeTab === 'webinar' && <WebinarSimulator />}
             {activeTab === 'research' && <ResearchAIPanel />}
             {activeTab === 'ai-chat' && <AIChatAssistant />}
-            {activeTab === 'agents' && <AgentOrchestratorPanel />}
+            {activeTab === 'agents' && <AgentOrchestratorPanel onSendToVideo={handleGenerate} />}
             {activeTab === 'my-content' && <MyContentView />}
             {activeTab === 'agent-analytics' && <AgentAnalyticsPanel />}
           </>
