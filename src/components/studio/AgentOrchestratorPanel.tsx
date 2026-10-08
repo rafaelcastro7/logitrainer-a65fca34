@@ -230,7 +230,7 @@ export default function AgentOrchestratorPanel({ onSendToVideo }: { onSendToVide
       setIsRunning(false);
       abortRef.current = null;
     }
-  }, [prompt, mode, selectedAgent, selectedPipeline, isRunning]);
+  }, [prompt, mode, selectedAgent, selectedPipeline, isRunning, onSendToVideo]);
 
   const stopExecution = () => {
     abortRef.current?.abort();
