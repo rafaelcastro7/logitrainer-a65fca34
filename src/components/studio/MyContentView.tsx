@@ -159,13 +159,14 @@ export default function MyContentView() {
 
   const toggleFavorite = async (id: string) => {
     const item = items.find(i => i.id === id);
-    if (!item) return;
+    if (!item || item.metadata?.isProject) return;
     const { error } = await supabase.from('generated_content').update({ is_favorite: !item.is_favorite }).eq('id', id);
     if (!error) setItems(prev => prev.map(i => i.id === id ? { ...i, is_favorite: !i.is_favorite } : i));
   };
 
   const deleteItem = async (id: string) => {
-    const { error } = await supabase.from('generated_content').delete().eq('id', id);
+    const target = items.find(i => i.id === id);
+    const { error } = await supabase.from(target?.metadata?.isProject ? 'projects' : 'generated_content').delete().eq('id', id);
     if (!error) {
       setItems(prev => prev.filter(i => i.id !== id));
       if (selectedItem?.id === id) setSelectedItem(null);
@@ -238,7 +239,7 @@ export default function MyContentView() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-2">
         {Object.entries(MODULE_INFO).map(([key, info]) => {
           const Icon = info.icon;
           const count = moduleCounts[key] || 0;
@@ -364,10 +365,10 @@ export default function MyContentView() {
                       </>
                     ) : (
                       <>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Editar" onClick={() => startEdit(selectedItem)}>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Editar" disabled={!!selectedItem.metadata?.isProject} onClick={() => startEdit(selectedItem)}>
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Duplicar para reutilizar" onClick={() => reuseAsNew(selectedItem)}>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Duplicar para reutilizar" disabled={!!selectedItem.metadata?.isProject} onClick={() => reuseAsNew(selectedItem)}>
                           <Copy className="w-3.5 h-3.5" />
                         </Button>
                         <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Copiar al portapapeles" onClick={() => {
