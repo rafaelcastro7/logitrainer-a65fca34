@@ -39,6 +39,9 @@ const MODULE_INFO: Record<string, { label: string; icon: any; color: string }> =
   landing: { label: 'Landing', icon: Layout, color: 'text-cyan-500' },
   offer: { label: 'Oferta', icon: Gem, color: 'text-fuchsia-500' },
   webinar: { label: 'Webinar', icon: MonitorPlay, color: 'text-rose-500' },
+  research: { label: 'Investigación', icon: Search, color: 'text-sky-500' },
+  chat: { label: 'Chat IA', icon: Sparkles, color: 'text-yellow-500' },
+  video: { label: 'Video', icon: Video, color: 'text-violet-500' },
 };
 
 export default function MyContentView() {
