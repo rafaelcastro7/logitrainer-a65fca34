@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useAIAgent } from '@/hooks/useAIAgent';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { supabase } from '@/integrations/supabase/client';
 
 const SUGGESTIONS = [
   { text: '🚀 Crea un funnel de ventas completo para mi producto', icon: '🚀' },
@@ -30,6 +31,26 @@ export default function AIChatAssistant() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const wasLoading = useRef(false);
+  useEffect(() => {
+    if (wasLoading.current && !isLoading) {
+      const last = messages[messages.length - 1];
+      const prevUser = [...messages].reverse().find(m => m.role === 'user');
+      if (last?.role === 'assistant' && last.content?.trim()) {
+        (async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          const q = prevUser?.content || '';
+          await supabase.from('generated_content').insert({
+            user_id: user.id, module: 'chat', title: `Chat: ${q.slice(0, 80) || 'Respuesta'}`,
+            prompt: q, content: last.content, metadata: {},
+          });
+        })();
+      }
+    }
+    wasLoading.current = isLoading;
+  }, [isLoading, messages]);
 
   useEffect(() => {
     if (open && !minimized && inputRef.current) {

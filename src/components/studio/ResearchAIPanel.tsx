@@ -49,6 +49,21 @@ export default function ResearchAIPanel() {
       if (error) throw error;
       setResult(data);
       toast.success('Investigación completada');
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && data) {
+          const md = [
+            data.summary ? `## Resumen Ejecutivo\n\n${data.summary}` : '',
+            data.findings?.length ? `## Hallazgos Clave\n\n${data.findings.map((f: any) => `- **${f.title}**: ${f.detail}${f.impact ? ` _(${f.impact})_` : ''}`).join('\n')}` : '',
+            data.recommendations?.length ? `## Recomendaciones\n\n${data.recommendations.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n')}` : '',
+            data.actionPlan ? `## Plan de Acción\n\n${data.actionPlan}` : '',
+          ].filter(Boolean).join('\n\n') || (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+          await supabase.from('generated_content').insert({
+            user_id: user.id, module: 'research', title: `Investigación: ${query.slice(0, 80)}`,
+            prompt: query, content: md, metadata: { researchType, niche, model },
+          });
+        }
+      } catch { /* non-blocking */ }
     } catch (e: any) {
       toast.error(e.message || 'Error en la investigación');
     } finally {

@@ -39,6 +39,9 @@ const MODULE_INFO: Record<string, { label: string; icon: any; color: string }> =
   landing: { label: 'Landing', icon: Layout, color: 'text-cyan-500' },
   offer: { label: 'Oferta', icon: Gem, color: 'text-fuchsia-500' },
   webinar: { label: 'Webinar', icon: MonitorPlay, color: 'text-rose-500' },
+  research: { label: 'Investigación', icon: Search, color: 'text-sky-500' },
+  chat: { label: 'Chat IA', icon: Sparkles, color: 'text-yellow-500' },
+  video: { label: 'Video', icon: Video, color: 'text-violet-500' },
 };
 
 export default function MyContentView() {
@@ -116,8 +119,25 @@ export default function MyContentView() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(200);
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('id,name,data,created_at,updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(100);
+    const videoItems: ContentItem[] = (projects || []).map((p: any) => {
+      const scenes: any[] = p.data?.scenes || [];
+      const content = `# ${p.name}\n\n${scenes.map((s, i) => `## Escena ${i + 1}${s.title ? `: ${s.title}` : ''}\n\n${s.narration || s.text || ''}`).join('\n\n') || '_Proyecto de video sin escenas_'}`;
+      return {
+        id: p.id, module: 'video', title: p.name, prompt: `${scenes.length} escenas · Video Studio`,
+        content, metadata: { isProject: true }, is_favorite: false,
+        created_at: p.created_at, updated_at: p.updated_at,
+      };
+    });
     if (!error && data) {
-      setItems(data.map(d => ({ ...d, metadata: (d.metadata as Record<string, any>) ?? {} })));
+      setItems([...data.map(d => ({ ...d, metadata: (d.metadata as Record<string, any>) ?? {} })), ...videoItems]);
+    } else {
+      setItems(videoItems);
     }
     setLoading(false);
   }, []);
@@ -139,13 +159,14 @@ export default function MyContentView() {
 
   const toggleFavorite = async (id: string) => {
     const item = items.find(i => i.id === id);
-    if (!item) return;
+    if (!item || item.metadata?.isProject) return;
     const { error } = await supabase.from('generated_content').update({ is_favorite: !item.is_favorite }).eq('id', id);
     if (!error) setItems(prev => prev.map(i => i.id === id ? { ...i, is_favorite: !i.is_favorite } : i));
   };
 
   const deleteItem = async (id: string) => {
-    const { error } = await supabase.from('generated_content').delete().eq('id', id);
+    const target = items.find(i => i.id === id);
+    const { error } = await supabase.from(target?.metadata?.isProject ? 'projects' : 'generated_content').delete().eq('id', id);
     if (!error) {
       setItems(prev => prev.filter(i => i.id !== id));
       if (selectedItem?.id === id) setSelectedItem(null);
@@ -218,7 +239,7 @@ export default function MyContentView() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-2">
         {Object.entries(MODULE_INFO).map(([key, info]) => {
           const Icon = info.icon;
           const count = moduleCounts[key] || 0;
@@ -344,10 +365,10 @@ export default function MyContentView() {
                       </>
                     ) : (
                       <>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Editar" onClick={() => startEdit(selectedItem)}>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Editar" disabled={!!selectedItem.metadata?.isProject} onClick={() => startEdit(selectedItem)}>
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Duplicar para reutilizar" onClick={() => reuseAsNew(selectedItem)}>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Duplicar para reutilizar" disabled={!!selectedItem.metadata?.isProject} onClick={() => reuseAsNew(selectedItem)}>
                           <Copy className="w-3.5 h-3.5" />
                         </Button>
                         <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Copiar al portapapeles" onClick={() => {
