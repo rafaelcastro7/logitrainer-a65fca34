@@ -119,8 +119,25 @@ export default function MyContentView() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(200);
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('id,name,data,created_at,updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(100);
+    const videoItems: ContentItem[] = (projects || []).map((p: any) => {
+      const scenes: any[] = p.data?.scenes || [];
+      const content = `# ${p.name}\n\n${scenes.map((s, i) => `## Escena ${i + 1}${s.title ? `: ${s.title}` : ''}\n\n${s.narration || s.text || ''}`).join('\n\n') || '_Proyecto de video sin escenas_'}`;
+      return {
+        id: p.id, module: 'video', title: p.name, prompt: `${scenes.length} escenas · Video Studio`,
+        content, metadata: { isProject: true }, is_favorite: false,
+        created_at: p.created_at, updated_at: p.updated_at,
+      };
+    });
     if (!error && data) {
-      setItems(data.map(d => ({ ...d, metadata: (d.metadata as Record<string, any>) ?? {} })));
+      setItems([...data.map(d => ({ ...d, metadata: (d.metadata as Record<string, any>) ?? {} })), ...videoItems]);
+    } else {
+      setItems(videoItems);
     }
     setLoading(false);
   }, []);
